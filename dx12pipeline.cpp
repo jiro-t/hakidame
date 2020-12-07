@@ -36,6 +36,24 @@ pipeline::~pipeline()
 {
 	for (auto& s : shader)
 		if (s) s->Release();
+
+	if (params)
+	{
+		delete[] params;
+		params = nullptr;
+	}
+
+	if (samplers)
+	{
+		delete[] samplers;
+		samplers = nullptr;
+	}
+
+	if (sampler_ranges)
+	{
+		delete[] sampler_ranges;
+		sampler_ranges = nullptr;
+	}
 }
 
 void pipeline::LoadShader(ShaderTypes type, std::wstring_view path, LPCSTR entryPoint)
@@ -69,55 +87,74 @@ void pipeline::LoadShader(ShaderTypes type, void* src, size_t src_size, LPCSTR e
 	putErrorMsg(error);
 }
 
+void pipeline::CreateSampler(
+	UINT count, 
+	D3D12_FILTER filter[], 
+	D3D12_TEXTURE_ADDRESS_MODE warp[])
+{
+	sampler_count = count;
+	samplers = new D3D12_STATIC_SAMPLER_DESC[sampler_count];
+	for (std::size_t i = 0; i < count; ++i)
+	{
+		ZeroMemory(samplers + i, sizeof(D3D12_STATIC_SAMPLER_DESC));
+
+		samplers[i].Filter = filter[i];
+		samplers[i].AddressU = warp[i];
+		samplers[i].AddressV = warp[i];
+		samplers[i].AddressW = warp[i];
+		samplers[i].MipLODBias = 0.0f;
+		samplers[i].MaxAnisotropy = 16;
+		samplers[i].ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
+		//samplers[i].BorderColor = D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK;
+		samplers[i].MinLOD = 0.0f;
+		samplers[i].MaxLOD = D3D12_FLOAT32_MAX;
+	}
+}
+
 void pipeline::Create(
 	D3D12_INPUT_ELEMENT_DESC* elementDescs,
 	UINT elemntCount,
+	UINT paramCount,
 	BOOL enableDepth,
-	//D3D12_ROOT_PARAMETER const& param,
 	D3D12_BLEND_DESC const& blendDesc,
 	D3D12_RASTERIZER_DESC const& rasterDesc) {
 
-	/*
-	range[0].NumDescriptors     = 1;
-	range[0].BaseShaderRegister = 0;
-	range[0].RangeType          = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-	range[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
-
-	root_parameters[1].ParameterType                = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-	root_parameters[1].ShaderVisibility             = D3D12_SHADER_VISIBILITY_ALL;
-	root_parameters[1].DescriptorTable.NumDescriptorRanges = 1;
-	root_parameters[1].DescriptorTable.pDescriptorRanges   = &range[0];
-
-	command_list->SetGraphicsRootDescriptorTable(1, dh_texture_->GetGPUDescriptorHandleForHeapStart());
-	*/
-	
 	// ルートパラメータの設定.
-	static D3D12_ROOT_PARAMETER param = {};
-	param.ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
-	param.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+	if (paramCount > 0)
+		params = new D3D12_ROOT_PARAMETER[paramCount];
+	if (sampler_count > 0)
+		sampler_ranges = new D3D12_DESCRIPTOR_RANGE[sampler_count];
 
-	/*
-	sampler_desc.Filter             = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
-	sampler_desc.AddressU           = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-	sampler_desc.AddressV           = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-	sampler_desc.AddressW           = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-	sampler_desc.MipLODBias         = 0.0f;
-	sampler_desc.MaxAnisotropy      = 16;
-	sampler_desc.ComparisonFunc     = D3D12_COMPARISON_FUNC_NEVER;
-	sampler_desc.BorderColor        = D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK;
-	sampler_desc.MinLOD             = 0.0f;
-	sampler_desc.MaxLOD             = D3D12_FLOAT32_MAX;
-	sampler_desc.ShaderRegister     = 0;
-	sampler_desc.RegisterSpace      = 0;
-	sampler_desc.ShaderVisibility   = D3D12_SHADER_VISIBILITY_ALL;
-	*/
+	for (std::size_t i = 0; i < sampler_count; ++i)
+	{
+		ZeroMemory(sampler_ranges + i, sizeof(D3D12_DESCRIPTOR_RANGE));
+		sampler_ranges[i].NumDescriptors = 1;
+		sampler_ranges[i].BaseShaderRegister = i;
+		sampler_ranges[i].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+		sampler_ranges[i].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+	}
+
+	for(std::size_t i = 0 ; i < paramCount;++i)
+	{
+		ZeroMemory(params+i, sizeof(D3D12_ROOT_PARAMETER));
+		params[i].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+		params[i].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+		if (sampler_count > 0)
+		{
+			params[i].DescriptorTable.NumDescriptorRanges = sampler_count;
+			params[i].DescriptorTable.pDescriptorRanges = sampler_ranges;
+		}
+
+		else
+			params[i].Descriptor.ShaderRegister = i;
+	}
 
 	//Create root signature
 	D3D12_ROOT_SIGNATURE_DESC rootSignatureDesc = {
-		.NumParameters = 1,
-		.pParameters = &param,
-		.NumStaticSamplers = 0,
-		.pStaticSamplers = nullptr,
+		.NumParameters = paramCount,
+		.pParameters = params,
+		.NumStaticSamplers = sampler_count,
+		.pStaticSamplers = samplers,
 		.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT 
 		| D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS
 		| D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS

@@ -56,7 +56,7 @@ public:
 			IID_PPV_ARGS(&buffer));
 	}
 
-	void Set(ID3D12GraphicsCommandList* cmdList,std::add_const_t<std::add_rvalue_reference_t<T>> data)
+	void Set(ID3D12GraphicsCommandList* cmdList,std::add_const_t<std::add_rvalue_reference_t<T>> data,UINT reg)
 	{
 		if (pDataBegin == nullptr)
 		{
@@ -72,7 +72,7 @@ public:
 		}
 		memcpy(pDataBegin, &data, sizeof(data));
 
-		cmdList->SetGraphicsRootConstantBufferView(0, buffer->GetGPUVirtualAddress());
+		cmdList->SetGraphicsRootConstantBufferView(reg, buffer->GetGPUVirtualAddress());
 	}
 };
 

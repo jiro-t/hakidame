@@ -7,101 +7,6 @@
 
 float local_time = 0.f;
 
-/*
-double SimpleMonteCarlo()
-{
-	double rangeMin = 0;
-	double rangeMax = 3.14159265359;
-
-	size_t numSamples = 10000;
-
-	std::random_device rd;
-	std::mt19937 mt(rd());
-	std::uniform_real_distribution<double> dist(rangeMin, rangeMax);
-
-	double ySum = 0.0;
-	for (size_t i = 1; i <= numSamples; ++i)
-	{
-		double x = dist(mt);
-		double y = sin(x)*sin(x);
-		ySum += y;
-	}
-	double yAverage = ySum / double(numSamples);
-
-	double width = rangeMax - rangeMin;
-	double height = yAverage;
-
-	return width * height;
-}
-double GeneralMonteCarlo()
-{
-	size_t numSamples = 10000;
-
-	std::random_device rd;
-	std::mt19937 mt(rd());
-	std::uniform_real_distribution<double> dist(0.0f, 1.0f);
-
-	auto InverseCDF = [](double x) -> double
-	{
-		return x * c_pi;
-	};
-
-	auto PDF = [](double x) -> double
-	{
-		return 1.0f / c_pi;
-	};
-
-	double estimateSum = 0.0;
-	for (size_t i = 1; i <= numSamples; ++i)
-	{
-		double rnd = dist(mt);
-		double x = InverseCDF(rnd);
-		double y = sin(x)*sin(x);
-		double pdf = PDF(x);
-		double estimate = y / pdf;
-
-		estimateSum += estimate;
-	}
-	double estimateAverage = estimateSum / double(numSamples);
-
-	return estimateAverage;
-}
-double ImportanceSampledMonteCarlo()
-{
-	size_t numSamples = 10000;
-
-	std::random_device rd;
-	std::mt19937 mt(rd());
-	std::uniform_real_distribution<double> dist(0.0, 1.0);
-
-	auto InverseCDF = [](double x) -> double
-	{
-		return 2.0 * asin(sqrt(x));
-	};
-
-	auto PDF = [](double x) -> double
-	{
-		return sin(x) / 2.0f;
-	};
-
-	double estimateSum = 0.0;
-	for (size_t i = 1; i <= numSamples; ++i)
-	{
-		double rng = dist(mt);
-		double x = InverseCDF(rng);
-		double y = sin(x)*sin(x);
-		double pdf = PDF(x);
-		double estimate = y / pdf;
-
-		estimateSum += estimate;
-	}
-	double estimateAverage = estimateSum / double(numSamples);
-
-	return estimateAverage;
-}
-*/
-
-//#include <DirectML.h>
 #include <Windows.h>
 
 //High res time
@@ -121,8 +26,11 @@ void update() {}
 
 char def_shader[] =
 "\
-cbuffer cbTansMatrix : register(b0){\
-float scale;\
+cbuffer cb1 : register(b0){\
+float s1;\
+};\
+cbuffer cb2 : register(b1){\
+float s2;\
 };\
 struct PSInput {\
 	float4	position : SV_POSITION;\
@@ -131,7 +39,7 @@ struct PSInput {\
 PSInput VSMain(float3 position : POSITION, float4 color : COLOR)\
 {\
 	PSInput	result;\
-	result.position = float4(position,1) + float4(scale,0,0,0);\
+	result.position = float4(position,1) + float4(s1,s2,0,0);\
 	result.color = color;\
 	return result;\
 }\
@@ -149,7 +57,7 @@ HRESULT create_pipeline(ino::d3d::pipeline& pipe)
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 	};
-	pipe.Create(elementDescs, 2, true);
+	pipe.Create(elementDescs, 2,2,true);
 	pipe.view = {
 		.Width = static_cast<FLOAT>(screen_width),
 		.Height = static_cast<FLOAT>(screen_height),
@@ -206,26 +114,28 @@ int main() {
 
 		std::mutex m;
 
-		//std::thread t1([&cmds, &pipe, &m]() {
-			//const FLOAT clearColor[] = { 0.4f, 0.6f, 0.9f, 1.0f };
+		std::thread t1([&cmds, &pipe, &m,&c1]() {
+			const FLOAT clearColor[] = { 0.4f, 0.6f, 0.9f, 1.0f };
 			m.lock();
 			cmds[0] = pipe[0].Begin();
-			c1.Set(cmds[0], sinf(local_time));
-			m.unlock();
+			//c1.Set(cmds[0], sinf(local_time));
 			pipe[0].Clear(clearColor);
 			//DrawPrimitive;
-			pipe[0].End();// }
-		//);
+			pipe[0].End(); 
+			m.unlock();
+			}
+		);
 
 		m.lock();
 		cmds[1] = pipe[1].Begin();
-		c1.Set(cmds[1],sinf(local_time));
-		m.unlock();
+		c1.Set(cmds[1],sinf(local_time),0);
+		c1.Set(cmds[1],sinf(local_time),1);
 		//DrawPrimitive;
 		vbo->Draw(cmds[1]);
 		pipe[1].End();
+		m.unlock();
 
-		//t1.join();
+		t1.join();
 
 		ino::d3d::flush(cmds, _countof(pipe));
 		Sleep(16);
