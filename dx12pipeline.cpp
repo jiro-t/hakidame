@@ -125,7 +125,7 @@ void pipeline::Create(
 	if (sampler_count > 0)
 		sampler_ranges = new D3D12_DESCRIPTOR_RANGE[sampler_count];
 
-	for (std::size_t i = 0; i < sampler_count; ++i)
+	for (UINT i = 0; i < sampler_count; ++i)
 	{
 		ZeroMemory(sampler_ranges + i, sizeof(D3D12_DESCRIPTOR_RANGE));
 		sampler_ranges[i].NumDescriptors = 1;
@@ -134,7 +134,7 @@ void pipeline::Create(
 		sampler_ranges[i].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 	}
 
-	for(std::size_t i = 0 ; i < paramCount;++i)
+	for(UINT i = 0 ; i < paramCount;++i)
 	{
 		ZeroMemory(params+i, sizeof(D3D12_ROOT_PARAMETER));
 		params[i].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;

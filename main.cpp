@@ -82,16 +82,20 @@ int main() {
 #endif
 		;
 	HWND hwnd = CreateWindow(L"edit", 0, wnd_flg, 0, 0, screen_width, screen_height, 0, 0, 0, 0);
-	printf("init=%d", ino::d3d::init(hwnd, true, screen_width, screen_height));
+	printf("init=%d\n", ino::d3d::init(hwnd, true, screen_width, screen_height));
+	std::cout << ino::d3d::CheckDXRSupport(ino::d3d::device);
 	//[[maybe_unused]] int a;
 
 	//setup pipeline
-	ino::d3d::cbo<float> c1;
+	ino::d3d::cbo<float> fCBO[4];
+
 	ino::d3d::pipeline pipe[2];
 	create_pipeline(pipe[0]);
 	create_pipeline(pipe[1]);
 
-	c1.Create();
+	for (auto& val : fCBO)
+		val.Create();
+
 	ID3D12GraphicsCommandList* cmds[_countof(pipe)] = {};
 	ino::d3d::vbo* vbo = new ino::d3d::vbo();
 	vbo->Create(g_Vertices, 3, 7 * sizeof(float), sizeof(g_Vertices));
@@ -110,26 +114,27 @@ int main() {
 
 		update();
 
-		const FLOAT clearColor[] = { 0.4f, 0.6f, 0.9f, 1.0f };
-
 		std::mutex m;
 
-		std::thread t1([&cmds, &pipe, &m,&c1]() {
-			const FLOAT clearColor[] = { 0.4f, 0.6f, 0.9f, 1.0f };
-			m.lock();
-			cmds[0] = pipe[0].Begin();
-			//c1.Set(cmds[0], sinf(local_time));
-			pipe[0].Clear(clearColor);
-			//DrawPrimitive;
-			pipe[0].End(); 
-			m.unlock();
+		std::thread t1([&cmds, &pipe,&vbo, &m,&fCBO]() {
+				const FLOAT clearColor[] = { 0.4f, 0.6f, 0.9f, 1.0f };
+				m.lock();
+				cmds[0] = pipe[0].Begin();
+				pipe[0].Clear(clearColor);
+				fCBO[0].Set(cmds[0], sinf(3.1415f - local_time), 0);
+				fCBO[1].Set(cmds[0], cosf(3.1415f - local_time), 1);
+				//DrawPrimitive;
+				vbo->Draw(cmds[0]);
+				pipe[0].End(); 
+				m.unlock();
 			}
 		);
 
+		const FLOAT clearColor[] = { 0.4f, 0.6f, 0.9f, 1.0f };
 		m.lock();
 		cmds[1] = pipe[1].Begin();
-		c1.Set(cmds[1],sinf(local_time),0);
-		c1.Set(cmds[1],sinf(local_time),1);
+		fCBO[2].Set(cmds[1],sinf(local_time),0);
+		fCBO[3].Set(cmds[1],cosf(local_time),1);
 		//DrawPrimitive;
 		vbo->Draw(cmds[1]);
 		pipe[1].End();

@@ -72,6 +72,9 @@ BOOL allowTearing = FALSE;
 ::Microsoft::WRL::ComPtr<ID3D12Device2> CreateDevice(::Microsoft::WRL::ComPtr<IDXGIAdapter4> adapter)
 {
 	::Microsoft::WRL::ComPtr<ID3D12Device2> d3d12Device2;
+
+	//UUID experimentalFeatures[] = { D3D12ExperimentalShaderModels,D3D12RaytracingPrototype };
+	//bool supportsDXR = D3D12EnableExperimentalFeatures(2, experimentalFeatures, NULL, NULL) == S_OK;
 	HRESULT hr = D3D12CreateDevice(adapter.Get(), D3D_FEATURE_LEVEL_12_1, IID_PPV_ARGS(&d3d12Device2));
 
 	// Enable debug messages in debug mode.
