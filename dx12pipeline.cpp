@@ -105,9 +105,12 @@ void pipeline::CreateSampler(
 		samplers[i].MipLODBias = 0.0f;
 		samplers[i].MaxAnisotropy = 16;
 		samplers[i].ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
-		//samplers[i].BorderColor = D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK;
+		samplers[i].BorderColor = D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK;
 		samplers[i].MinLOD = 0.0f;
 		samplers[i].MaxLOD = D3D12_FLOAT32_MAX;
+		samplers[i].ShaderRegister = i;
+		samplers[i].RegisterSpace = 0;
+		samplers[i].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
 	}
 }
 
@@ -119,9 +122,9 @@ void pipeline::Create(
 	D3D12_BLEND_DESC const& blendDesc,
 	D3D12_RASTERIZER_DESC const& rasterDesc) {
 
-	// ƒ‹[ƒgƒpƒ‰ƒ[ƒ^‚ÌÝ’è.
+	// ãƒ«ãƒ¼ãƒˆãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã®è¨­å®š.
 	if (paramCount > 0)
-		params = new D3D12_ROOT_PARAMETER[paramCount];
+		params = new D3D12_ROOT_PARAMETER[paramCount+sampler_count];
 	if (sampler_count > 0)
 		sampler_ranges = new D3D12_DESCRIPTOR_RANGE[sampler_count];
 
@@ -134,32 +137,32 @@ void pipeline::Create(
 		sampler_ranges[i].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 	}
 
-	for(UINT i = 0 ; i < paramCount;++i)
+	for(UINT i = 0 ; i < paramCount+sampler_count;++i)
 	{
 		ZeroMemory(params+i, sizeof(D3D12_ROOT_PARAMETER));
 		params[i].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
 		params[i].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
-		if (sampler_count > 0)
+		if ((INT)i - (INT)paramCount >= 0)
 		{
+			params[i].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
 			params[i].DescriptorTable.NumDescriptorRanges = sampler_count;
 			params[i].DescriptorTable.pDescriptorRanges = sampler_ranges;
 		}
-
 		else
 			params[i].Descriptor.ShaderRegister = i;
 	}
 
 	//Create root signature
 	D3D12_ROOT_SIGNATURE_DESC rootSignatureDesc = {
-		.NumParameters = paramCount,
+		.NumParameters = paramCount + sampler_count,
 		.pParameters = params,
 		.NumStaticSamplers = sampler_count,
 		.pStaticSamplers = samplers,
-		.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT 
-		| D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS
-		| D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS
-		| D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS
-		| D3D12_ROOT_SIGNATURE_FLAG_DENY_PIXEL_SHADER_ROOT_ACCESS,
+		.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT
+//		| D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS
+//		| D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS
+//		| D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS
+//		| D3D12_ROOT_SIGNATURE_FLAG_DENY_PIXEL_SHADER_ROOT_ACCESS,
 	};
 
 

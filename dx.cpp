@@ -1,4 +1,4 @@
-#include "dx.hpp"
+﻿#include "dx.hpp"
 
 namespace ino::d3d
 {
@@ -314,6 +314,7 @@ void flush(ID3D12GraphicsCommandList** commandLists, UINT pipe_count)
 		result = fence->SetEventOnCompletion(frameFenceValues[currentBackBufferIndex], fenceEvent);
 		::WaitForSingleObject(fenceEvent, timeout);
 	}
+	Sleep(10);
 	commandAllocators[currentBackBufferIndex]->Reset();
 }
 

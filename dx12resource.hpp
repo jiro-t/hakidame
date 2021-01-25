@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "dx.hpp"
 #include <algorithm>
@@ -80,7 +80,28 @@ class texture {
 	::Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> heap;
 	::Microsoft::WRL::ComPtr<ID3D12Resource> buffer;
 public:
-	void Create(std::size_t width,std::size_t height,void* ptr,std::size_t num_channel){
+	void Create(UINT width, UINT height){
+		D3D12_HEAP_PROPERTIES heapProp = {
+			.Type = D3D12_HEAP_TYPE_CUSTOM,
+			.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_WRITE_BACK,
+			.MemoryPoolPreference = D3D12_MEMORY_POOL_L0,
+			.CreationNodeMask = 0,
+			.VisibleNodeMask = 0
+		};
+
+		D3D12_RESOURCE_DESC descResource = {
+			.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D,
+			.Width = width,
+			.Height = height,
+			.DepthOrArraySize = 1,
+			.MipLevels = 1,
+			.Format = DXGI_FORMAT_B8G8R8A8_UNORM,
+			.SampleDesc = {.Count = 1,.Quality = 0 },
+			.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN
+		};
+
+		device->CreateCommittedResource(&heapProp, D3D12_HEAP_FLAG_NONE, &descResource, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&buffer));
+
 		D3D12_DESCRIPTOR_HEAP_DESC descriptor_heap_desc = {
 			.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
 			.NumDescriptors = 1,
@@ -106,31 +127,13 @@ public:
 
 	void Map(void* src, UINT width, UINT height, UINT num_channel = 4)
 	{
-		D3D12_HEAP_PROPERTIES heapProp = {
-			.Type = D3D12_HEAP_TYPE_CUSTOM,
-			.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_WRITE_BACK,
-			.MemoryPoolPreference = D3D12_MEMORY_POOL_L0,
-			.CreationNodeMask = 0,
-			.VisibleNodeMask = 0
-		};
-
-		D3D12_RESOURCE_DESC descResource = {
-			.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D,
-			.Width = width,
-			.Height = height,
-			.DepthOrArraySize = 1,
-			.MipLevels = 1,
-			.Format = DXGI_FORMAT_B8G8R8A8_UNORM,
-			.SampleDesc = {.Count = 1,.Quality = 0 },
-			.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN
-		};
-
-		device->CreateCommittedResource(&heapProp, D3D12_HEAP_FLAG_NONE, &descResource, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&buffer));
 		D3D12_BOX box = { 0, 0, 0, width, height, 1 };
-		buffer->WriteToSubresource(0, &box, src, num_channel * height, num_channel * width * height);
+		buffer->WriteToSubresource(0, &box, src, num_channel * width, num_channel * width * height);
 	}
 
 	void Set(ID3D12GraphicsCommandList* cmdList, UINT reg_id) {
+		ID3D12DescriptorHeap* heaps[] = { heap.Get() };
+		cmdList->SetDescriptorHeaps(_countof(heaps), heaps);
 		cmdList->SetGraphicsRootDescriptorTable(reg_id, heap->GetGPUDescriptorHandleForHeapStart());
 	}
 };
