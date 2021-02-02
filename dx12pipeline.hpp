@@ -2,6 +2,7 @@
 #define INO_DX_PIPELINE_INCLUDED
 
 #include "dx.hpp"
+#include "dx12resource.hpp"
 
 namespace ino::d3d {
 
@@ -70,7 +71,10 @@ class pipeline {
 	D3D12_DESCRIPTOR_RANGE* sampler_ranges = nullptr;
 	UINT sampler_count = 0;
 
+	D3D12_RESOURCE_BARRIER barrier = {};
+
 	LPCSTR constexpr getCstrShaderType(ShaderTypes type) const;
+	void resetCommand();
 public:
 	D3D12_VIEWPORT view = {};
 	D3D12_RECT scissor = {};
@@ -92,10 +96,10 @@ public:
 		D3D12_RASTERIZER_DESC const& rasterDesc = defaultRasterizerDesc());
 	::Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> const& Get();
 
+	ID3D12GraphicsCommandList* Begin(texture renderTarget, D3D12_VIEWPORT rtView, D3D12_RECT rtRect);
 	ID3D12GraphicsCommandList* Begin();
 	void Clear(FLOAT const clearColor[]);
 	void End();
-
 };
 
 }

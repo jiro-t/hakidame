@@ -41,18 +41,21 @@ pipeline::~pipeline()
 	{
 		delete[] params;
 		params = nullptr;
+		Sleep(20);
 	}
 
 	if (samplers)
 	{
 		delete[] samplers;
 		samplers = nullptr;
+		Sleep(20);
 	}
 
 	if (sampler_ranges)
 	{
 		delete[] sampler_ranges;
 		sampler_ranges = nullptr;
+		Sleep(20);
 	}
 }
 
@@ -179,13 +182,29 @@ void pipeline::Create(
 		.RasterizerState = rasterDesc,
 		.DepthStencilState = {
 			.DepthEnable = enableDepth ? TRUE : FALSE,
-			.DepthFunc = enableDepth ? D3D12_COMPARISON_FUNC_GREATER : D3D12_COMPARISON_FUNC_NEVER,
+			.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL,
+			.DepthFunc = enableDepth ? D3D12_COMPARISON_FUNC_LESS_EQUAL : D3D12_COMPARISON_FUNC_NEVER,
 			.StencilEnable = FALSE,
+			.StencilReadMask = D3D12_DEFAULT_STENCIL_READ_MASK,
+			.StencilWriteMask = D3D12_DEFAULT_STENCIL_WRITE_MASK,
+			.FrontFace = {
+				.StencilFailOp = D3D12_STENCIL_OP_KEEP,
+				.StencilDepthFailOp = D3D12_STENCIL_OP_KEEP,
+				.StencilPassOp = D3D12_STENCIL_OP_KEEP,
+				.StencilFunc = D3D12_COMPARISON_FUNC_ALWAYS
+			},
+			.BackFace = {
+				.StencilFailOp = D3D12_STENCIL_OP_KEEP,
+				.StencilDepthFailOp = D3D12_STENCIL_OP_KEEP,
+				.StencilPassOp = D3D12_STENCIL_OP_KEEP,
+				.StencilFunc = D3D12_COMPARISON_FUNC_ALWAYS
+			},
 		},
 		.InputLayout = { elementDescs, elemntCount },
 		.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE,
 		.NumRenderTargets = 1,
 		.RTVFormats = { DXGI_FORMAT_R8G8B8A8_UNORM,} ,
+		.DSVFormat = DXGI_FORMAT_D32_FLOAT,
 		.SampleDesc = {.Count = 1,},
 	};
 
@@ -208,7 +227,7 @@ void pipeline::Create(
 	return commandList;
 }
 
-ID3D12GraphicsCommandList* pipeline::Begin()
+void pipeline::resetCommand()
 {
 	if (commandList)
 	{
@@ -224,42 +243,55 @@ ID3D12GraphicsCommandList* pipeline::Begin()
 			pipelineState.Get(),
 			IID_PPV_ARGS(&commandList));
 	}
+}
 
+ID3D12GraphicsCommandList* pipeline::Begin(texture renderTarget,D3D12_VIEWPORT rtView,D3D12_RECT rtRect)
+{
+	resetCommand();
 	if (commandList == nullptr)
 		return nullptr;
 
 	HRESULT result = NULL;
-	auto backBuffer = renderTargets[currentBackBufferIndex];
 
-	D3D12_RESOURCE_BARRIER const clear_barrier = {
+	barrier = {
 		.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION,
 		.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE,
 		.Transition = {
-			.pResource = backBuffer.Get(),
+			.pResource = renderTarget.GetHundle().Get(),
 			.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES,
 			.StateBefore = D3D12_RESOURCE_STATE_PRESENT,
 			.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET,
 		},
 	};
+	commandList->ResourceBarrier(1, &barrier);
 
-	commandList->ResourceBarrier(1, &clear_barrier);
-
-	rtvHandle = D3D12_CPU_DESCRIPTOR_HANDLE(renderTargetDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
-	rtvHandle.ptr += renderTargetDescriptorSize * currentBackBufferIndex;
+#ifdef USE_STENCIL_BUFFER
+	D3D12_CPU_DESCRIPTOR_HANDLE scvHandle = D3D12_CPU_DESCRIPTOR_HANDLE(stencilBuffer.GetHeap()->GetCPUDescriptorHandleForHeapStart());
+#endif
+	rtvHandle = D3D12_CPU_DESCRIPTOR_HANDLE(renderTarget.GetCpuHeapHundle());
 
 	commandList->SetGraphicsRootSignature(rootSignature.Get());
+#ifdef USE_STENCIL_BUFFER
+	commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, &scvHandle);
+#else
 	commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
-	commandList->RSSetViewports(1, &view);
-	commandList->RSSetScissorRects(1, &scissor);
+#endif
+	commandList->RSSetViewports(1, &rtView);
+	commandList->RSSetScissorRects(1, &rtRect);
 
 	return commandList.Get();
+}
+
+ID3D12GraphicsCommandList* pipeline::Begin()
+{
+	return Begin(renderTargets[currentBackBufferIndex],view,scissor);
 }
 
 void pipeline::Clear(FLOAT const clearColor[])
 {
 	commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
 #ifdef USE_STENCIL_BUFFER
-	D3D12_CPU_DESCRIPTOR_HANDLE scvHandle = D3D12_CPU_DESCRIPTOR_HANDLE(stencilDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
+	D3D12_CPU_DESCRIPTOR_HANDLE scvHandle = D3D12_CPU_DESCRIPTOR_HANDLE(stencilBuffer.GetHeap()->GetCPUDescriptorHandleForHeapStart());
 	commandList->ClearDepthStencilView(scvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 #endif
 }
@@ -268,20 +300,9 @@ void pipeline::End()
 {
 	if (commandList == nullptr)
 		return;
-	auto backBuffer = renderTargets[currentBackBufferIndex];
-	// Present
-	D3D12_RESOURCE_BARRIER const present_barrier = {
-		.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION,
-		.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE,
-		.Transition = {
-			.pResource = backBuffer.Get(),
-			.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES,
-			.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET,
-			.StateAfter = D3D12_RESOURCE_STATE_PRESENT,
-		},
-	};
 
-	commandList->ResourceBarrier(1, &present_barrier);
+	std::swap(barrier.Transition.StateBefore, barrier.Transition.StateAfter);
+	commandList->ResourceBarrier(1, &barrier);
 	commandList->Close();
 }
 

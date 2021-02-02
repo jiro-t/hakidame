@@ -23,8 +23,8 @@ static float g_Vertices[3][7] = {
 };
 
 static float g_Vertices2[3][9] = {
-	{ 0.0f, 0.25f, 0.0f,/**/ 1.0f, 0.0f, 0.0f,1.0f,/**/0.f,0.f }, // 0
-	{ 0.25f, -0.25f, 0.0f,/**/ 0.0f, 1.0f, 0.0f,1.0f,/**/1.f,0.f }, // 1
+	{ 0.0f, 0.25f, 0.0f,/**/ 1.0f, 0.0f, 0.0f,1.0f,/**/0.5f,0.5f }, // 0
+	{ 0.25f, -0.25f, 0.0f,/**/ 0.0f, 1.0f, 0.0f,1.0f,/**/0.f,1.f }, // 1
 	{ -0.25f, -0.25f, 0.0f,/**/ 0.0f, 0.0f, 1.0f,1.0f,/**/1.f,1.f }, // 2
 };
 
@@ -115,7 +115,7 @@ HRESULT create_pipeline_textured(ino::d3d::pipeline& pipe)
 		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0,sizeof(float)*3+sizeof(float)*4, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 	};
 	D3D12_FILTER filter[] = { D3D12_FILTER::D3D12_FILTER_MIN_POINT_MAG_MIP_LINEAR };
-	D3D12_TEXTURE_ADDRESS_MODE warp[] = { D3D12_TEXTURE_ADDRESS_MODE::D3D12_TEXTURE_ADDRESS_MODE_BORDER };
+	D3D12_TEXTURE_ADDRESS_MODE warp[] = { D3D12_TEXTURE_ADDRESS_MODE::D3D12_TEXTURE_ADDRESS_MODE_CLAMP };
 	pipe.CreateSampler(1, filter, warp);
 
 	pipe.Create(elementDescs, 3, 2, true);

@@ -1,4 +1,5 @@
 ﻿#include "dx.hpp"
+#include "dx12resource.hpp"
 
 namespace ino::d3d
 {
@@ -8,16 +9,12 @@ namespace ino::d3d
 #endif
 ::Microsoft::WRL::ComPtr<IDXGISwapChain4> swapChain = nullptr;
 ::Microsoft::WRL::ComPtr<ID3D12Device2> device = nullptr;
-::Microsoft::WRL::ComPtr<ID3D12Resource> renderTargets[num_swap_buffers] = {};
+texture renderTargets[num_swap_buffers];
 ::Microsoft::WRL::ComPtr<ID3D12CommandAllocator> commandAllocators[num_swap_buffers] = {};
 UINT currentBackBufferIndex = 0;
 ::Microsoft::WRL::ComPtr<ID3D12CommandQueue> commandQueue = nullptr;
-::Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> renderTargetDescriptorHeap = nullptr;
-UINT renderTargetDescriptorSize = 0;
 #ifdef USE_STENCIL_BUFFER
-::Microsoft::WRL::ComPtr<ID3D12Resource> stencilBuffer;
-::Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> stencilDescriptorHeap;
-UINT stencilDescriptorSize;
+texture stencilBuffer;
 #endif
 
 
@@ -191,21 +188,18 @@ BOOL allowTearing = FALSE;
 
 void CreateRenderTargetViews(
 	::Microsoft::WRL::ComPtr<ID3D12Device2> device,
-	::Microsoft::WRL::ComPtr<IDXGISwapChain4> swapChain,
-	::Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> descriptorHeap)
+	::Microsoft::WRL::ComPtr<IDXGISwapChain4> swapChain)
 {
-	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle(descriptorHeap->GetCPUDescriptorHandleForHeapStart());
-
 	for (int i = 0; i < num_swap_buffers; ++i)
 	{
+		D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle(renderTargets[i].GetCpuHeapHundle());
+
 		::Microsoft::WRL::ComPtr<ID3D12Resource> backBuffer;
 
 		swapChain->GetBuffer(i, IID_PPV_ARGS(&backBuffer));
 		device->CreateRenderTargetView(backBuffer.Get(), nullptr, rtvHandle);
 
-		renderTargets[i] = backBuffer;
-
-		rtvHandle.ptr += renderTargetDescriptorSize;
+		renderTargets[i].GetHundle() = backBuffer;
 	}
 }
 
@@ -228,14 +222,13 @@ HRESULT init(HWND hwnd, bool useWarp, int width, int height)
 	swapChain = CreateSwapChain(hwnd, commandQueue, width, height, num_swap_buffers);
 	currentBackBufferIndex = swapChain->GetCurrentBackBufferIndex();
 
-	renderTargetDescriptorHeap = CreateDescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_RTV, num_swap_buffers);
-	renderTargetDescriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+	for (std::size_t i = 0; i < num_swap_buffers; ++i)
+		renderTargets[i].GetHeap() = CreateDescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_RTV, 1);
 
-	CreateRenderTargetViews(device, swapChain, renderTargetDescriptorHeap);
+	CreateRenderTargetViews(device, swapChain);
 #ifdef USE_STENCIL_BUFFER
 	//stencil buffer
-	stencilDescriptorHeap = CreateDescriptorHeap(device,D3D12_DESCRIPTOR_HEAP_TYPE_DSV,1);
-	stencilDescriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+	stencilBuffer.GetHeap() = CreateDescriptorHeap(device,D3D12_DESCRIPTOR_HEAP_TYPE_DSV,1);
 	D3D12_CLEAR_VALUE clearValue = { 
 		.Format = DXGI_FORMAT_D32_FLOAT,
 		.DepthStencil = { .Depth = 1.f,.Stencil = 0 }
@@ -254,7 +247,7 @@ HRESULT init(HWND hwnd, bool useWarp, int width, int height)
 		.Height = static_cast<UINT64>(height),
 		.DepthOrArraySize = 1,
 		.MipLevels = 0,
-		.Format = DXGI_FORMAT_D32_FLOAT,
+		.Format = DXGI_FORMAT_R32_TYPELESS,
 		.SampleDesc = {.Count = 1,.Quality = 0},
 		.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN,
 		.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL
@@ -266,7 +259,7 @@ HRESULT init(HWND hwnd, bool useWarp, int width, int height)
 		&desc,
 		D3D12_RESOURCE_STATE_DEPTH_WRITE,
 		&clearValue,
-		IID_PPV_ARGS(&stencilBuffer)
+		IID_PPV_ARGS(&stencilBuffer.GetHundle())
 	);
 
 	D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc = {
@@ -275,9 +268,9 @@ HRESULT init(HWND hwnd, bool useWarp, int width, int height)
 		.Flags = D3D12_DSV_FLAG_NONE
 	};
 	device->CreateDepthStencilView(
-		stencilBuffer.Get(),
+		stencilBuffer.GetHundle().Get(),
 		&dsvDesc,
-		stencilDescriptorHeap->GetCPUDescriptorHandleForHeapStart());
+		stencilBuffer.GetCpuHeapHundle());
 #endif
 
 	for (int i = 0; i < num_swap_buffers; ++i)
