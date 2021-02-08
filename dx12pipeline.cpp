@@ -1,4 +1,4 @@
-#include "dx12pipeline.hpp"
+﻿#include "dx12pipeline.hpp"
 
 namespace ino::d3d {
 
@@ -111,7 +111,7 @@ void pipeline::CreateSampler(
 		samplers[i].BorderColor = D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK;
 		samplers[i].MinLOD = 0.0f;
 		samplers[i].MaxLOD = D3D12_FLOAT32_MAX;
-		samplers[i].ShaderRegister = i;
+		samplers[i].ShaderRegister = static_cast<UINT>(i);
 		samplers[i].RegisterSpace = 0;
 		samplers[i].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
 	}

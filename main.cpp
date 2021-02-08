@@ -1,6 +1,7 @@
 ﻿#include "dx.hpp"
 #include "dx12pipeline.hpp"
 #include "dx12resource.hpp"
+#include "dx12raytrace.hpp"
 
 #include <thread>
 #include <mutex>

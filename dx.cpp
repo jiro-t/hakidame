@@ -10,7 +10,7 @@ namespace ino::d3d
 ::Microsoft::WRL::ComPtr<IDXGISwapChain4> swapChain = nullptr;
 ::Microsoft::WRL::ComPtr<ID3D12Device2> device = nullptr;
 texture renderTargets[num_swap_buffers];
-::Microsoft::WRL::ComPtr<ID3D12CommandAllocator> commandAllocators[num_swap_buffers] = {};
+::Microsoft::WRL::ComPtr<ID3D12CommandAllocator> commandAllocators[num_swap_buffers+1/*dxr allocator*/] = {};
 UINT currentBackBufferIndex = 0;
 ::Microsoft::WRL::ComPtr<ID3D12CommandQueue> commandQueue = nullptr;
 #ifdef USE_STENCIL_BUFFER
@@ -53,7 +53,7 @@ BOOL allowTearing = FALSE;
 
 			// is favored.
 			if ((dxgiAdapterDesc1.Flags & DXGI_ADAPTER_FLAG_SOFTWARE) == 0 &&
-				SUCCEEDED(D3D12CreateDevice(dxgiAdapter1.Get(), D3D_FEATURE_LEVEL_11_0, __uuidof(ID3D12Device), nullptr)) &&
+				SUCCEEDED(D3D12CreateDevice(dxgiAdapter1.Get(), D3D_FEATURE_LEVEL_12_0, __uuidof(ID3D12Device), nullptr)) &&
 
 				dxgiAdapterDesc1.DedicatedVideoMemory > maxDedicatedVideoMemory)
 			{
@@ -273,7 +273,7 @@ HRESULT init(HWND hwnd, bool useWarp, int width, int height)
 		stencilBuffer.GetCpuHeapHundle());
 #endif
 
-	for (int i = 0; i < num_swap_buffers; ++i)
+	for (int i = 0; i < num_swap_buffers+1; ++i)
 	{
 		//bit_cast<int>(a);
 		result = device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&commandAllocators[i]));

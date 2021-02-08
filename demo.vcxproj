@@ -150,6 +150,7 @@
   <ItemGroup>
     <ClInclude Include="dx.hpp" />
     <ClInclude Include="dx12pipeline.hpp" />
+    <ClInclude Include="dx12raytrace.hpp" />
     <ClInclude Include="dx12resource.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

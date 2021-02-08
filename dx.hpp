@@ -30,7 +30,7 @@ extern	::Microsoft::WRL::ComPtr<ID3D12Debug> d3dDebuger;
 #endif
 extern	::Microsoft::WRL::ComPtr<IDXGISwapChain4> swapChain;
 extern	::Microsoft::WRL::ComPtr<ID3D12Device2> device;
-extern	::Microsoft::WRL::ComPtr<ID3D12CommandAllocator> commandAllocators[num_swap_buffers];
+extern	::Microsoft::WRL::ComPtr<ID3D12CommandAllocator> commandAllocators[num_swap_buffers+1/*DXR Allocator*/];
 extern	UINT currentBackBufferIndex;
 extern	::Microsoft::WRL::ComPtr<ID3D12CommandQueue> commandQueue;
 extern texture renderTargets[num_swap_buffers];
@@ -89,11 +89,6 @@ inline bool CheckDXRSupport(::Microsoft::WRL::ComPtr<ID3D12Device2> device)
 	::Microsoft::WRL::ComPtr<ID3D12Device2> device,
 	D3D12_DESCRIPTOR_HEAP_TYPE type,
 	uint32_t numDescriptors);
-
-void CreateRenderTargetViews(
-	::Microsoft::WRL::ComPtr<ID3D12Device2> device,
-	::Microsoft::WRL::ComPtr<IDXGISwapChain4> swapChain,
-	::Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> descriptorHeap);
 
 enum class ShaderTypes {
 	VERTEX_SHADER,
