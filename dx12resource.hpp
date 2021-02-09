@@ -5,6 +5,11 @@
 
 namespace ino::d3d {
 
+::Microsoft::WRL::ComPtr<ID3D12Resource> CreateResource(
+	UINT64 bufferSize,
+	D3D12_RESOURCE_STATES initialResourceState = D3D12_RESOURCE_STATE_COMMON,
+	D3D12_RESOURCE_FLAGS Flags = D3D12_RESOURCE_FLAG_NONE);
+
 template<typename T>
 class cbo {
 	::Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> heap;
