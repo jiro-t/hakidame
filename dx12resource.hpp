@@ -59,7 +59,7 @@ public:
 			nullptr,
 			IID_PPV_ARGS(&buffer));
 	}
-	void Set(ID3D12GraphicsCommandList* cmdList, std::add_const_t<std::add_rvalue_reference_t<T>> data, UINT reg)
+	void Set(ID3D12GraphicsCommandList* cmdList, T data, UINT reg)
 	{
 		if (pDataBegin == nullptr)
 		{
@@ -98,7 +98,7 @@ class vbo {
 	UINT vert_count;
 
 public:
-	void Create(void* verts, UINT count, UINT stride, UINT byteSize);
+	void Create(void* verts, UINT stride, UINT byteSize);
 	void Draw(ID3D12GraphicsCommandList* cmdList) const;
 };
 

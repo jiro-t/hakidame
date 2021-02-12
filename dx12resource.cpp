@@ -2,6 +2,45 @@
 
 namespace ino::d3d {
 
+::Microsoft::WRL::ComPtr<ID3D12Resource> CreateResource(UINT64 bufferSize, D3D12_RESOURCE_STATES initialResourceState , D3D12_RESOURCE_FLAGS Flags)
+{
+	D3D12_HEAP_PROPERTIES heapProp = {
+		.Type = D3D12_HEAP_TYPE_DEFAULT,
+		.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN,
+		.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN,
+		.CreationNodeMask = 1,
+		.VisibleNodeMask = 1
+	};
+
+	D3D12_RESOURCE_DESC resourceDesc = {
+		.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER,
+		.Width = bufferSize,
+		.Height = 1,
+		.DepthOrArraySize = 1,
+		.MipLevels = 1,
+		.Format = DXGI_FORMAT_UNKNOWN,
+		.SampleDesc = {
+			.Count = 1,
+			.Quality = 0,
+		},
+		.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR,
+		.Flags = Flags
+	};
+
+	::Microsoft::WRL::ComPtr<ID3D12Resource> buffer;
+	HRESULT hr = device->CreateCommittedResource(
+		&heapProp,
+		D3D12_HEAP_FLAG_NONE,
+		&resourceDesc,
+		initialResourceState,
+		nullptr,
+		IID_PPV_ARGS(&buffer));
+	if (hr != S_OK)
+		return FALSE;
+
+	return buffer;
+}
+
 void texture::Create(UINT width, UINT height) {
 	D3D12_HEAP_PROPERTIES heapProp = {
 		.Type = D3D12_HEAP_TYPE_CUSTOM,
@@ -11,7 +50,7 @@ void texture::Create(UINT width, UINT height) {
 		.VisibleNodeMask = 0
 	};
 
-	D3D12_RESOURCE_DESC descResource = {
+	D3D12_RESOURCE_DESC resourceDesc = {
 		.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D,
 		.Width = width,
 		.Height = height,
@@ -22,7 +61,7 @@ void texture::Create(UINT width, UINT height) {
 		.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN
 	};
 
-	device->CreateCommittedResource(&heapProp, D3D12_HEAP_FLAG_NONE, &descResource, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&buffer));
+	device->CreateCommittedResource(&heapProp, D3D12_HEAP_FLAG_NONE, &resourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&buffer));
 
 	D3D12_DESCRIPTOR_HEAP_DESC descriptor_heap_desc = {
 		.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
@@ -59,7 +98,8 @@ void texture::Set(ID3D12GraphicsCommandList* cmdList, UINT reg_id) {
 	cmdList->SetGraphicsRootDescriptorTable(reg_id, heap->GetGPUDescriptorHandleForHeapStart());
 }
 
-void vbo::Create(void* verts, UINT count, UINT stride, UINT byteSize) {
+void vbo::Create(void* verts, UINT stride, UINT byteSize) {
+
 	D3D12_HEAP_PROPERTIES prop = {
 		.Type = D3D12_HEAP_TYPE_UPLOAD,
 		.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN,
@@ -90,6 +130,7 @@ void vbo::Create(void* verts, UINT count, UINT stride, UINT byteSize) {
 		nullptr,
 		IID_PPV_ARGS(&buffer)
 	);
+	//buffer = CreateResource(byteSize,D3D12_RESOURCE_STATE_GENERIC_READ);
 
 	UINT8* pVertexDataBegin;
 	D3D12_RANGE readRange;// We do not intend to read from this resource on the CPU.
@@ -103,14 +144,14 @@ void vbo::Create(void* verts, UINT count, UINT stride, UINT byteSize) {
 	view.BufferLocation = buffer->GetGPUVirtualAddress();
 	view.StrideInBytes = stride;
 	view.SizeInBytes = byteSize;
-	vert_count = count;
+	vert_count = byteSize / (stride);
 }
 
 void vbo::Draw(ID3D12GraphicsCommandList* cmdList) const
 {
 	cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	cmdList->IASetVertexBuffers(0, 1, &view);
-	cmdList->DrawInstanced(3, vert_count / 3, 0, 0);
+	cmdList->DrawInstanced(vert_count, 1, 0, 0);
 }
 
 }

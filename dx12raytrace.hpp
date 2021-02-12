@@ -164,23 +164,30 @@ BOOL InitDXRDevice()
     // Global Root Signature
     // This is a root signature that is shared across all raytracing shaders invoked during a DispatchRays() call.
     {
-        CD3DX12_DESCRIPTOR_RANGE UAVDescriptor;
-        UAVDescriptor.Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0);
-        CD3DX12_ROOT_PARAMETER rootParameters[GlobalRootSignatureParams::Count];
-        rootParameters[GlobalRootSignatureParams::OutputViewSlot].InitAsDescriptorTable(1, &UAVDescriptor);
-        rootParameters[GlobalRootSignatureParams::AccelerationStructureSlot].InitAsShaderResourceView(0);
-        CD3DX12_ROOT_SIGNATURE_DESC globalRootSignatureDesc(ARRAYSIZE(rootParameters), rootParameters);
-        SerializeAndCreateRaytracingRootSignature(globalRootSignatureDesc, &m_raytracingGlobalRootSignature);
+        D3D12_DESCRIPTOR_RANGE range;
+        range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
+        range.NumDescriptors = 1;
+        range.BaseShaderRegister = 0;
+        range.RegisterSpace = 0;
+        range.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+
+        //CD3DX12_DESCRIPTOR_RANGE UAVDescriptor;
+        //UAVDescriptor.Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0);
+//        CD3DX12_ROOT_PARAMETER rootParameters[GlobalRootSignatureParams::Count];
+//        rootParameters[GlobalRootSignatureParams::OutputViewSlot].InitAsDescriptorTable(1, &UAVDescriptor);
+//        rootParameters[GlobalRootSignatureParams::AccelerationStructureSlot].InitAsShaderResourceView(0);
+//        CD3DX12_ROOT_SIGNATURE_DESC globalRootSignatureDesc(ARRAYSIZE(rootParameters), rootParameters);
+//        SerializeAndCreateRaytracingRootSignature(globalRootSignatureDesc, &m_raytracingGlobalRootSignature);
     }
 
     // Local Root Signature
     // This is a root signature that enables a shader to have unique arguments that come from shader tables.
     {
-        CD3DX12_ROOT_PARAMETER rootParameters[LocalRootSignatureParams::Count];
-        rootParameters[LocalRootSignatureParams::ViewportConstantSlot].InitAsConstants(SizeOfInUint32(m_rayGenCB), 0, 0);
-        CD3DX12_ROOT_SIGNATURE_DESC localRootSignatureDesc(ARRAYSIZE(rootParameters), rootParameters);
-        localRootSignatureDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_LOCAL_ROOT_SIGNATURE;
-        SerializeAndCreateRaytracingRootSignature(localRootSignatureDesc, &m_raytracingLocalRootSignature);
+//        CD3DX12_ROOT_PARAMETER rootParameters[LocalRootSignatureParams::Count];
+//        rootParameters[LocalRootSignatureParams::ViewportConstantSlot].InitAsConstants(SizeOfInUint32(m_rayGenCB), 0, 0);
+//        CD3DX12_ROOT_SIGNATURE_DESC localRootSignatureDesc(ARRAYSIZE(rootParameters), rootParameters);
+//        localRootSignatureDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_LOCAL_ROOT_SIGNATURE;
+//        SerializeAndCreateRaytracingRootSignature(localRootSignatureDesc, &m_raytracingLocalRootSignature);
     }
     // Create a raytracing pipeline state object which defines the binding of shaders, state and resources to be used during raytracing.
 //    CreateRaytracingPipelineStateObject();
