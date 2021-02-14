@@ -247,7 +247,7 @@ HRESULT init(HWND hwnd, bool useWarp, int width, int height)
 		.Height = static_cast<UINT64>(height),
 		.DepthOrArraySize = 1,
 		.MipLevels = 0,
-		.Format = DXGI_FORMAT_R32_TYPELESS,
+		.Format = DXGI_FORMAT_D32_FLOAT,
 		.SampleDesc = {.Count = 1,.Quality = 0},
 		.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN,
 		.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL

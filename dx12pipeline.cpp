@@ -266,16 +266,17 @@ ID3D12GraphicsCommandList* pipeline::Begin(texture renderTarget,D3D12_VIEWPORT r
 	commandList->ResourceBarrier(1, &barrier);
 
 #ifdef USE_STENCIL_BUFFER
-	D3D12_CPU_DESCRIPTOR_HANDLE scvHandle = D3D12_CPU_DESCRIPTOR_HANDLE(stencilBuffer.GetHeap()->GetCPUDescriptorHandleForHeapStart());
+	D3D12_CPU_DESCRIPTOR_HANDLE scvHandle = D3D12_CPU_DESCRIPTOR_HANDLE(stencilBuffer.GetCpuHeapHundle());
 #endif
 	rtvHandle = D3D12_CPU_DESCRIPTOR_HANDLE(renderTarget.GetCpuHeapHundle());
 
-	commandList->SetGraphicsRootSignature(rootSignature.Get());
 #ifdef USE_STENCIL_BUFFER
 	commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, &scvHandle);
 #else
 	commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
 #endif
+
+	commandList->SetGraphicsRootSignature(rootSignature.Get());
 	commandList->RSSetViewports(1, &rtView);
 	commandList->RSSetScissorRects(1, &rtRect);
 
@@ -291,7 +292,7 @@ void pipeline::Clear(FLOAT const clearColor[])
 {
 	commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
 #ifdef USE_STENCIL_BUFFER
-	D3D12_CPU_DESCRIPTOR_HANDLE scvHandle = D3D12_CPU_DESCRIPTOR_HANDLE(stencilBuffer.GetHeap()->GetCPUDescriptorHandleForHeapStart());
+	D3D12_CPU_DESCRIPTOR_HANDLE scvHandle = D3D12_CPU_DESCRIPTOR_HANDLE(stencilBuffer.GetCpuHeapHundle());
 	commandList->ClearDepthStencilView(scvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 #endif
 }

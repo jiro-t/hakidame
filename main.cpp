@@ -65,43 +65,79 @@ DX::XMVECTOR cornelBox[] = {
 	DX::XMVectorSet(556.0f, 548.8f, 559.2f,1),DX::XMVectorSet(1.0f,0,0,1.0f),
 	DX::XMVectorSet(556.0f, 548.8f, 559.2f,1),DX::XMVectorSet(1.0f,0,0,1.0f),
 	DX::XMVectorSet(556.0f, 548.8f, 0,1),DX::XMVectorSet(1.0f,0,0,1.0f),
-	DX::XMVectorSet(552.8f, 0, 0, 1),DX::XMVectorSet(1.0f,0,0,1.0f)
+	DX::XMVectorSet(552.8f, 0, 0, 1),DX::XMVectorSet(1.0f,0,0,1.0f),
+	//rectangle - 1-1
+	DX::XMVectorSet(130.0f, 165.0f,  65.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(82.0f,  165.0f, 225.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(240.0f, 165.0f, 272.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(240.0f, 165.0f, 272.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(290.0f, 165.0f, 114.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(130.0f, 165.0f,  65.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	//rectangle - 1-2
+	DX::XMVectorSet(290.0f,   0, 114.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(290.0f, 165.0f, 114.0,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(240.0f, 165.0f, 272.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(240.0f, 165.0f, 272.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(240.0f, 0, 272.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(290.0f,   0, 114.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	//rectangle - 1-3
+	DX::XMVectorSet(130.0f, 0, 65.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(130.0f, 165.0f, 65.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(290.0f, 165.0f, 114.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(290.0f, 165.0f, 114.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(290.0f, 0, 114.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(130.0f, 0, 65.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	//rectangle - 1-4
+	DX::XMVectorSet(82.0f, 0, 225.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(82.0f, 165.0f, 225.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(130.0f, 165.0f, 65.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(130.0f, 165.0f, 65.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(130.0f,  0, 65.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(82.0f, 0, 225.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	//rectangle - 1-5
+	DX::XMVectorSet(240.0f, 0, 272.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(240.0f, 165.0f, 272.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(82.0f, 165.0f, 225.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(82.0f, 165.0f, 225.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(82.0f, 0, 225.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(240.0f, 0, 272.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+
+	//rectangle - 2-1
+	DX::XMVectorSet(423.0f, 330.0f, 247.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(265.0f, 330.0f, 296.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(314.0f, 330.0f, 456.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(314.0f, 330.0f, 456.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(472.0f, 330.0f, 406.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(423.0f, 330.0f, 247.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	//rectangle - 2-2
+	DX::XMVectorSet(423.0f, 0, 247.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(423.0f, 330.0f, 247.0,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(472.0f, 330.0f, 406.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(472.0f, 330.0f, 406.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(472.0f, 0, 406.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(423.0f, 0, 247.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	//rectangle - 2-3
+	DX::XMVectorSet(472.0f, 0, 406.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(472.0f, 330.0f, 406.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(314.0f, 330.0f, 456.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(314.0f, 330.0f, 456.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(314.0f, 0, 456.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(472.0f, 0, 406.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	//rectangle - 2-4
+	DX::XMVectorSet(314.0f, 0, 456.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(314.0f, 330.0f, 456.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(265.0f, 330.0f, 296.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(265.0f, 330.0f, 296.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(265.0f, 0, 296.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(314.0f, 0, 456.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	//rectangle - 2-5
+	DX::XMVectorSet(265.0f, 0, 296.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(265.0f, 330.0f, 296.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(423.0f, 330.0f, 247.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(423.0f, 330.0f, 247.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(423.0f, 0, 247.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(265.0f, 0, 296.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 };
-/*
-	short_block(Block(std::vector<Rectangle>{
-		Rectangle(std::vector<glm::vec3>{
-				glm::vec3(130.0f, 165.0f,  65.0f), glm::vec3(82.0f, 165.0f, 225.0f),
-				glm::vec3(240.0f, 165.0f, 272.0f), glm::vec3(290.0f, 165.0f, 114.0f)}, glm::vec3(1.0f, 1.0f, 1.0f)),
-		Rectangle(std::vector<glm::vec3>{
-				glm::vec3(290.0f,   0, 114.0f), glm::vec3(290.0f, 165.0f, 114.0f),
-				glm::vec3(240.0f, 165.0f, 272.0f), glm::vec3(240.0f, 0, 272.0f)}, glm::vec3(1.0f, 1.0f, 1.0f)),
-		Rectangle(std::vector<glm::vec3>{
-				glm::vec3(130.0f, 0, 65.0f), glm::vec3(130.0f, 165.0f, 65.0f),
-				glm::vec3(290.0f, 165.0f, 114.0f), glm::vec3(290.0f, 0, 114.0f)}, glm::vec3(1.0f, 1.0f, 1.0f)),
-		Rectangle(std::vector<glm::vec3>{
-				glm::vec3(82.0f, 0, 225.0f), glm::vec3(82.0f, 165.0f, 225.0f),
-				glm::vec3(130.0f, 165.0f, 65.0f), glm::vec3(130.0f,  0, 65.0f)}, glm::vec3(1.0f, 1.0f, 1.0f)),
-		Rectangle(std::vector<glm::vec3>{
-				glm::vec3(240.0f, 0, 272.0f), glm::vec3(240.0f, 165.0f, 272.0f),
-				glm::vec3(82.0f, 165.0f, 225.0f), glm::vec3(82.0f, 0, 225.0f)}, glm::vec3(1.0f, 1.0f, 1.0f))
-		})),
-	tall_block(Block(std::vector<Rectangle>{
-		Rectangle(std::vector<glm::vec3>{
-				glm::vec3(423.0f, 330.0f, 247.0f), glm::vec3(265.0f, 330.0f, 296.0f),
-				glm::vec3(314.0f, 330.0f, 456.0f), glm::vec3(472.0f, 330.0f, 406.0f)}, glm::vec3(1.0f, 1.0f, 1.0f)),
-		Rectangle(std::vector<glm::vec3>{
-				glm::vec3(423.0f, 0, 247.0f), glm::vec3(423.0f, 330.0f, 247.0f),
-				glm::vec3(472.0f, 330.0f, 406.0f), glm::vec3(472.0f, 0, 406.0f)}, glm::vec3(1.0f, 1.0f, 1.0f)),
-		Rectangle(std::vector<glm::vec3>{
-				glm::vec3(472.0f, 0, 406.0f), glm::vec3(472.0f, 330.0f, 406.0f),
-				glm::vec3(314.0f, 330.0f, 456.0f), glm::vec3(314.0f, 0, 456.0f)}, glm::vec3(1.0f, 1.0f, 1.0f)),
-		Rectangle(std::vector<glm::vec3>{
-				glm::vec3(314.0f, 0, 456.0f), glm::vec3(314.0f, 330.0f, 456.0f),
-				glm::vec3(265.0f, 330.0f, 296.0f), glm::vec3(265.0f, 0, 296.0f)}, glm::vec3(1.0f, 1.0f, 1.0f)),
-		Rectangle(std::vector<glm::vec3>{
-				glm::vec3(265.0f, 0, 296.0f), glm::vec3(265.0f, 330.0f, 296.0f),
-				glm::vec3(423.0f, 330.0f, 247.0f), glm::vec3(423.0f, 0, 247.0f)}, glm::vec3(1.0f, 1.0f, 1.0f))
-*/
 
 char def_shader[] =
 "\
@@ -233,6 +269,14 @@ int main() {
 	create_pipeline(pipe[0]);
 	create_pipeline_textured(pipe[1]);
 
+	BOOL useDXR = FALSE;
+	if (ino::d3d::CheckDXRSupport(ino::d3d::device))
+	{
+		useDXR = ino::d3d::InitDXRDevice();
+	}
+
+	//resource
+
 	mvpCBO.Create();
 	for (auto& val : fCBO)
 		val.Create();
@@ -251,6 +295,7 @@ int main() {
 	tex.Create(4,4);
 	tex.Map(texData,4,4, 4);
 	DWORD time_o = ::timeGetTime();
+	float rot = 0.0f;
 	srand(0);
 	do {
 		MSG msg;
@@ -266,7 +311,8 @@ int main() {
 
 		//std::thread t1([&cmds, &pipe,&vboCornelBox, &m,&mvpCBO]() {
 			auto model = DX::XMMatrixIdentity();
-			auto view = DX::XMMatrixLookAtLH(DX::XMVectorSet(-3, 10, -10, 0), DX::XMVectorSet(0, 0, 0, 0),DX::XMVectorSet(0,1,0,0));
+			rot += 0.01f;
+			auto view = DX::XMMatrixLookAtLH(DX::XMVectorSet(cos(rot)*13, 3, sin(rot)*13, 0), DX::XMVectorSet(0, 1.5, 0, 0),DX::XMVectorSet(0,1,0,0));
 			auto projection = DX::XMMatrixPerspectiveFovLH(DX::XMConvertToRadians(60), screen_width / (float)screen_height, 0.01f, 100.f);
 			//DX::XMMATRIX mvp = model * view * projection;
 			DX::XMFLOAT4X4 Mat;
@@ -298,14 +344,14 @@ int main() {
 		//t1.join();
 
 		ino::d3d::flush(cmds, _countof(pipe));
-		Sleep(16);
 	} while (!GetAsyncKeyState(VK_ESCAPE));//&& local_time < 144.83f);
-
+	
+	Sleep(500);
 	delete vbo;
 	delete vbo2;
 	delete vboCornelBox;
 
-	Sleep(20);
+	
 	ino::d3d::release();
 	return 0;
 }
