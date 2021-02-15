@@ -253,7 +253,7 @@ HRESULT init(HWND hwnd, bool useWarp, int width, int height)
 		.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL
 	};
 
-	device->CreateCommittedResource(
+	result = device->CreateCommittedResource(
 		&prop,
 		D3D12_HEAP_FLAG_NONE,
 		&desc,
@@ -275,7 +275,6 @@ HRESULT init(HWND hwnd, bool useWarp, int width, int height)
 
 	for (int i = 0; i < num_swap_buffers+1; ++i)
 	{
-		//bit_cast<int>(a);
 		result = device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&commandAllocators[i]));
 		if (!SUCCEEDED(result))return result;
 	}
@@ -297,9 +296,7 @@ void flush(ID3D12GraphicsCommandList** commandLists, UINT pipe_count)
 	UINT presentFlags = 0;// allowTearing ? DXGI_PRESENT_ALLOW_TEARING : 0;
 
 	result = swapChain->Present(syncInterval, presentFlags);
-
 	currentBackBufferIndex = swapChain->GetCurrentBackBufferIndex();
-
 	//wait
 	static const DWORD timeout = 10000;
 	if (fence->GetCompletedValue() < frameFenceValues[currentBackBufferIndex])
@@ -307,7 +304,10 @@ void flush(ID3D12GraphicsCommandList** commandLists, UINT pipe_count)
 		result = fence->SetEventOnCompletion(frameFenceValues[currentBackBufferIndex], fenceEvent);
 		::WaitForSingleObject(fenceEvent, timeout);
 	}
-	Sleep(10);
+	static DWORD timeBefore = timeGetTime();
+	DWORD timeDiff = timeGetTime() - timeBefore;
+	Sleep( 17 );
+	timeBefore = timeGetTime();
 	commandAllocators[currentBackBufferIndex]->Reset();
 }
 

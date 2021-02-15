@@ -22,7 +22,7 @@
 
 static const int screen_width = 800;
 static const int screen_height = 600;
-static const int num_swap_buffers = 2;
+static const int num_swap_buffers = 2;//2 to  DXGI_MAX_SWAP_CHAIN_BUFFERS
 
 #define USE_STENCIL_BUFFER
 

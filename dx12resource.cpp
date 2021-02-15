@@ -41,7 +41,7 @@ namespace ino::d3d {
 	return buffer;
 }
 
-void texture::Create(UINT width, UINT height) {
+void texture::Create(UINT width, UINT height,DXGI_FORMAT format) {
 	D3D12_HEAP_PROPERTIES heapProp = {
 		.Type = D3D12_HEAP_TYPE_CUSTOM,
 		.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_WRITE_BACK,
@@ -56,7 +56,7 @@ void texture::Create(UINT width, UINT height) {
 		.Height = height,
 		.DepthOrArraySize = 1,
 		.MipLevels = 1,
-		.Format = DXGI_FORMAT_B8G8R8A8_UNORM,
+		.Format = format,
 		.SampleDesc = {.Count = 1,.Quality = 0 },
 		.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN
 	};
@@ -74,7 +74,7 @@ void texture::Create(UINT width, UINT height) {
 	D3D12_CPU_DESCRIPTOR_HANDLE handle_srv{};
 	D3D12_SHADER_RESOURCE_VIEW_DESC resourct_view_desc{};
 
-	resourct_view_desc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+	resourct_view_desc.Format = format;
 	resourct_view_desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
 	resourct_view_desc.Texture2D.MipLevels = 1;
 	resourct_view_desc.Texture2D.MostDetailedMip = 0;

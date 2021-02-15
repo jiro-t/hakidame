@@ -83,7 +83,7 @@ class texture {
 	::Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> heap;
 	::Microsoft::WRL::ComPtr<ID3D12Resource> buffer;
 public:
-	void Create(UINT width, UINT height);
+	void Create(UINT width, UINT height,DXGI_FORMAT format = DXGI_FORMAT_B8G8R8A8_UNORM);
 	void Map(void* src, UINT width, UINT height, UINT num_channel = 4);
 	void Set(ID3D12GraphicsCommandList* cmdList, UINT reg_id);
 

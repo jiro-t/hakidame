@@ -17,16 +17,22 @@ float local_time = 0.f;
 #include <string>
 #include <vector>
 
-static float g_Vertices[3][7] = {
-	{ 0.0f, 0.25f, 0.0f,/**/ 1.0f, 0.0f, 0.0f,1.0f }, // 0
-	{ 0.25f, -0.25f, 0.0f,/**/ 0.0f, 1.0f, 0.0f,1.0f }, // 1
-	{ -0.25f, -0.25f, 0.0f,/**/ 0.0f, 0.0f, 1.0f,1.0f }, // 2
+static float g_Vertices[6][9] = {
+	{ 0.10f, 0.f, 0.5f,/**/ 1.0f, 1.0f, 1.0f,1.0f,/**/0.f,0.f }, // 1
+	{ 0.1f, 0.25f, 0.5f,/**/ 1.0f, 1.0f, 1.0f,1.0f,/**/0.f,1.f }, // 2
+	{ 0.35f, 0.25f, 0.5f,/**/ 1.0f, 1.0f, 1.0f,1.0f,/**/1.f,1.f }, // 3
+	{ 0.35f, 0.25f, 0.5f,/**/ 1.0f, 1.0f, 1.0f,1.0f,/**/1.f,1.f }, // 3
+	{ 0.35f, 0.f, 0.5f,/**/ 1.0f, 1.0f, 1.0f,1.0f,/**/1.f,0.f }, // 4
+	{ 0.10f, 0.f, 0.5f,/**/ 1.0f, 1.0f, 1.0f,1.0f,/**/0.f,0.f } // 1
 };
 
-static float g_Vertices2[3][9] = {
-	{ 0.0f, 0.25f, 0.0f,/**/ 1.0f, 0.0f, 0.0f,1.0f,/**/0.5f,0.5f }, // 0
-	{ 0.25f, -0.25f, 0.0f,/**/ 0.0f, 1.0f, 0.0f,1.0f,/**/0.f,1.f }, // 1
-	{ -0.25f, -0.25f, 0.0f,/**/ 0.0f, 0.0f, 1.0f,1.0f,/**/1.f,1.f }, // 2
+static float g_Vertices2[6][9] = {
+	{ 0.0f, 0.f, 0.0f,/**/ 1.0f, 0.0f, 0.0f,1.0f,/**/0.f,0.f }, // 1
+	{ 0.f, 0.25f, 0.0f,/**/ 0.0f, 1.0f, 0.0f,1.0f,/**/0.f,1.f }, // 2
+	{ 0.25f, 0.25f, 0.0f,/**/ 0.0f, 0.0f, 1.0f,1.0f,/**/1.f,1.f }, // 3
+	{ 0.25f, 0.25f, 0.0f,/**/ 0.0f, 0.0f, 1.0f,1.0f,/**/1.f,1.f }, // 3
+	{ 0.25f, 0.f, 0.0f,/**/ 1.0f, 0.0f, 1.0f,1.0f,/**/1.f,0.f }, // 4
+	{ 0.0f, 0.f, 0.0f,/**/ 1.0f, 0.0f, 0.0f,1.0f,/**/0.f,0.f } // 1
 };
 
 namespace DX = DirectX;
@@ -53,12 +59,12 @@ DX::XMVECTOR cornelBox[] = {
 	DX::XMVectorSet(549.6f, 548.8f, 559.2f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 	DX::XMVectorSet(549.6f, 0, 559.2f, 1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 	//right-wall
-	DX::XMVectorSet(0,   0, 559.2f, 1),DX::XMVectorSet(0,1.0f,0,1.0f),
+	DX::XMVectorSet(0, 0, 559.2f, 1),DX::XMVectorSet(0,1.0f,0,1.0f),
 	DX::XMVectorSet(0, 0, 0, 1),DX::XMVectorSet(0,1.0f,0,1.0f),
 	DX::XMVectorSet(0, 548.8f, 0,1),DX::XMVectorSet(0,1.0f,0,1.0f),
 	DX::XMVectorSet(0, 548.8f, 0,1),DX::XMVectorSet(0,1.0f,0,1.0f),
 	DX::XMVectorSet(0, 548.8f, 559.2f,1),DX::XMVectorSet(0,1.0f,0,1.0f),
-	DX::XMVectorSet(0,   0, 559.2f, 1),DX::XMVectorSet(0,1.0f,0,1.0f),
+	DX::XMVectorSet(0, 0, 559.2f, 1),DX::XMVectorSet(0,1.0f,0,1.0f),
 	//left-wall
 	DX::XMVectorSet(552.8f, 0, 0,1),DX::XMVectorSet(1.0f,0,0,1.0f),
 	DX::XMVectorSet(549.6f, 0, 559.2f,1),DX::XMVectorSet(1.0f,0,0,1.0f),
@@ -169,7 +175,7 @@ float s1;\
 cbuffer cb2 : register(b1){\
 float s2;\
 };\
-Texture2D<float> tex_ : register(t0);\
+Texture2D<float4> tex_ : register(t0);\
 SamplerState samp_ : register(s0);\
 struct PSInput {\
 	float4	position : SV_POSITION;\
@@ -201,6 +207,8 @@ HRESULT create_pipeline(ino::d3d::pipeline& pipe)
 	pipe.view = {
 		.Width = static_cast<FLOAT>(screen_width),
 		.Height = static_cast<FLOAT>(screen_height),
+		.MinDepth = 0.f,
+		.MaxDepth = 1.f
 	};
 	pipe.scissor = {
 		.right = screen_width,
@@ -224,7 +232,7 @@ HRESULT create_pipeline_textured(ino::d3d::pipeline& pipe)
 	D3D12_TEXTURE_ADDRESS_MODE warp[] = { D3D12_TEXTURE_ADDRESS_MODE::D3D12_TEXTURE_ADDRESS_MODE_CLAMP };
 	pipe.CreateSampler(1, filter, warp);
 
-	pipe.Create(elementDescs, 3, 2, true);
+	pipe.Create(elementDescs, 3, 2, false);
 
 	pipe.view = {
 		.Width = static_cast<FLOAT>(screen_width),
@@ -240,8 +248,8 @@ HRESULT create_pipeline_textured(ino::d3d::pipeline& pipe)
 
 static BYTE texData[] = {
 	0xff,0xff,0xff,0xff, 0xff,0xff,0xff,0xff,	0xff,0xff,0xff,0xff, 0xff,0xff,0xff,0xff,
-	0xff,0xff,0xff,0xff, 0xff,0x00,0x00,0xff,	0xff,0x00,0x00,0xff, 0xff,0xff,0xff,0xff,
-	0xff,0xff,0xff,0xff, 0xff,0x00,0x00,0xff,	0xff,0x00,0x00,0xff, 0xff,0xff,0xff,0xff,
+	0xff,0xff,0xff,0xff, 0xff,0xff,0xff,0xff,	0xff,0xff,0xff,0xff, 0xff,0xff,0xff,0xff,
+	0xff,0xff,0xff,0xff, 0xff,0xff,0xff,0xff,	0xff,0xff,0xff,0xff, 0xff,0xff,0xff,0xff,
 	0xff,0xff,0xff,0xff, 0xff,0xff,0xff,0xff,	0xff,0xff,0xff,0xff, 0xff,0xff,0xff,0xff,
 };
 
@@ -258,7 +266,7 @@ int main() {
 		;
 	HWND hwnd = CreateWindow(L"edit", 0, wnd_flg, 0, 0, screen_width, screen_height, 0, 0, 0, 0);
 	printf("init=%d\n", ino::d3d::init(hwnd, false, screen_width, screen_height));
-	std::cout << ino::d3d::CheckDXRSupport(ino::d3d::device);
+	//std::cout << ino::d3d::CheckDXRSupport(ino::d3d::device);
 	//[[maybe_unused]] int a;
 
 	//setup pipeline
@@ -283,7 +291,7 @@ int main() {
 
 	ID3D12GraphicsCommandList* cmds[_countof(pipe)] = {};
 	ino::d3d::vbo* vbo = new ino::d3d::vbo();
-	vbo->Create(g_Vertices, 7 * sizeof(float), sizeof(g_Vertices));
+	vbo->Create(g_Vertices, 9 * sizeof(float), sizeof(g_Vertices));
 
 	ino::d3d::vbo* vbo2 = new ino::d3d::vbo();
 	vbo2->Create(g_Vertices2, 9 * sizeof(float), sizeof(g_Vertices2));
@@ -317,7 +325,7 @@ int main() {
 			//DX::XMMATRIX mvp = model * view * projection;
 			DX::XMFLOAT4X4 Mat;
 			DX::XMStoreFloat4x4(&Mat, XMMatrixTranspose(model * view * projection));
-				const FLOAT clearColor[] = { 0.4f, 0.6f, 0.9f, 1.0f };
+				const FLOAT clearColor[] = { 0.4f, 0.6f, 0.9f, 0.0f };
 				m.lock();
 				cmds[0] = pipe[0].Begin();
 				mvpCBO.Set(cmds[0], Mat,0);
@@ -338,6 +346,7 @@ int main() {
 		tex.Set(cmds[1],2);
 		//DrawPrimitive;
 		vbo2->Draw(cmds[1]);
+		vbo->Draw(cmds[1]);
 		pipe[1].End();
 		m.unlock();
 

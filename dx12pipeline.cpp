@@ -124,6 +124,8 @@ void pipeline::Create(
 	BOOL enableDepth,
 	D3D12_BLEND_DESC const& blendDesc,
 	D3D12_RASTERIZER_DESC const& rasterDesc) {
+	HRESULT result = S_OK;
+	use_depth = enableDepth;
 
 	// ルートパラメータの設定.
 	if (paramCount > 0)
@@ -220,6 +222,16 @@ void pipeline::Create(
 		desc.HS = { shader[static_cast<int>(d3d::ShaderTypes::HULL_SHADER)]->GetBufferPointer() ,shader[static_cast<int>(d3d::ShaderTypes::HULL_SHADER)]->GetBufferSize() };
 
 	device->CreateGraphicsPipelineState(&desc, IID_PPV_ARGS(&pipelineState));
+
+	auto& commandAllocator = commandAllocators[currentBackBufferIndex];
+	result = device->CreateCommandList(
+		0,
+		D3D12_COMMAND_LIST_TYPE_DIRECT,
+		commandAllocators[currentBackBufferIndex].Get(),
+		pipelineState.Get(),
+		IID_PPV_ARGS(&commandList));
+
+	commandList->Close();
 }
 
 ::Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> const& pipeline::Get()
@@ -227,29 +239,9 @@ void pipeline::Create(
 	return commandList;
 }
 
-void pipeline::resetCommand()
-{
-	if (commandList)
-	{
-		commandList->Reset(commandAllocators[currentBackBufferIndex].Get(), pipelineState.Get());
-	}
-	else
-	{
-		auto& commandAllocator = commandAllocators[currentBackBufferIndex];
-		device->CreateCommandList(
-			0,
-			D3D12_COMMAND_LIST_TYPE_DIRECT,
-			commandAllocators[currentBackBufferIndex].Get(),
-			pipelineState.Get(),
-			IID_PPV_ARGS(&commandList));
-	}
-}
-
 ID3D12GraphicsCommandList* pipeline::Begin(texture renderTarget,D3D12_VIEWPORT rtView,D3D12_RECT rtRect)
 {
-	resetCommand();
-	if (commandList == nullptr)
-		return nullptr;
+	commandList->Reset(commandAllocators[currentBackBufferIndex].Get(), pipelineState.Get());
 
 	HRESULT result = NULL;
 
@@ -271,10 +263,14 @@ ID3D12GraphicsCommandList* pipeline::Begin(texture renderTarget,D3D12_VIEWPORT r
 	rtvHandle = D3D12_CPU_DESCRIPTOR_HANDLE(renderTarget.GetCpuHeapHundle());
 
 #ifdef USE_STENCIL_BUFFER
-	commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, &scvHandle);
+	if (use_depth)
+		commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, &scvHandle);
+	else
+		commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
 #else
 	commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
 #endif
+
 
 	commandList->SetGraphicsRootSignature(rootSignature.Get());
 	commandList->RSSetViewports(1, &rtView);
@@ -292,8 +288,11 @@ void pipeline::Clear(FLOAT const clearColor[])
 {
 	commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
 #ifdef USE_STENCIL_BUFFER
-	D3D12_CPU_DESCRIPTOR_HANDLE scvHandle = D3D12_CPU_DESCRIPTOR_HANDLE(stencilBuffer.GetCpuHeapHundle());
-	commandList->ClearDepthStencilView(scvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+	if (use_depth)
+	{
+		D3D12_CPU_DESCRIPTOR_HANDLE scvHandle = D3D12_CPU_DESCRIPTOR_HANDLE(stencilBuffer.GetCpuHeapHundle());
+		commandList->ClearDepthStencilView(scvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+	}
 #endif
 }
 

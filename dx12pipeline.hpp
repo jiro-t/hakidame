@@ -9,22 +9,21 @@ namespace ino::d3d {
 inline D3D12_BLEND_DESC defaultBlendDesc()
 {
 	D3D12_BLEND_DESC blendDesc = {
-		.AlphaToCoverageEnable = false,
-		.IndependentBlendEnable = false,
+		.AlphaToCoverageEnable = FALSE,
+		.IndependentBlendEnable = FALSE,
 	};
 
 	for (size_t i = 0; i < 8; ++i)
 	{
-		blendDesc.RenderTarget[i].BlendEnable = false;
-		blendDesc.RenderTarget[i].LogicOpEnable = false;
-		blendDesc.RenderTarget[i].SrcBlend = D3D12_BLEND_ONE;
-		blendDesc.RenderTarget[i].DestBlend = D3D12_BLEND_ZERO;
+		blendDesc.RenderTarget[i].BlendEnable = TRUE;
+		blendDesc.RenderTarget[i].LogicOpEnable = FALSE;
+		blendDesc.RenderTarget[i].SrcBlend = D3D12_BLEND_SRC_ALPHA;
+		blendDesc.RenderTarget[i].DestBlend = D3D12_BLEND_INV_SRC_ALPHA;
 		blendDesc.RenderTarget[i].BlendOp = D3D12_BLEND_OP_ADD;
-		blendDesc.RenderTarget[i].SrcBlendAlpha = D3D12_BLEND_ONE;
+		blendDesc.RenderTarget[i].SrcBlendAlpha = D3D12_BLEND_ZERO;
 		blendDesc.RenderTarget[i].DestBlendAlpha = D3D12_BLEND_ZERO;
 		blendDesc.RenderTarget[i].BlendOpAlpha = D3D12_BLEND_OP_ADD;
 		blendDesc.RenderTarget[i].LogicOp = D3D12_LOGIC_OP_NOOP;
-		blendDesc.RenderTarget[i].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
 		blendDesc.RenderTarget[i].RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
 	}
 
@@ -70,13 +69,14 @@ class pipeline {
 	D3D12_STATIC_SAMPLER_DESC* samplers = nullptr;
 	D3D12_DESCRIPTOR_RANGE* sampler_ranges = nullptr;
 	UINT sampler_count = 0;
+	BOOL use_depth = FALSE;
 
 	D3D12_RESOURCE_BARRIER barrier = {};
 
 	LPCSTR constexpr getCstrShaderType(ShaderTypes type) const;
 	void resetCommand();
 public:
-	D3D12_VIEWPORT view = {};
+	D3D12_VIEWPORT view = {.MinDepth = 0.f,.MaxDepth = 1.f};
 	D3D12_RECT scissor = {};
 
 	pipeline();
