@@ -52,18 +52,9 @@ inline D3D12_RASTERIZER_DESC defaultRasterizerDesc()
 class pipeline {
 	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = {};
 	::Microsoft::WRL::ComPtr<ID3D12PipelineState> pipelineState;
-	::Microsoft::WRL::ComPtr<ID3DBlob> signature;
 	::Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature;
 	::Microsoft::WRL::ComPtr<ID3DBlob> shader[static_cast<int>(ShaderTypes::UNDEFINED)];
 	::Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> commandList;
-	static UINT const compile_flag =
-#ifdef _DEBUG
-		D3DCOMPILE_DEBUG |
-		D3DCOMPILE_SKIP_OPTIMIZATION
-#else
-		D3DCOMPILE_OPTIMIZATION_LEVEL3
-#endif
-		;
 
 	D3D12_ROOT_PARAMETER* params = nullptr;
 	D3D12_STATIC_SAMPLER_DESC* samplers = nullptr;

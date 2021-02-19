@@ -20,9 +20,9 @@
 #endif
 #include <string>
 
-static const int screen_width = 800;
-static const int screen_height = 600;
-static const int num_swap_buffers = 2;//2 to  DXGI_MAX_SWAP_CHAIN_BUFFERS
+constexpr int screen_width = 800;
+constexpr int screen_height = 600;
+constexpr int num_swap_buffers = 2;//2 to  DXGI_MAX_SWAP_CHAIN_BUFFERS
 
 #define USE_STENCIL_BUFFER
 
@@ -49,6 +49,14 @@ extern	HANDLE fenceEvent;
 
 extern	BOOL allowTearing;
 
+constexpr UINT hlsl_compile_flag =
+#ifdef _DEBUG
+D3DCOMPILE_DEBUG |
+D3DCOMPILE_SKIP_OPTIMIZATION
+#else
+D3DCOMPILE_OPTIMIZATION_LEVEL3
+#endif
+;
 inline void putErrorMsg(::Microsoft::WRL::ComPtr<ID3DBlob> error)
 {
 #ifdef _DEBUG

@@ -298,7 +298,7 @@ void flush(ID3D12GraphicsCommandList** commandLists, UINT pipe_count)
 	result = swapChain->Present(syncInterval, presentFlags);
 	currentBackBufferIndex = swapChain->GetCurrentBackBufferIndex();
 	//wait
-	static const DWORD timeout = 10000;
+	constexpr DWORD timeout = 10000;
 	if (fence->GetCompletedValue() < frameFenceValues[currentBackBufferIndex])
 	{
 		result = fence->SetEventOnCompletion(frameFenceValues[currentBackBufferIndex], fenceEvent);

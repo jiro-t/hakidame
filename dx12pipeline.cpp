@@ -68,7 +68,7 @@ void pipeline::LoadShader(ShaderTypes type, std::wstring_view path, LPCSTR entry
 		D3D_COMPILE_STANDARD_FILE_INCLUDE,
 		entryPoint,
 		getCstrShaderType(type),
-		compile_flag, 0,
+		hlsl_compile_flag, 0,
 		&shader[static_cast<int>(type)], &error);
 
 	putErrorMsg(error);
@@ -85,7 +85,7 @@ void pipeline::LoadShader(ShaderTypes type, void* src, size_t src_size, LPCSTR e
 		nullptr/*include*/,
 		entryPoint,
 		getCstrShaderType(type),
-		compile_flag,
+		hlsl_compile_flag,
 		0, &shader[static_cast<int>(type)], &error);
 	putErrorMsg(error);
 }
@@ -170,7 +170,7 @@ void pipeline::Create(
 //		| D3D12_ROOT_SIGNATURE_FLAG_DENY_PIXEL_SHADER_ROOT_ACCESS,
 	};
 
-
+	::Microsoft::WRL::ComPtr<ID3DBlob> signature;
 	::Microsoft::WRL::ComPtr<ID3DBlob> error;
 	D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error);
 	device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rootSignature));
