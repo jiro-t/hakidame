@@ -145,6 +145,7 @@ void vbo::Create(void* verts, UINT stride, UINT byteSize) {
 	view.StrideInBytes = stride;
 	view.SizeInBytes = byteSize;
 	vert_count = byteSize / (stride);
+	vert_stride = stride;
 }
 
 void vbo::Draw(ID3D12GraphicsCommandList* cmdList) const

@@ -34,7 +34,7 @@ extern	::Microsoft::WRL::ComPtr<ID3D12Debug> d3dDebuger;
 #endif
 extern	::Microsoft::WRL::ComPtr<IDXGISwapChain4> swapChain;
 extern	::Microsoft::WRL::ComPtr<ID3D12Device2> device;
-extern	::Microsoft::WRL::ComPtr<ID3D12CommandAllocator> commandAllocators[num_swap_buffers+1/*DXR Allocator*/];
+extern	::Microsoft::WRL::ComPtr<ID3D12CommandAllocator> commandAllocators[num_swap_buffers];
 extern	UINT currentBackBufferIndex;
 extern	::Microsoft::WRL::ComPtr<ID3D12CommandQueue> commandQueue;
 extern texture renderTargets[num_swap_buffers];
@@ -71,7 +71,9 @@ inline void putErrorMsg(::Microsoft::WRL::ComPtr<ID3DBlob> error)
 
 HRESULT init(HWND hwnd, bool useWarp, int width, int height);
 void release();
-void flush(ID3D12GraphicsCommandList** commandLists, UINT pipe_count);
+void wait();
+void excute(ID3D12GraphicsCommandList** commandLists, UINT pipe_count);
+void flush();
 
 ::Microsoft::WRL::ComPtr<IDXGIAdapter4> GetAdapter(bool useWarp);
 ::Microsoft::WRL::ComPtr<ID3D12Device2> CreateDevice(::Microsoft::WRL::ComPtr<IDXGIAdapter4> adapter);

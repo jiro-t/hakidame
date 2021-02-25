@@ -95,11 +95,14 @@ public:
 class vbo {
 	::Microsoft::WRL::ComPtr<ID3D12Resource> buffer;
 	D3D12_VERTEX_BUFFER_VIEW view;
-	UINT vert_count;
-
 public:
+	UINT vert_count = 0;
+	UINT vert_stride = 0;
+
 	void Create(void* verts, UINT stride, UINT byteSize);
 	void Draw(ID3D12GraphicsCommandList* cmdList) const;
+
+	D3D12_GPU_VIRTUAL_ADDRESS GetGPUVirtualAddress() { return buffer->GetGPUVirtualAddress(); }
 };
 
 }

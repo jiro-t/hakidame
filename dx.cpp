@@ -10,7 +10,7 @@ namespace ino::d3d
 ::Microsoft::WRL::ComPtr<IDXGISwapChain4> swapChain = nullptr;
 ::Microsoft::WRL::ComPtr<ID3D12Device2> device = nullptr;
 texture renderTargets[num_swap_buffers];
-::Microsoft::WRL::ComPtr<ID3D12CommandAllocator> commandAllocators[num_swap_buffers+1/*dxr allocator*/] = {};
+::Microsoft::WRL::ComPtr<ID3D12CommandAllocator> commandAllocators[num_swap_buffers] = {};
 UINT currentBackBufferIndex = 0;
 ::Microsoft::WRL::ComPtr<ID3D12CommandQueue> commandQueue = nullptr;
 #ifdef USE_STENCIL_BUFFER
@@ -273,7 +273,7 @@ HRESULT init(HWND hwnd, bool useWarp, int width, int height)
 		stencilBuffer.GetCpuHeapHundle());
 #endif
 
-	for (int i = 0; i < num_swap_buffers+1; ++i)
+	for (int i = 0; i < num_swap_buffers; ++i)
 	{
 		result = device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&commandAllocators[i]));
 		if (!SUCCEEDED(result))return result;
@@ -285,28 +285,44 @@ HRESULT init(HWND hwnd, bool useWarp, int width, int height)
 	return result;
 }
 
-void flush(ID3D12GraphicsCommandList** commandLists, UINT pipe_count)
+void wait()
 {
-	HRESULT result;
+	// Schedule a Signal command in the GPU queue.
+	UINT64 fenceValue = frameFenceValues[currentBackBufferIndex];
+	if (SUCCEEDED(commandQueue->Signal(fence.Get(), fenceValue)))
+	{
+		// Wait until the Signal has been processed.
+		if (SUCCEEDED(fence->SetEventOnCompletion(fenceValue, fenceEvent)))
+		{
+			WaitForSingleObjectEx(fence.Get(), INFINITE, FALSE);
+
+			// Increment the fence value for the current frame.
+			frameFenceValues[currentBackBufferIndex]++;
+		}
+	}
+}
+
+void excute(ID3D12GraphicsCommandList** commandLists, UINT pipe_count)
+{
+	HRESULT result = S_OK;
 
 	commandQueue->ExecuteCommandLists(pipe_count, reinterpret_cast<ID3D12CommandList* const*>(commandLists));
 	result = commandQueue->Signal(fence.Get(), ++frameFenceValues[currentBackBufferIndex]);
+}
+
+void flush()
+{
+	HRESULT result = S_OK;
 
 	UINT syncInterval = 1;// g_VSync ? 1 : 0;
 	UINT presentFlags = 0;// allowTearing ? DXGI_PRESENT_ALLOW_TEARING : 0;
 
 	result = swapChain->Present(syncInterval, presentFlags);
 	currentBackBufferIndex = swapChain->GetCurrentBackBufferIndex();
-	//wait
-	constexpr DWORD timeout = 10000;
-	if (fence->GetCompletedValue() < frameFenceValues[currentBackBufferIndex])
-	{
-		result = fence->SetEventOnCompletion(frameFenceValues[currentBackBufferIndex], fenceEvent);
-		::WaitForSingleObject(fenceEvent, timeout);
-	}
+
 	static DWORD timeBefore = timeGetTime();
 	DWORD timeDiff = timeGetTime() - timeBefore;
-	Sleep( 17 );
+	Sleep( fmin(16, fabs(16-timeDiff)) );
 	timeBefore = timeGetTime();
 	commandAllocators[currentBackBufferIndex]->Reset();
 }
