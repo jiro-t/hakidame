@@ -142,16 +142,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="dx.cpp" />
-    <ClCompile Include="dx12pipeline.cpp" />
-    <ClCompile Include="dx12resource.cpp" />
+    <ClCompile Include="dx\dx.cpp" />
+    <ClCompile Include="dx\dx12pipeline.cpp" />
+    <ClCompile Include="dx\dx12resource.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="dx.hpp" />
-    <ClInclude Include="dx12pipeline.hpp" />
-    <ClInclude Include="dx12raytrace.hpp" />
-    <ClInclude Include="dx12resource.hpp" />
+    <ClInclude Include="dx\dx.hpp" />
+    <ClInclude Include="dx\dx12pipeline.hpp" />
+    <ClInclude Include="dx\dx12raytrace.hpp" />
+    <ClInclude Include="dx\dx12resource.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

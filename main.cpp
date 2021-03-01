@@ -1,7 +1,7 @@
-﻿#include "dx.hpp"
-#include "dx12pipeline.hpp"
-#include "dx12resource.hpp"
-#include "dx12raytrace.hpp"
+﻿#include "dx/dx.hpp"
+#include "dx/dx12pipeline.hpp"
+#include "dx/dx12resource.hpp"
+#include "dx/dx12raytrace.hpp"
 
 #include <thread>
 #include <mutex>
@@ -264,6 +264,7 @@ int main() {
 		| WS_MAXIMIZE
 #endif
 		;
+
 	HWND hwnd = CreateWindow(L"edit", 0, wnd_flg, 0, 0, screen_width, screen_height, 0, 0, 0, 0);
 	printf("init=%d\n", ino::d3d::init(hwnd, false, screen_width, screen_height));
 	//std::cout << ino::d3d::CheckDXRSupport(ino::d3d::device);
@@ -351,7 +352,9 @@ int main() {
 
 		//t1.join();
 
-		ino::d3d::flush(cmds, _countof(pipe));
+		ino::d3d::excute(cmds, _countof(pipe));
+		ino::d3d::wait();
+		ino::d3d::flush();
 	} while (!GetAsyncKeyState(VK_ESCAPE));//&& local_time < 144.83f);
 	
 	Sleep(500);

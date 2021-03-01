@@ -16,33 +16,36 @@
     <Filter Include="ソース ファイル\dx">
       <UniqueIdentifier>{98ac9681-5688-4fff-83e0-73ad1e4febf2}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ヘッダー ファイル\dx">
+      <UniqueIdentifier>{e235fe88-2602-46f5-87cf-73ecb0b7200b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="dx.cpp">
+    <ClCompile Include="dx\dx.cpp">
       <Filter>ソース ファイル\dx</Filter>
     </ClCompile>
-    <ClCompile Include="dx12pipeline.cpp">
+    <ClCompile Include="dx\dx12pipeline.cpp">
       <Filter>ソース ファイル\dx</Filter>
     </ClCompile>
-    <ClCompile Include="dx12resource.cpp">
+    <ClCompile Include="dx\dx12resource.cpp">
       <Filter>ソース ファイル\dx</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="dx.hpp">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="dx\dx12resource.hpp">
+      <Filter>ヘッダー ファイル\dx</Filter>
     </ClInclude>
-    <ClInclude Include="dx12pipeline.hpp">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="dx\dx.hpp">
+      <Filter>ヘッダー ファイル\dx</Filter>
     </ClInclude>
-    <ClInclude Include="dx12resource.hpp">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="dx\dx12pipeline.hpp">
+      <Filter>ヘッダー ファイル\dx</Filter>
     </ClInclude>
-    <ClInclude Include="dx12raytrace.hpp">
-      <Filter>ヘッダー ファイル</Filter>
+    <ClInclude Include="dx\dx12raytrace.hpp">
+      <Filter>ヘッダー ファイル\dx</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
