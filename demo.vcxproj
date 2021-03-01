@@ -153,6 +153,9 @@
     <ClInclude Include="dx\dx12raytrace.hpp" />
     <ClInclude Include="dx\dx12resource.hpp" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="readme.md" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
