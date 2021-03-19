@@ -98,7 +98,7 @@ void texture::Set(ID3D12GraphicsCommandList* cmdList, UINT reg_id) {
 	cmdList->SetGraphicsRootDescriptorTable(reg_id, heap->GetGPUDescriptorHandleForHeapStart());
 }
 
-void vbo::Create(void* verts, UINT stride, UINT byteSize) {
+void vbo::Create(const void* verts, UINT stride, UINT byteSize) {
 
 	D3D12_HEAP_PROPERTIES prop = {
 		.Type = D3D12_HEAP_TYPE_UPLOAD,

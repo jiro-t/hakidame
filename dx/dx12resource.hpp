@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include "dx.hpp"
-#include <algorithm>
+#include <utility>
 
 namespace ino::d3d {
 
@@ -38,10 +38,11 @@ public:
 			.CreationNodeMask = 1,
 			.VisibleNodeMask = 1
 		};
+
 		D3D12_RESOURCE_DESC resourceDesc = {
 			.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER,
 			.Alignment = 0,
-			.Width = std::max((UINT)256,(UINT)sizeof(T)),
+			.Width = std::max<UINT>((UINT)256,(UINT)sizeof(T)),
 			.Height = 1,
 			.DepthOrArraySize = 1,
 			.MipLevels = 1,
@@ -63,7 +64,7 @@ public:
 	{
 		if (pDataBegin == nullptr)
 		{
-			UINT size = std::max((UINT)256, (UINT)sizeof(T));
+			UINT size = std::max<UINT>((UINT)256, (UINT)sizeof(T));
 			D3D12_CONSTANT_BUFFER_VIEW_DESC bufferDesc = {
 				.BufferLocation = buffer->GetGPUVirtualAddress(),
 				.SizeInBytes = size
@@ -99,7 +100,7 @@ public:
 	UINT vert_count = 0;
 	UINT vert_stride = 0;
 
-	void Create(void* verts, UINT stride, UINT byteSize);
+	void Create(const void* verts, UINT stride, UINT byteSize);
 	void Draw(ID3D12GraphicsCommandList* cmdList) const;
 
 	D3D12_GPU_VIRTUAL_ADDRESS GetGPUVirtualAddress() { return buffer->GetGPUVirtualAddress(); }

@@ -1,6 +1,10 @@
 ﻿#ifndef INO_D3D_INCLUDED
 #define INO_D3D_INCLUDED
 
+#ifdef WIN32
+#define NOMINMAX
+#endif
+
 //D3D HEADERS
 #include <d3d12.h>
 #include <dxgi1_6.h>
@@ -20,8 +24,8 @@
 #endif
 #include <string>
 
-constexpr int screen_width = 800;
-constexpr int screen_height = 600;
+extern int screen_width;
+extern int screen_height;
 constexpr int num_swap_buffers = 2;//2 to  DXGI_MAX_SWAP_CHAIN_BUFFERS
 
 #define USE_STENCIL_BUFFER
@@ -73,7 +77,8 @@ HRESULT init(HWND hwnd, bool useWarp, int width, int height);
 void release();
 void wait();
 void excute(ID3D12GraphicsCommandList** commandLists, UINT pipe_count);
-void flush();
+void begin();
+void end();
 
 ::Microsoft::WRL::ComPtr<IDXGIAdapter4> GetAdapter(bool useWarp);
 ::Microsoft::WRL::ComPtr<ID3D12Device2> CreateDevice(::Microsoft::WRL::ComPtr<IDXGIAdapter4> adapter);

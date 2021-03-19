@@ -212,7 +212,7 @@ void DrawDXR(D3D12_RAYTRACING_GEOMETRY_DESC geom[],UINT num_geom)
 
     //allocate resource
     ::Microsoft::WRL::ComPtr<ID3D12Resource> scratchResource = CreateResource(
-        std::max(topLevelPrebuildInfo.ScratchDataSizeInBytes, bottomLevelPrebuildInfo.ScratchDataSizeInBytes),
+        (std::max)(topLevelPrebuildInfo.ScratchDataSizeInBytes, bottomLevelPrebuildInfo.ScratchDataSizeInBytes),
         D3D12_RESOURCE_STATE_UNORDERED_ACCESS);
     D3D12_RESOURCE_STATES initialResourceState = D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE;
     blas.accelerationStructure = CreateResource(bottomLevelPrebuildInfo.ResultDataMaxSizeInBytes, initialResourceState);

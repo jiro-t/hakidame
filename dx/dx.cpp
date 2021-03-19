@@ -1,6 +1,9 @@
 ﻿#include "dx.hpp"
 #include "dx12resource.hpp"
 
+int screen_width = 800;
+int screen_height = 600;
+
 namespace ino::d3d
 {
 
@@ -282,6 +285,9 @@ HRESULT init(HWND hwnd, bool useWarp, int width, int height)
 	result = device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence));
 	fenceEvent = ::CreateEvent(NULL, FALSE, FALSE, NULL);
 
+	screen_width = width;
+	screen_height = height;
+
 	return result;
 }
 
@@ -310,7 +316,12 @@ void excute(ID3D12GraphicsCommandList** commandLists, UINT pipe_count)
 	result = commandQueue->Signal(fence.Get(), ++frameFenceValues[currentBackBufferIndex]);
 }
 
-void flush()
+void begin()
+{
+	commandAllocators[currentBackBufferIndex]->Reset();
+}
+
+void end()
 {
 	HRESULT result = S_OK;
 
@@ -319,12 +330,6 @@ void flush()
 
 	result = swapChain->Present(syncInterval, presentFlags);
 	currentBackBufferIndex = swapChain->GetCurrentBackBufferIndex();
-
-	static DWORD timeBefore = timeGetTime();
-	DWORD timeDiff = timeGetTime() - timeBefore;
-	Sleep( fmin(16, fabs(16-timeDiff)) );
-	timeBefore = timeGetTime();
-	commandAllocators[currentBackBufferIndex]->Reset();
 }
 
 void release()

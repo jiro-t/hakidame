@@ -3,64 +3,64 @@
   <ItemGroup>
     <Filter Include="ソース ファイル">
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
     <Filter Include="ヘッダー ファイル">
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
     </Filter>
     <Filter Include="リソース ファイル">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="ソース ファイル\dx">
-      <UniqueIdentifier>{98ac9681-5688-4fff-83e0-73ad1e4febf2}</UniqueIdentifier>
-    </Filter>
     <Filter Include="ヘッダー ファイル\dx">
-      <UniqueIdentifier>{e235fe88-2602-46f5-87cf-73ecb0b7200b}</UniqueIdentifier>
+      <UniqueIdentifier>{8513fb49-dd1e-4840-b600-1b9adfe032c6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\dx">
+      <UniqueIdentifier>{6f4b3f18-66e1-499a-bfa8-c2207478dada}</UniqueIdentifier>
     </Filter>
     <Filter Include="ヘッダー ファイル\gfx">
-      <UniqueIdentifier>{b64fe166-ef0e-4987-a44f-f796e5d7f8a9}</UniqueIdentifier>
+      <UniqueIdentifier>{8428c745-d4c8-41f3-bce9-4cb3002c18f3}</UniqueIdentifier>
     </Filter>
     <Filter Include="ソース ファイル\gfx">
-      <UniqueIdentifier>{d9ee9b76-c2b3-4467-9005-5c31366e98b0}</UniqueIdentifier>
+      <UniqueIdentifier>{65f2ad91-5947-4b11-b3c1-a636dd55a371}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
+    <ClCompile Include="dx_dll.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="dx\dx.cpp">
+    <ClCompile Include="..\dx\dx.cpp">
       <Filter>ソース ファイル\dx</Filter>
     </ClCompile>
-    <ClCompile Include="dx\dx12pipeline.cpp">
+    <ClCompile Include="..\dx\dx12pipeline.cpp">
       <Filter>ソース ファイル\dx</Filter>
     </ClCompile>
-    <ClCompile Include="dx\dx12resource.cpp">
+    <ClCompile Include="..\dx\dx12resource.cpp">
       <Filter>ソース ファイル\dx</Filter>
     </ClCompile>
-    <ClCompile Include="gfx\shapes.cpp">
+    <ClCompile Include="..\gfx\shapes.cpp">
       <Filter>ソース ファイル\gfx</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="dx\dx12resource.hpp">
+    <ClInclude Include="dx_dll.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="..\dx\dx.hpp">
       <Filter>ヘッダー ファイル\dx</Filter>
     </ClInclude>
-    <ClInclude Include="dx\dx.hpp">
+    <ClInclude Include="..\dx\dx12pipeline.hpp">
       <Filter>ヘッダー ファイル\dx</Filter>
     </ClInclude>
-    <ClInclude Include="dx\dx12pipeline.hpp">
+    <ClInclude Include="..\dx\dx12raytrace.hpp">
       <Filter>ヘッダー ファイル\dx</Filter>
     </ClInclude>
-    <ClInclude Include="dx\dx12raytrace.hpp">
+    <ClInclude Include="..\dx\dx12resource.hpp">
       <Filter>ヘッダー ファイル\dx</Filter>
     </ClInclude>
-    <ClInclude Include="gfx\shapes.hpp">
+    <ClInclude Include="..\gfx\shapes.hpp">
       <Filter>ヘッダー ファイル\gfx</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="readme.md" />
   </ItemGroup>
 </Project>
