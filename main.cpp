@@ -314,6 +314,7 @@ int main() {
 		}
 
 		local_time = (::timeGetTime() - time_o) / 1000.f;
+		ino::d3d::begin();
 
 		std::mutex m;
 
@@ -354,7 +355,8 @@ int main() {
 
 		ino::d3d::excute(cmds, _countof(pipe));
 		ino::d3d::wait();
-		ino::d3d::flush();
+		Sleep(16);
+		ino::d3d::end();
 	} while (!GetAsyncKeyState(VK_ESCAPE));//&& local_time < 144.83f);
 	
 	Sleep(500);

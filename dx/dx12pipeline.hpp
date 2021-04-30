@@ -65,7 +65,6 @@ class pipeline {
 	D3D12_RESOURCE_BARRIER barrier = {};
 
 	LPCSTR constexpr getCstrShaderType(ShaderTypes type) const;
-	void resetCommand();
 public:
 	D3D12_VIEWPORT view = {.MinDepth = 0.f,.MaxDepth = 1.f};
 	D3D12_RECT scissor = {};

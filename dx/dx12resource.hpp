@@ -95,7 +95,7 @@ public:
 
 class vbo {
 	::Microsoft::WRL::ComPtr<ID3D12Resource> buffer;
-	D3D12_VERTEX_BUFFER_VIEW view;
+	D3D12_VERTEX_BUFFER_VIEW view = {};
 public:
 	UINT vert_count = 0;
 	UINT vert_stride = 0;
