@@ -74,6 +74,7 @@ public:
 
 	void LoadShader(ShaderTypes type, std::wstring_view path, LPCSTR entryPoint);
 	void LoadShader(ShaderTypes type, void* src, size_t src_size, LPCSTR entryPoint);
+	void LoadShader(ShaderTypes type, void* src, size_t src_size);
 
 	void CreateSampler(UINT count, D3D12_FILTER filter[], D3D12_TEXTURE_ADDRESS_MODE warp[]);
 

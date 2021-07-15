@@ -8,6 +8,8 @@
 #include <DirectXMath.h>
 #include <vector>
 
+#include <iostream>
+
 float t = 0.f;
 UINT plotMode = 0;
 
@@ -119,14 +121,14 @@ HRESULT create_pipeline(ino::d3d::pipeline& pipe)
 	};
 	pipe.Create(elementDescs, 3, 1, true);
 	pipe.view = {
-		.Width = static_cast<FLOAT>(screen_width),
-		.Height = static_cast<FLOAT>(screen_height),
+		.Width = static_cast<FLOAT>(ino::d3d::screen_width),
+		.Height = static_cast<FLOAT>(ino::d3d::screen_height),
 		.MinDepth = 0.f,
 		.MaxDepth = 1.f
 	};
 	pipe.scissor = {
-		.right = screen_width,
-		.bottom = screen_height
+		.right = ino::d3d::screen_width,
+		.bottom = ino::d3d::screen_height
 	};
 
 	return S_OK;
@@ -149,12 +151,12 @@ HRESULT create_pipeline_textured(ino::d3d::pipeline& pipe)
 	pipe.Create(elementDescs, 3, 2, false);
 
 	pipe.view = {
-		.Width = static_cast<FLOAT>(screen_width),
-		.Height = static_cast<FLOAT>(screen_height),
+		.Width = static_cast<FLOAT>(ino::d3d::screen_width),
+		.Height = static_cast<FLOAT>(ino::d3d::screen_height),
 	};
 	pipe.scissor = {
-		.right = screen_width,
-		.bottom = screen_height
+		.right = ino::d3d::screen_width,
+		.bottom = ino::d3d::screen_height
 	};
 
 	return S_OK;
@@ -220,7 +222,7 @@ DLL_EXPORT BOOL DxContextFlush()
 		}
 	}
 	DX::XMMATRIX view = DX::XMMatrixLookAtLH(cam.pos,cam.target,cam.up);
-	auto projection = DX::XMMatrixPerspectiveFovLH(DX::XMConvertToRadians(60), screen_width / (float)screen_height, 0.01f, 100.f);
+	auto projection = DX::XMMatrixPerspectiveFovLH(DX::XMConvertToRadians(60), ino::d3d::screen_width / (float)ino::d3d::screen_height, 0.01f, 100.f);
 	DX::XMFLOAT4X4 Mat;
 	DX::XMStoreFloat4x4(&Mat, XMMatrixTranspose(model * view * projection));
 	

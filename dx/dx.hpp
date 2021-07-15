@@ -24,8 +24,6 @@
 #endif
 #include <string>
 
-extern int screen_width;
-extern int screen_height;
 constexpr int num_swap_buffers = 2;//2 to  DXGI_MAX_SWAP_CHAIN_BUFFERS
 
 #define USE_STENCIL_BUFFER
@@ -33,11 +31,14 @@ constexpr int num_swap_buffers = 2;//2 to  DXGI_MAX_SWAP_CHAIN_BUFFERS
 namespace ino::d3d
 {
 class texture;
+
+extern int screen_width;
+extern int screen_height;
 #ifdef _DEBUG
 extern	::Microsoft::WRL::ComPtr<ID3D12Debug> d3dDebuger;
 #endif
 extern	::Microsoft::WRL::ComPtr<IDXGISwapChain4> swapChain;
-extern	::Microsoft::WRL::ComPtr<ID3D12Device2> device;
+extern	::Microsoft::WRL::ComPtr<ID3D12Device5> device;
 extern	::Microsoft::WRL::ComPtr<ID3D12CommandAllocator> commandAllocators[num_swap_buffers];
 extern	UINT currentBackBufferIndex;
 extern	::Microsoft::WRL::ComPtr<ID3D12CommandQueue> commandQueue;
@@ -81,9 +82,9 @@ void begin();
 void end();
 
 ::Microsoft::WRL::ComPtr<IDXGIAdapter4> GetAdapter(bool useWarp);
-::Microsoft::WRL::ComPtr<ID3D12Device2> CreateDevice(::Microsoft::WRL::ComPtr<IDXGIAdapter4> adapter);
+::Microsoft::WRL::ComPtr<ID3D12Device5> CreateDevice(::Microsoft::WRL::ComPtr<IDXGIAdapter4> adapter);
 
-inline bool CheckDXRSupport(::Microsoft::WRL::ComPtr<ID3D12Device2> device)
+inline bool CheckDXRSupport(::Microsoft::WRL::ComPtr<ID3D12Device5> device)
 {
 	D3D12_FEATURE_DATA_D3D12_OPTIONS5 features = {};
 	device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS5, &features, sizeof(features));

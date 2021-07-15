@@ -205,14 +205,14 @@ HRESULT create_pipeline(ino::d3d::pipeline& pipe)
 	};
 	pipe.Create(elementDescs, 2,1,true);
 	pipe.view = {
-		.Width = static_cast<FLOAT>(screen_width),
-		.Height = static_cast<FLOAT>(screen_height),
+		.Width = static_cast<FLOAT>(ino::d3d::screen_width),
+		.Height = static_cast<FLOAT>(ino::d3d::screen_height),
 		.MinDepth = 0.f,
 		.MaxDepth = 1.f
 	};
 	pipe.scissor = {
-		.right = screen_width,
-		.bottom = screen_height
+		.right = ino::d3d::screen_width,
+		.bottom = ino::d3d::screen_height
 	};
 
 	return S_OK;
@@ -235,12 +235,12 @@ HRESULT create_pipeline_textured(ino::d3d::pipeline& pipe)
 	pipe.Create(elementDescs, 3, 2, false);
 
 	pipe.view = {
-		.Width = static_cast<FLOAT>(screen_width),
-		.Height = static_cast<FLOAT>(screen_height),
+		.Width = static_cast<FLOAT>(ino::d3d::screen_width),
+		.Height = static_cast<FLOAT>(ino::d3d::screen_height),
 	};
 	pipe.scissor = {
-		.right = screen_width,
-		.bottom = screen_height
+		.right = ino::d3d::screen_width,
+		.bottom = ino::d3d::screen_height
 	};
 
 	return S_OK;
@@ -265,8 +265,8 @@ int main() {
 #endif
 		;
 
-	HWND hwnd = CreateWindow(L"edit", 0, wnd_flg, 0, 0, screen_width, screen_height, 0, 0, 0, 0);
-	printf("init=%d\n", ino::d3d::init(hwnd, false, screen_width, screen_height));
+	HWND hwnd = CreateWindow(L"edit", 0, wnd_flg, 0, 0, ino::d3d::screen_width, ino::d3d::screen_height, 0, 0, 0, 0);
+	printf("init=%d\n", ino::d3d::init(hwnd, false, ino::d3d::screen_width, ino::d3d::screen_height));
 	//std::cout << ino::d3d::CheckDXRSupport(ino::d3d::device);
 	//[[maybe_unused]] int a;
 
@@ -281,7 +281,7 @@ int main() {
 	BOOL useDXR = FALSE;
 	if (ino::d3d::CheckDXRSupport(ino::d3d::device))
 	{
-		useDXR = ino::d3d::InitDXRDevice();
+		useDXR = ino::d3d::dxr::InitDXRDevice();
 	}
 
 	//resource
@@ -322,7 +322,7 @@ int main() {
 			auto model = DX::XMMatrixIdentity();
 			rot += 0.01f;
 			auto view = DX::XMMatrixLookAtLH(DX::XMVectorSet(cos(rot)*13, 3, sin(rot)*13, 0), DX::XMVectorSet(0, 1.5, 0, 0),DX::XMVectorSet(0,1,0,0));
-			auto projection = DX::XMMatrixPerspectiveFovLH(DX::XMConvertToRadians(60), screen_width / (float)screen_height, 0.01f, 100.f);
+			auto projection = DX::XMMatrixPerspectiveFovLH(DX::XMConvertToRadians(60), ino::d3d::screen_width / (float)ino::d3d::screen_height, 0.01f, 100.f);
 			//DX::XMMATRIX mvp = model * view * projection;
 			DX::XMFLOAT4X4 Mat;
 			DX::XMStoreFloat4x4(&Mat, XMMatrixTranspose(model * view * projection));

@@ -90,6 +90,14 @@ void pipeline::LoadShader(ShaderTypes type, void* src, size_t src_size, LPCSTR e
 	putErrorMsg(error);
 }
 
+void pipeline::LoadShader(ShaderTypes type,void* src, size_t src_size)
+{
+	ByteCode ret = { nullptr , src_size };
+	ret.data = std::shared_ptr<byte>(new byte[src_size]);
+	memcpy(ret.data.get(), src, src_size);
+//                                                                                       	shader[static_cast<int>(type)].Get()->GetBufferPointer() = ret.data.get();
+}
+
 void pipeline::CreateSampler(
 	UINT count, 
 	D3D12_FILTER filter[], 

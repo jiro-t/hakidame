@@ -106,4 +106,9 @@ public:
 	D3D12_GPU_VIRTUAL_ADDRESS GetGPUVirtualAddress() { return buffer->GetGPUVirtualAddress(); }
 };
 
+struct ByteCode {
+	std::shared_ptr<byte> data = nullptr;
+	uint32_t size = 0;
+};
+
 }

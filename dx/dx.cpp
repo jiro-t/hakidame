@@ -1,17 +1,18 @@
 ﻿#include "dx.hpp"
 #include "dx12resource.hpp"
 
-int screen_width = 800;
-int screen_height = 600;
 
 namespace ino::d3d
 {
+
+int screen_width = 800;
+int screen_height = 600;
 
 #ifdef _DEBUG
 ::Microsoft::WRL::ComPtr<ID3D12Debug> d3dDebuger = nullptr;
 #endif
 ::Microsoft::WRL::ComPtr<IDXGISwapChain4> swapChain = nullptr;
-::Microsoft::WRL::ComPtr<ID3D12Device2> device = nullptr;
+::Microsoft::WRL::ComPtr<ID3D12Device5> device = nullptr;
 texture renderTargets[num_swap_buffers];
 ::Microsoft::WRL::ComPtr<ID3D12CommandAllocator> commandAllocators[num_swap_buffers] = {};
 UINT currentBackBufferIndex = 0;
@@ -69,18 +70,18 @@ BOOL allowTearing = FALSE;
 	return dxgiAdapter4;
 }
 
-::Microsoft::WRL::ComPtr<ID3D12Device2> CreateDevice(::Microsoft::WRL::ComPtr<IDXGIAdapter4> adapter)
+::Microsoft::WRL::ComPtr<ID3D12Device5> CreateDevice(::Microsoft::WRL::ComPtr<IDXGIAdapter4> adapter)
 {
-	::Microsoft::WRL::ComPtr<ID3D12Device2> d3d12Device2;
+	::Microsoft::WRL::ComPtr<ID3D12Device5> d3d12Device5;
 
 	//UUID experimentalFeatures[] = { D3D12ExperimentalShaderModels,D3D12RaytracingPrototype };
 	//bool supportsDXR = D3D12EnableExperimentalFeatures(2, experimentalFeatures, NULL, NULL) == S_OK;
-	HRESULT hr = D3D12CreateDevice(adapter.Get(), D3D_FEATURE_LEVEL_12_1, IID_PPV_ARGS(&d3d12Device2));
+	HRESULT hr = D3D12CreateDevice(adapter.Get(), D3D_FEATURE_LEVEL_12_1, IID_PPV_ARGS(&d3d12Device5));
 
 	// Enable debug messages in debug mode.
 #if defined(_DEBUG)
 	::Microsoft::WRL::ComPtr<ID3D12InfoQueue> pInfoQueue;
-	if (SUCCEEDED(d3d12Device2.As(&pInfoQueue)))
+	if (SUCCEEDED(d3d12Device5.As(&pInfoQueue)))
 	{
 		pInfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, TRUE);
 		pInfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, TRUE);
@@ -110,7 +111,7 @@ BOOL allowTearing = FALSE;
 		hr = pInfoQueue->PushStorageFilter(&NewFilter);
 	}
 #endif
-	return d3d12Device2;
+	return d3d12Device5;
 }
 
 ::Microsoft::WRL::ComPtr<ID3D12CommandQueue> CreateCommandQueue(
