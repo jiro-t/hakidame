@@ -1,5 +1,7 @@
 ﻿#include "dx12pipeline.hpp"
 
+#include <fstream>
+
 namespace ino::d3d {
 
 LPCSTR constexpr pipeline::getCstrShaderType(ShaderTypes type) const
@@ -34,9 +36,6 @@ pipeline::pipeline()
 
 pipeline::~pipeline()
 {
-	for (auto& s : shader)
-		if (s) s->Release();
-
 	if (params)
 	{
 		delete[] params;
@@ -57,10 +56,17 @@ pipeline::~pipeline()
 		sampler_ranges = nullptr;
 		Sleep(20);
 	}
+
+	for (auto& s : shader)
+	{
+		if (s.pShaderBytecode)
+			delete[] s.pShaderBytecode;
+	}
 }
 
 void pipeline::LoadShader(ShaderTypes type, std::wstring_view path, LPCSTR entryPoint)
 {
+	::Microsoft::WRL::ComPtr<ID3DBlob> blob;
 	::Microsoft::WRL::ComPtr<ID3DBlob> error;
 	D3DCompileFromFile(
 		path.data(),
@@ -69,13 +75,22 @@ void pipeline::LoadShader(ShaderTypes type, std::wstring_view path, LPCSTR entry
 		entryPoint,
 		getCstrShaderType(type),
 		hlsl_compile_flag, 0,
-		&shader[static_cast<int>(type)], &error);
+		&blob, &error);
+
+	shader[static_cast<int>(type)].BytecodeLength = blob->GetBufferSize();
+	void * p = new byte[blob->GetBufferSize()];
+	memcpy(p,blob->GetBufferPointer(),blob->GetBufferSize());
+	shader[static_cast<int>(type)].pShaderBytecode = p;
 
 	putErrorMsg(error);
+
+	if(blob)blob->Release();
+	if(error)error->Release();
 }
 
 void pipeline::LoadShader(ShaderTypes type, void* src, size_t src_size, LPCSTR entryPoint)
 {
+	::Microsoft::WRL::ComPtr<ID3DBlob> blob;
 	::Microsoft::WRL::ComPtr<ID3DBlob> error;
 	D3DCompile(
 		src,
@@ -86,16 +101,45 @@ void pipeline::LoadShader(ShaderTypes type, void* src, size_t src_size, LPCSTR e
 		entryPoint,
 		getCstrShaderType(type),
 		hlsl_compile_flag,
-		0, &shader[static_cast<int>(type)], &error);
+		0, &blob, &error);
+
+	shader[static_cast<int>(type)].BytecodeLength = blob->GetBufferSize();
+	void* p = new byte[blob->GetBufferSize()];
+	memcpy(p, blob->GetBufferPointer(), blob->GetBufferSize());
+	shader[static_cast<int>(type)].pShaderBytecode = p;
+
 	putErrorMsg(error);
+	if(blob)blob->Release();
+	if(error)error->Release();
+}
+
+void pipeline::LoadShader(ShaderTypes type, std::wstring_view path)
+{
+	std::ifstream ifs;
+	ifs.open(path.data(),std::ios::in | std::ios::binary);
+	if (!ifs)
+		return;
+	UINT size = 0;
+	char c;
+	while (!ifs.eof())
+	{
+		ifs.read(&c, 1);
+		size += 1;
+	}
+
+	shader[static_cast<int>(type)].BytecodeLength = size;
+	byte* p = new byte[size];
+	ifs.seekg(std::ios::beg);
+	ifs.read( reinterpret_cast<char*>(p),size);
+	shader[static_cast<int>(type)].pShaderBytecode = p;
 }
 
 void pipeline::LoadShader(ShaderTypes type,void* src, size_t src_size)
 {
-	ByteCode ret = { nullptr , src_size };
-	ret.data = std::shared_ptr<byte>(new byte[src_size]);
-	memcpy(ret.data.get(), src, src_size);
-//                                                                                       	shader[static_cast<int>(type)].Get()->GetBufferPointer() = ret.data.get();
+	shader[static_cast<int>(type)].BytecodeLength = src_size;
+	void* p = new byte[src_size];
+	memcpy(p, src, src_size);
+	shader[static_cast<int>(type)].pShaderBytecode = p;
 }
 
 void pipeline::CreateSampler(
@@ -218,16 +262,11 @@ void pipeline::Create(
 		.SampleDesc = {.Count = 1,},
 	};
 
-	if (shader[static_cast<int>(d3d::ShaderTypes::VERTEX_SHADER)])
-		desc.VS = { shader[static_cast<int>(d3d::ShaderTypes::VERTEX_SHADER)]->GetBufferPointer() ,shader[static_cast<int>(d3d::ShaderTypes::VERTEX_SHADER)]->GetBufferSize() };
-	if (shader[static_cast<int>(d3d::ShaderTypes::FRAGMENT_SHADER)])
-		desc.PS = { shader[static_cast<int>(d3d::ShaderTypes::FRAGMENT_SHADER)]->GetBufferPointer() ,shader[static_cast<int>(d3d::ShaderTypes::FRAGMENT_SHADER)]->GetBufferSize() };
-	if (shader[static_cast<int>(d3d::ShaderTypes::GEOMETORY_SHADER)])
-		desc.GS = { shader[static_cast<int>(d3d::ShaderTypes::GEOMETORY_SHADER)]->GetBufferPointer() ,shader[static_cast<int>(d3d::ShaderTypes::GEOMETORY_SHADER)]->GetBufferSize() };
-	if (shader[static_cast<int>(d3d::ShaderTypes::DOMAIN_SHADER)])
-		desc.DS = { shader[static_cast<int>(d3d::ShaderTypes::DOMAIN_SHADER)]->GetBufferPointer() ,shader[static_cast<int>(d3d::ShaderTypes::DOMAIN_SHADER)]->GetBufferSize() };
-	if (shader[static_cast<int>(d3d::ShaderTypes::HULL_SHADER)])
-		desc.HS = { shader[static_cast<int>(d3d::ShaderTypes::HULL_SHADER)]->GetBufferPointer() ,shader[static_cast<int>(d3d::ShaderTypes::HULL_SHADER)]->GetBufferSize() };
+	desc.VS = shader[static_cast<int>(d3d::ShaderTypes::VERTEX_SHADER)];// { shader[static_cast<int>(d3d::ShaderTypes::VERTEX_SHADER)]->GetBufferPointer(), shader[static_cast<int>(d3d::ShaderTypes::VERTEX_SHADER)]->GetBufferSize() };
+	desc.PS = shader[static_cast<int>(d3d::ShaderTypes::FRAGMENT_SHADER)];// { shader[static_cast<int>(d3d::ShaderTypes::FRAGMENT_SHADER)]->GetBufferPointer(), shader[static_cast<int>(d3d::ShaderTypes::FRAGMENT_SHADER)]->GetBufferSize() };
+	desc.GS = shader[static_cast<int>(d3d::ShaderTypes::GEOMETORY_SHADER)];// { shader[static_cast<int>(d3d::ShaderTypes::GEOMETORY_SHADER)]->GetBufferPointer() ,shader[static_cast<int>(d3d::ShaderTypes::GEOMETORY_SHADER)]->GetBufferSize() };
+	desc.DS = shader[static_cast<int>(d3d::ShaderTypes::DOMAIN_SHADER)];// { shader[static_cast<int>(d3d::ShaderTypes::DOMAIN_SHADER)]->GetBufferPointer() ,shader[static_cast<int>(d3d::ShaderTypes::DOMAIN_SHADER)]->GetBufferSize() };
+	desc.HS = shader[static_cast<int>(d3d::ShaderTypes::HULL_SHADER)];// { shader[static_cast<int>(d3d::ShaderTypes::HULL_SHADER)]->GetBufferPointer(), shader[static_cast<int>(d3d::ShaderTypes::HULL_SHADER)]->GetBufferSize() };
 
 	device->CreateGraphicsPipelineState(&desc, IID_PPV_ARGS(&pipelineState));
 

@@ -1,3 +1,5 @@
+#define NOMINMAX
+
 #include "../dx/dx.hpp"
 #include "../dx/dx12pipeline.hpp"
 #include "../dx/dx12resource.hpp"

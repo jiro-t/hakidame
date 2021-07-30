@@ -53,8 +53,9 @@ class pipeline {
 	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = {};
 	::Microsoft::WRL::ComPtr<ID3D12PipelineState> pipelineState;
 	::Microsoft::WRL::ComPtr<ID3D12RootSignature> rootSignature;
-	::Microsoft::WRL::ComPtr<ID3DBlob> shader[static_cast<int>(ShaderTypes::UNDEFINED)];
 	::Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> commandList;
+
+	D3D12_SHADER_BYTECODE shader[static_cast<int>(ShaderTypes::UNDEFINED)] = {};
 
 	D3D12_ROOT_PARAMETER* params = nullptr;
 	D3D12_STATIC_SAMPLER_DESC* samplers = nullptr;
@@ -74,6 +75,7 @@ public:
 
 	void LoadShader(ShaderTypes type, std::wstring_view path, LPCSTR entryPoint);
 	void LoadShader(ShaderTypes type, void* src, size_t src_size, LPCSTR entryPoint);
+	void LoadShader(ShaderTypes type, std::wstring_view path);
 	void LoadShader(ShaderTypes type, void* src, size_t src_size);
 
 	void CreateSampler(UINT count, D3D12_FILTER filter[], D3D12_TEXTURE_ADDRESS_MODE warp[]);

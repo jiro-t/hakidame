@@ -54,28 +54,28 @@ struct ShadowHitInfo
 	bool hasHit;
 };
 
-ByteCode LoadShader(std::wstring_view path)
+D3D12_SHADER_BYTECODE LoadShader(std::wstring_view path)
 {
-	ByteCode ret;
+	D3D12_SHADER_BYTECODE ret;
 	std::ifstream ifs;
 	uint32_t size = 0;
-	char c;
+
 	ifs.open(path.data(), std::ios::binary);
 	while (!ifs.eof())
 	{
-		ifs.read(&c,1);
+		ifs.read(nullptr,1);
 		size++;
 	}
 	ifs.seekg(ifs.beg);
-	ret.data = std::shared_ptr<byte>(new byte[size]);
+	byte* p = new byte[size];
 
 	uint32_t i = 0;
 	while (!ifs.eof())
 	{
-		ifs.read(&c, 1);
-		memcpy(ret.data.get() + i, &c, 1);
-		//*(reinterpret_cast<char*>(ret.data)+i) = c;
+		ifs.read(reinterpret_cast<char*>(p) + i, 1);
+		++i;
 	}
+	ret.pShaderBytecode = p;
 	return ret;
 }
 
@@ -246,6 +246,11 @@ struct AccelerationStructureBuffers
 	UINT64                 ResultDataMaxSizeInBytes = 0;
 };
 
+inline uint32_t alignment(uint32_t al, uint32_t byte)
+{
+	return byte + byte % al;
+};
+
 BOOL InitDXRDevice()
 {
 	HRESULT hr = S_OK;
@@ -280,15 +285,12 @@ BOOL InitDXRDevice()
 		0, 0
 	};
 
-	// Create the buffer resource for RT output
 	hr = device->CreateCommittedResource(&heapProp, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_COPY_SOURCE, nullptr, IID_PPV_ARGS(&dxr::frameBuffer));
-	// Create the buffer resource for accumulation
 	desc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
 	hr = device->CreateCommittedResource(&heapProp, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_COPY_SOURCE, nullptr, IID_PPV_ARGS(&dxr::accumulationBuffer));
 
 	//Create Pipeline
 	int paramCount;
-
 	D3D12_ROOT_PARAMETER rootParam = {};
 	rootParam.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
 	rootParam.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
@@ -325,19 +327,7 @@ BOOL InitDXRDevice()
 	ID3D12RootSignature* pRootSig;
 	hr = d3d::device->CreateRootSignature(0, sig->GetBufferPointer(), sig->GetBufferSize(), IID_PPV_ARGS(&d3d::dxr::globalRootSignature));
 
-
-	// Need 12 subobjects:
-	// 1 for RGS program
-	// 2 for Miss programs
-	// 1 for CHS program
-	// 2 for AHS program
-	// 2 for Hit Groups
-	// 2 for Shader Config (config and association)
-	// 1 for Global Root Signature
-	// 1 for Pipeline Config	
-
 	std::vector<D3D12_STATE_SUBOBJECT> subObjs;
-
 	struct EntryType {
 		std::wstring entryPoint;
 		D3D12_STATE_SUBOBJECT_TYPE state;
@@ -363,10 +353,8 @@ BOOL InitDXRDevice()
 		exportDesc.ExportToRename = entries[i].entryPoint.c_str();
 		exportDesc.Flags = D3D12_EXPORT_FLAG_NONE;
 
-		ByteCode rtShader = LoadShader(L"shaders\\PathTracer.hlsl");
 		D3D12_DXIL_LIBRARY_DESC	libDesc = {};
-		libDesc.DXILLibrary.BytecodeLength = rtShader.size;
-		libDesc.DXILLibrary.pShaderBytecode = rtShader.data.get();
+		libDesc.DXILLibrary = LoadShader(L"shaders\\PathTracer.hlsl");
 		libDesc.NumExports = 1;
 		libDesc.pExports = &exportDesc;
 
@@ -377,7 +365,7 @@ BOOL InitDXRDevice()
 		subObjs.push_back(obj);
 	}
 
-	// Create a list of the shader export names that use the payload
+	// shader list
 	const WCHAR* shaderExports[] = { 
 		entries[0].entryPoint.c_str(),
 		entries[1].entryPoint.c_str(),
@@ -385,9 +373,8 @@ BOOL InitDXRDevice()
 		entries[3].entryPoint.c_str(),
 		entries[4].entryPoint.c_str(),
 	};
-	// Add a state subobject for the shader payload configuration
 	D3D12_RAYTRACING_SHADER_CONFIG shaderDesc = {};
-	shaderDesc.MaxPayloadSizeInBytes = max(sizeof(HitInfo), sizeof(ShadowHitInfo));
+	shaderDesc.MaxPayloadSizeInBytes = std::max(sizeof(HitInfo), sizeof(ShadowHitInfo));
 	shaderDesc.MaxAttributeSizeInBytes = D3D12_RAYTRACING_MAX_ATTRIBUTE_SIZE_IN_BYTES;
 
 	D3D12_STATE_SUBOBJECT shaderConfigObject = {};
@@ -395,7 +382,6 @@ BOOL InitDXRDevice()
 	shaderConfigObject.pDesc = &shaderDesc;
 	subObjs.push_back(shaderConfigObject);
 
-	// Add a state subobject for the association between shaders and the payload
 	D3D12_SUBOBJECT_TO_EXPORTS_ASSOCIATION shaderPayloadAssociation = {};
 	shaderPayloadAssociation.NumExports = _countof(shaderExports);
 	shaderPayloadAssociation.pExports = shaderExports;
@@ -411,7 +397,6 @@ BOOL InitDXRDevice()
 	globalRootSig.pDesc = dxr::globalRootSignature.Get();
 	subObjs.push_back(globalRootSig);
 
-	// Add a state subobject for the ray tracing pipeline config
 	D3D12_RAYTRACING_PIPELINE_CONFIG pipelineConfig = {};
 	pipelineConfig.MaxTraceRecursionDepth = 1;
 
@@ -431,10 +416,10 @@ BOOL InitDXRDevice()
 	//ShaderTable
 	uint32_t shaderIdSize = D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES;
 	dxr::shaderTableRecordSize = shaderIdSize;
-	dxr::shaderTableRecordSize = ALIGN(D3D12_RAYTRACING_SHADER_RECORD_BYTE_ALIGNMENT, dxr::shaderTableRecordSize);
+	dxr::shaderTableRecordSize = alignment(D3D12_RAYTRACING_SHADER_RECORD_BYTE_ALIGNMENT, dxr::shaderTableRecordSize);
 
-	uint32_t shaderTableSize = (dxr::shaderTableRecordSize * 5);		// 5 shader records in the table
-	shaderTableSize = ALIGN(D3D12_RAYTRACING_SHADER_TABLE_BYTE_ALIGNMENT, shaderTableSize);
+	uint32_t shaderTableSize = ( dxr::shaderTableRecordSize * _countof(shaderExports) );
+	shaderTableSize = alignment(D3D12_RAYTRACING_SHADER_TABLE_BYTE_ALIGNMENT, shaderTableSize);
 	dxr::shaderTableData.reserve(shaderTableSize);
 
 	uint8_t* pData = dxr::shaderTableData.data();
@@ -443,11 +428,9 @@ BOOL InitDXRDevice()
 		memcpy(pData, dxr::rtpsoInfo->GetShaderIdentifier(entry), shaderIdSize);
 		pData += dxr::shaderTableRecordSize;
 	}
+
 	// Upload shader table to GPU
 	//D3DResources::UploadToGPU(d3d, dxr.shaderTableData.data(), dxr.shaderTable, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
-
-//	dxr_pipeline pipe;
-//	pipe.Create();
 
 	return TRUE;
 }
@@ -457,8 +440,8 @@ D3D12_RAYTRACING_GEOMETRY_DESC ToGeometoryDesc(vbo v)
 	D3D12_RAYTRACING_GEOMETRY_DESC geometryDesc = {};
 	
 	geometryDesc.Type = D3D12_RAYTRACING_GEOMETRY_TYPE_TRIANGLES;
-	geometryDesc.Triangles.IndexBuffer = 0;// m_indexBuffer->GetGPUVirtualAddress();
-	geometryDesc.Triangles.IndexCount = 0;// static_cast<UINT>(m_indexBuffer->GetDesc().Width) / sizeof(Index);
+	geometryDesc.Triangles.IndexBuffer = 0;//m_indexBuffer->GetGPUVirtualAddress();
+	geometryDesc.Triangles.IndexCount = 0;//static_cast<UINT>(m_indexBuffer->GetDesc().Width) / sizeof(Index);
 	geometryDesc.Triangles.IndexFormat = DXGI_FORMAT_R16_UINT;
 	geometryDesc.Triangles.Transform3x4 = 0;
 	geometryDesc.Triangles.VertexFormat = DXGI_FORMAT_R32G32B32A32_FLOAT;
@@ -558,8 +541,6 @@ class dxr_pipeline {
 	::Microsoft::WRL::ComPtr<ID3D12RootSignature> globalRootSignature;
 	::Microsoft::WRL::ComPtr<ID3D12RootSignature> localRootSignature;
 
-
-	::Microsoft::WRL::ComPtr<ID3D12PipelineState> pipelineState;
 	::Microsoft::WRL::ComPtr<ID3DBlob> signature;
 	//::Microsoft::WRL::ComPtr<ID3DBlob> shader[static_cast<int>(ShaderTypes::UNDEFINED)];
 	::Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> commandList;

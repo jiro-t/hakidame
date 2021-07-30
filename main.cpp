@@ -17,6 +17,8 @@ float local_time = 0.f;
 #include <string>
 #include <vector>
 
+#include <chrono>
+
 static float g_Vertices[6][9] = {
 	{ 0.10f, 0.f, 0.5f,/**/ 1.0f, 1.0f, 1.0f,1.0f,/**/0.f,0.f }, // 1
 	{ 0.1f, 0.25f, 0.5f,/**/ 1.0f, 1.0f, 1.0f,1.0f,/**/0.f,1.f }, // 2
@@ -198,6 +200,8 @@ HRESULT create_pipeline(ino::d3d::pipeline& pipe)
 {
 	pipe.LoadShader(ino::d3d::ShaderTypes::VERTEX_SHADER, def_shader, sizeof(def_shader), "VSMain");
 	pipe.LoadShader(ino::d3d::ShaderTypes::FRAGMENT_SHADER, def_shader, sizeof(def_shader), "PSMain");
+	//	pipe.LoadShader(ino::d3d::ShaderTypes::VERTEX_SHADER, L"./vs.cso");
+	//	pipe.LoadShader(ino::d3d::ShaderTypes::FRAGMENT_SHADER, L"./ps.cso");
 
 	D3D12_INPUT_ELEMENT_DESC elementDescs[] = {
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
@@ -302,7 +306,8 @@ int main() {
 	ino::d3d::texture tex;
 	tex.Create(4,4);
 	tex.Map(texData,4,4, 4);
-	DWORD time_o = ::timeGetTime();
+	std::chrono::high_resolution_clock c;
+	std::chrono::high_resolution_clock::time_point time_o = c.now();
 	float rot = 0.0f;
 	srand(0);
 	do {
@@ -313,7 +318,8 @@ int main() {
 			::DispatchMessage(&msg);
 		}
 
-		local_time = (::timeGetTime() - time_o) / 1000.f;
+		local_time += std::chrono::duration_cast<std::chrono::milliseconds>(c.now() - time_o).count() / 1000.f;
+		time_o = c.now();
 		ino::d3d::begin();
 
 		std::mutex m;

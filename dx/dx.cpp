@@ -76,6 +76,8 @@ BOOL allowTearing = FALSE;
 
 	//UUID experimentalFeatures[] = { D3D12ExperimentalShaderModels,D3D12RaytracingPrototype };
 	//bool supportsDXR = D3D12EnableExperimentalFeatures(2, experimentalFeatures, NULL, NULL) == S_OK;
+	//UUID experimentalFeatures[] = { D3D12ExperimentalShaderModels,D3D12RayTracingPrototype };
+	//bool supports = D3D12EnableExperimentalFeatures(1, experimentalFeatures, NULL, NULL) == S_OK;
 	HRESULT hr = D3D12CreateDevice(adapter.Get(), D3D_FEATURE_LEVEL_12_1, IID_PPV_ARGS(&d3d12Device5));
 
 	// Enable debug messages in debug mode.
