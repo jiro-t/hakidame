@@ -91,6 +91,7 @@ float4 PSMain(PSInput input) : SV_TARGET\
 
 char tex_shader[] =
 "\
+#define rootSig \"RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT),CBV(b0),DescriptorTable(SRV(t0)),StaticSampler(s0) \"\n \
 Texture2D<float4> tex_ : register(t0);\
 SamplerState samp_ : register(s0);\
 cbuffer cb1 : register(b0){\
@@ -100,12 +101,14 @@ struct PSInput {\
 	float4	position : SV_POSITION;\
 	float2	uv : TEXCOORD0;\
 };\
+[RootSignature(rootSig)]\
 PSInput VSMain(float4 position : POSITION,float4 normal : NORMAL,float4 uv : TEXCOORD0){\
 	PSInput	result;\
 	result.position = mul(float4(position.xyz,1),mvp);\
 	result.uv = uv.xy;\
 	return result;\
 }\
+[RootSignature(rootSig)]\
 float4 PSMain(PSInput input) : SV_TARGET{\
 	return tex_.Sample(samp_, input.uv);\
 }\
@@ -121,7 +124,7 @@ HRESULT create_pipeline(ino::d3d::pipeline& pipe)
 		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, sizeof(float) * 4, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, sizeof(float) * 8, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 	};
-	pipe.Create(elementDescs, 3, 1, true);
+	pipe.Create(elementDescs, 3, true);
 	pipe.view = {
 		.Width = static_cast<FLOAT>(ino::d3d::screen_width),
 		.Height = static_cast<FLOAT>(ino::d3d::screen_height),
@@ -150,7 +153,7 @@ HRESULT create_pipeline_textured(ino::d3d::pipeline& pipe)
 	D3D12_TEXTURE_ADDRESS_MODE wrap[] = { D3D12_TEXTURE_ADDRESS_MODE::D3D12_TEXTURE_ADDRESS_MODE_CLAMP };
 	pipe.CreateSampler(1, filter, wrap);
 
-	pipe.Create(elementDescs, 3, 2, false);
+	pipe.Create(elementDescs, 3, false);
 
 	pipe.view = {
 		.Width = static_cast<FLOAT>(ino::d3d::screen_width),

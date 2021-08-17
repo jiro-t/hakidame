@@ -60,7 +60,10 @@ pipeline::~pipeline()
 	for (auto& s : shader)
 	{
 		if (s.pShaderBytecode)
+		{
 			delete[] s.pShaderBytecode;
+			s.pShaderBytecode = 0;
+		}
 	}
 }
 
@@ -121,6 +124,7 @@ void pipeline::LoadShader(ShaderTypes type, std::wstring_view path)
 		return;
 	UINT size = 0;
 	char c;
+
 	while (!ifs.eof())
 	{
 		ifs.read(&c, 1);
@@ -129,7 +133,8 @@ void pipeline::LoadShader(ShaderTypes type, std::wstring_view path)
 
 	shader[static_cast<int>(type)].BytecodeLength = size;
 	byte* p = new byte[size];
-	ifs.seekg(std::ios::beg);
+	ifs.close();
+	ifs.open(path.data(), std::ios::in | std::ios::binary);
 	ifs.read( reinterpret_cast<char*>(p),size);
 	shader[static_cast<int>(type)].pShaderBytecode = p;
 }
@@ -172,59 +177,16 @@ void pipeline::CreateSampler(
 void pipeline::Create(
 	D3D12_INPUT_ELEMENT_DESC* elementDescs,
 	UINT elemntCount,
-	UINT paramCount,
 	BOOL enableDepth,
 	D3D12_BLEND_DESC const& blendDesc,
 	D3D12_RASTERIZER_DESC const& rasterDesc) {
 	HRESULT result = S_OK;
 	use_depth = enableDepth;
 
-	// ルートパラメータの設定.
-	if (paramCount > 0)
-		params = new D3D12_ROOT_PARAMETER[paramCount+sampler_count];
-	if (sampler_count > 0)
-		sampler_ranges = new D3D12_DESCRIPTOR_RANGE[sampler_count];
-
-	for (UINT i = 0; i < sampler_count; ++i)
-	{
-		ZeroMemory(sampler_ranges + i, sizeof(D3D12_DESCRIPTOR_RANGE));
-		sampler_ranges[i].NumDescriptors = 1;
-		sampler_ranges[i].BaseShaderRegister = i;
-		sampler_ranges[i].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-		sampler_ranges[i].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
-	}
-
-	for(UINT i = 0 ; i < paramCount+sampler_count;++i)
-	{
-		ZeroMemory(params+i, sizeof(D3D12_ROOT_PARAMETER));
-		params[i].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
-		params[i].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
-		if ((INT)i - (INT)paramCount >= 0)
-		{
-			params[i].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-			params[i].DescriptorTable.NumDescriptorRanges = sampler_count;
-			params[i].DescriptorTable.pDescriptorRanges = sampler_ranges;
-		}
-		else
-			params[i].Descriptor.ShaderRegister = i;
-	}
-
-	//Create root signature
-	D3D12_ROOT_SIGNATURE_DESC rootSignatureDesc = {
-		.NumParameters = paramCount + sampler_count,
-		.pParameters = params,
-		.NumStaticSamplers = sampler_count,
-		.pStaticSamplers = samplers,
-		.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT
-//		| D3D12_ROOT_SIGNATURE_FLAG_DENY_HULL_SHADER_ROOT_ACCESS
-//		| D3D12_ROOT_SIGNATURE_FLAG_DENY_DOMAIN_SHADER_ROOT_ACCESS
-//		| D3D12_ROOT_SIGNATURE_FLAG_DENY_GEOMETRY_SHADER_ROOT_ACCESS
-//		| D3D12_ROOT_SIGNATURE_FLAG_DENY_PIXEL_SHADER_ROOT_ACCESS,
-	};
-
 	::Microsoft::WRL::ComPtr<ID3DBlob> signature;
 	::Microsoft::WRL::ComPtr<ID3DBlob> error;
-	D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error);
+	
+	result = D3DGetBlobPart(shader[static_cast<UINT>(ShaderTypes::VERTEX_SHADER)].pShaderBytecode, shader[static_cast<UINT>(ShaderTypes::VERTEX_SHADER)].BytecodeLength, D3D_BLOB_ROOT_SIGNATURE, 0, &signature);
 	device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rootSignature));
 
 	putErrorMsg(error);
@@ -317,8 +279,6 @@ ID3D12GraphicsCommandList* pipeline::Begin(texture renderTarget,D3D12_VIEWPORT r
 #else
 	commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
 #endif
-
-
 	commandList->SetGraphicsRootSignature(rootSignature.Get());
 	commandList->RSSetViewports(1, &rtView);
 	commandList->RSSetScissorRects(1, &rtRect);

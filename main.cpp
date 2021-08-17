@@ -148,7 +148,7 @@ DX::XMVECTOR cornelBox[] = {
 };
 
 char def_shader[] =
-"\
+"#define rootSig \"RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT),CBV(b0)\"\n \
 cbuffer cb1 : register(b0){\
 float4x4 mvp;\
 };\
@@ -156,6 +156,7 @@ struct PSInput {\
 	float4	position : SV_POSITION;\
 	float4	color : COLOR;\
 };\
+[RootSignature(rootSig)]\
 PSInput VSMain(float4 position : POSITION,float4 color : COLOR)\
 {\
 	PSInput	result;\
@@ -163,6 +164,7 @@ PSInput VSMain(float4 position : POSITION,float4 color : COLOR)\
 	result.color = color;\
 	return result;\
 }\
+[RootSignature(rootSig)]\
 float4 PSMain(PSInput input) : SV_TARGET\
 {\
 	return input.color;\
@@ -170,7 +172,7 @@ float4 PSMain(PSInput input) : SV_TARGET\
 ";
 
 char tex_shader[] =
-"\
+"#define rootSig \"RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT),CBV(b0),CBV(b1),DescriptorTable(SRV(t0)),StaticSampler(s0) \"\n \
 cbuffer cb1 : register(b0){\
 float s1;\
 };\
@@ -184,6 +186,7 @@ struct PSInput {\
 	float4	color : COLOR;\
 	float2	uv : TEXCOORD0;\
 };\
+[RootSignature(rootSig)]\
 PSInput VSMain(float3 position : POSITION,float4 color : COLOR,float2 uv : TEXCOORD0){\
 	PSInput	result;\
 	result.position = float4(position,1)+float4(s1,s2,0,0);\
@@ -191,6 +194,7 @@ PSInput VSMain(float3 position : POSITION,float4 color : COLOR,float2 uv : TEXCO
 	result.uv = uv;\
 	return result;\
 }\
+[RootSignature(rootSig)]\
 float4 PSMain(PSInput input) : SV_TARGET{\
 	return input.color*tex_.Sample(samp_, input.uv);\
 }\
@@ -198,16 +202,16 @@ float4 PSMain(PSInput input) : SV_TARGET{\
 
 HRESULT create_pipeline(ino::d3d::pipeline& pipe)
 {
-	pipe.LoadShader(ino::d3d::ShaderTypes::VERTEX_SHADER, def_shader, sizeof(def_shader), "VSMain");
-	pipe.LoadShader(ino::d3d::ShaderTypes::FRAGMENT_SHADER, def_shader, sizeof(def_shader), "PSMain");
-	//	pipe.LoadShader(ino::d3d::ShaderTypes::VERTEX_SHADER, L"./vs.cso");
-	//	pipe.LoadShader(ino::d3d::ShaderTypes::FRAGMENT_SHADER, L"./ps.cso");
+	//pipe.LoadShader(ino::d3d::ShaderTypes::VERTEX_SHADER, def_shader, sizeof(def_shader), "VSMain");
+	//pipe.LoadShader(ino::d3d::ShaderTypes::FRAGMENT_SHADER, def_shader, sizeof(def_shader), "PSMain");
+	pipe.LoadShader(ino::d3d::ShaderTypes::VERTEX_SHADER, L"./vs.cso");
+	pipe.LoadShader(ino::d3d::ShaderTypes::FRAGMENT_SHADER, L"./ps.cso");
 
 	D3D12_INPUT_ELEMENT_DESC elementDescs[] = {
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, sizeof(float)*4, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 	};
-	pipe.Create(elementDescs, 2,1,true);
+	pipe.Create(elementDescs, 2,true);
 	pipe.view = {
 		.Width = static_cast<FLOAT>(ino::d3d::screen_width),
 		.Height = static_cast<FLOAT>(ino::d3d::screen_height),
@@ -236,7 +240,7 @@ HRESULT create_pipeline_textured(ino::d3d::pipeline& pipe)
 	D3D12_TEXTURE_ADDRESS_MODE warp[] = { D3D12_TEXTURE_ADDRESS_MODE::D3D12_TEXTURE_ADDRESS_MODE_CLAMP };
 	pipe.CreateSampler(1, filter, warp);
 
-	pipe.Create(elementDescs, 3, 2, false);
+	pipe.Create(elementDescs, 3, false);
 
 	pipe.view = {
 		.Width = static_cast<FLOAT>(ino::d3d::screen_width),

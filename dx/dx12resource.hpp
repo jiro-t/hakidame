@@ -2,6 +2,7 @@
 
 #include "dx.hpp"
 #include <utility>
+#include <memory>
 
 namespace ino::d3d {
 

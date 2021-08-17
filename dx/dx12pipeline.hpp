@@ -83,7 +83,6 @@ public:
 	void Create(
 		D3D12_INPUT_ELEMENT_DESC* elementDescs,
 		UINT elemntCount,
-		UINT paramCount,
 		BOOL enableDepth,
 		D3D12_BLEND_DESC const& blendDesc = defaultBlendDesc(),
 		D3D12_RASTERIZER_DESC const& rasterDesc = defaultRasterizerDesc());
