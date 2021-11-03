@@ -1,7 +1,7 @@
 ﻿#ifndef INO_D3D_INCLUDED
 #define INO_D3D_INCLUDED
 
-#ifdef WIN32
+#ifndef NOMINMAX
 #define NOMINMAX
 #endif
 

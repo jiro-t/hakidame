@@ -202,10 +202,10 @@ float4 PSMain(PSInput input) : SV_TARGET{\
 
 HRESULT create_pipeline(ino::d3d::pipeline& pipe)
 {
-	//pipe.LoadShader(ino::d3d::ShaderTypes::VERTEX_SHADER, def_shader, sizeof(def_shader), "VSMain");
-	//pipe.LoadShader(ino::d3d::ShaderTypes::FRAGMENT_SHADER, def_shader, sizeof(def_shader), "PSMain");
-	pipe.LoadShader(ino::d3d::ShaderTypes::VERTEX_SHADER, L"./vs.cso");
-	pipe.LoadShader(ino::d3d::ShaderTypes::FRAGMENT_SHADER, L"./ps.cso");
+	pipe.LoadShader(ino::d3d::ShaderTypes::VERTEX_SHADER, def_shader, sizeof(def_shader), L"VSMain");
+	pipe.LoadShader(ino::d3d::ShaderTypes::FRAGMENT_SHADER, def_shader, sizeof(def_shader), L"PSMain");
+	//pipe.LoadShader(ino::d3d::ShaderTypes::VERTEX_SHADER, L"./vs.cso");
+	//pipe.LoadShader(ino::d3d::ShaderTypes::FRAGMENT_SHADER, L"./ps.cso");
 
 	D3D12_INPUT_ELEMENT_DESC elementDescs[] = {
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
@@ -228,8 +228,8 @@ HRESULT create_pipeline(ino::d3d::pipeline& pipe)
 
 HRESULT create_pipeline_textured(ino::d3d::pipeline& pipe)
 {
-	pipe.LoadShader(ino::d3d::ShaderTypes::VERTEX_SHADER, tex_shader, sizeof(tex_shader), "VSMain");
-	pipe.LoadShader(ino::d3d::ShaderTypes::FRAGMENT_SHADER, tex_shader, sizeof(tex_shader), "PSMain");
+	pipe.LoadShader(ino::d3d::ShaderTypes::VERTEX_SHADER, tex_shader, sizeof(tex_shader), L"VSMain");
+	pipe.LoadShader(ino::d3d::ShaderTypes::FRAGMENT_SHADER, tex_shader, sizeof(tex_shader), L"PSMain");
 
 	D3D12_INPUT_ELEMENT_DESC elementDescs[] = {
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
@@ -289,7 +289,7 @@ int main() {
 	BOOL useDXR = FALSE;
 	if (ino::d3d::CheckDXRSupport(ino::d3d::device))
 	{
-		useDXR = ino::d3d::dxr::InitDXRDevice();
+		//useDXR = ino::d3d::dxr::InitDXRDevice();
 	}
 
 	//resource
