@@ -2,6 +2,9 @@
 
 #include <fstream>
 
+#include <dxcapi.h>
+#pragma comment(lib, "dxcompiler")
+
 namespace ino::d3d {
 
 LPCSTR constexpr pipeline::getCstrShaderType(ShaderTypes type) const
@@ -28,6 +31,32 @@ LPCSTR constexpr pipeline::getCstrShaderType(ShaderTypes type) const
 		break;
 	}
 	return "unbdefined";
+}
+
+LPCWSTR constexpr pipeline::getWstrShaderType(ShaderTypes type) const
+{
+	switch (type)
+	{
+	case ShaderTypes::VERTEX_SHADER:
+		return L"vs_6_0";
+		break;
+	case ShaderTypes::FRAGMENT_SHADER:
+		return L"ps_6_0";
+		break;
+	case ShaderTypes::GEOMETORY_SHADER:
+		return L"gs_6_0";
+		break;
+	case ShaderTypes::DOMAIN_SHADER:
+		return L"ds_6_0";
+		break;
+	case ShaderTypes::HULL_SHADER:
+		return L"hs_6_0";
+		break;
+	case ShaderTypes::UNDEFINED:
+		return L"unbdefined";
+		break;
+	}
+	return L"unbdefined";
 }
 
 pipeline::pipeline()
@@ -114,6 +143,35 @@ void pipeline::LoadShader(ShaderTypes type, void* src, size_t src_size, LPCSTR e
 	putErrorMsg(error);
 	if(blob)blob->Release();
 	if(error)error->Release();
+}
+
+void pipeline::LoadShader(ShaderTypes type, void* src, size_t src_size, LPCWSTR entryPoint)
+{
+	::Microsoft::WRL::ComPtr <IDxcBlob> bc;
+
+	::Microsoft::WRL::ComPtr<IDxcLibrary> lib;
+	::DxcCreateInstance(CLSID_DxcLibrary, __uuidof(IDxcLibrary), &lib);
+	::Microsoft::WRL::ComPtr<IDxcCompiler> compiler;
+	::DxcCreateInstance(CLSID_DxcCompiler, __uuidof(IDxcCompiler), &compiler);
+	::Microsoft::WRL::ComPtr<IDxcOperationResult> result;
+
+	::Microsoft::WRL::ComPtr <IDxcBlobEncoding> enc;
+	lib->CreateBlobWithEncodingOnHeapCopy(src, src_size, 932, &enc);
+
+	LPCWSTR args[] = { L"-rootsig_define rootSig" };
+	compiler->Compile(enc.Get(), L"", entryPoint, getWstrShaderType(type), nullptr, 0, nullptr, 0, nullptr, &result);
+	result->GetResult(&bc);
+	::Microsoft::WRL::ComPtr <IDxcBlobEncoding> err;
+	if (!bc)
+	{
+		result->GetErrorBuffer(&err);
+		std::cout << (char*)err->GetBufferPointer() << std::endl;
+	}
+
+	shader[static_cast<int>(type)].BytecodeLength = bc->GetBufferSize();
+	void* p = new byte[bc->GetBufferSize()];
+	memcpy(p, bc->GetBufferPointer(), bc->GetBufferSize());
+	shader[static_cast<int>(type)].pShaderBytecode = p;
 }
 
 void pipeline::LoadShader(ShaderTypes type, std::wstring_view path)

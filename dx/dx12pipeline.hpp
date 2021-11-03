@@ -66,6 +66,7 @@ class pipeline {
 	D3D12_RESOURCE_BARRIER barrier = {};
 
 	LPCSTR constexpr getCstrShaderType(ShaderTypes type) const;
+	LPCWSTR constexpr getWstrShaderType(ShaderTypes type) const;
 public:
 	D3D12_VIEWPORT view = {.MinDepth = 0.f,.MaxDepth = 1.f};
 	D3D12_RECT scissor = {};
@@ -75,6 +76,7 @@ public:
 
 	void LoadShader(ShaderTypes type, std::wstring_view path, LPCSTR entryPoint);
 	void LoadShader(ShaderTypes type, void* src, size_t src_size, LPCSTR entryPoint);
+	void LoadShader(ShaderTypes type, void* src, size_t src_size, LPCWSTR entryPoint);
 	void LoadShader(ShaderTypes type, std::wstring_view path);
 	void LoadShader(ShaderTypes type, void* src, size_t src_size);
 

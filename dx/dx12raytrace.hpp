@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "dx.hpp"
+
 #include <algorithm>
 
 #include <vector>
