@@ -6,6 +6,7 @@
 #include "dx_dll.h"
 
 #include "../gfx/shapes.hpp"
+#include "../gfx/font.hpp"
 
 #include <DirectXMath.h>
 #include <vector>
@@ -56,10 +57,31 @@ struct DrawObject {
 
 	ino::d3d::cbo<DirectX::XMFLOAT4X4> cbo;
 };
+
+DirectX::XMMATRIX GenModelMatrix(const point& pos, const point& rot, const point& sc)
+{
+	namespace DX = DirectX;
+	const DX::XMMATRIX translate = DX::XMMatrixTranslation(pos.x, pos.y, pos.z);
+	const DX::XMMATRIX rotX = DX::XMMatrixRotationAxis(DX::XMVectorSet(1, 0, 0, 0), rot.x);
+	const DX::XMMATRIX rotY = DX::XMMatrixRotationAxis(DX::XMVectorSet(0, 1, 0, 0), rot.y);
+	const DX::XMMATRIX rotZ = DX::XMMatrixRotationAxis(DX::XMVectorSet(0, 0, 1, 0), rot.z);
+	const DX::XMMATRIX scale = DX::XMMatrixScaling(sc.x, sc.y, sc.z);
+	return
+		DX::XMMatrixMultiply(
+			DX::XMMatrixMultiply(
+				DX::XMMatrixMultiply(
+					DX::XMMatrixMultiply(rotY, rotX),
+					rotZ
+				),
+				scale
+			),
+			translate
+		);
+}
 std::vector<DrawObject> objPlots;
 static DrawObject obj;
 
-std::vector<ino::d3d::vbo> vbos;
+std::vector<ino::d3d::StaticMesh> mesh;
 
 void GenCameraPlotIndecis()
 {
@@ -67,7 +89,7 @@ void GenCameraPlotIndecis()
 }
 
 char def_shader[] =
-"\
+"#define rootSig \"RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT),CBV(b0)\"\n \
 cbuffer cb1 : register(b0){\
 float4x4 mvp;\
 };\
@@ -75,6 +97,7 @@ struct PSInput {\
 	float4	position : SV_POSITION;\
 	float4	color : COLOR;\
 };\
+[RootSignature(rootSig)]\
 PSInput VSMain(float4 position : POSITION,float4 normal : NORMAL,float4 color : COLOR)\
 {\
 	PSInput	result;\
@@ -83,6 +106,7 @@ PSInput VSMain(float4 position : POSITION,float4 normal : NORMAL,float4 color : 
 	result.color = float4(color.xyz * dot(float3(0,0.5,0.5),norm),1);\
 	return result;\
 }\
+[RootSignature(rootSig)]\
 float4 PSMain(PSInput input) : SV_TARGET\
 {\
 	return input.color;\
@@ -170,6 +194,9 @@ HRESULT create_pipeline_textured(ino::d3d::pipeline& pipe)
 static ino::d3d::pipeline pipe[2];
 static ino::d3d::cbo<DirectX::XMFLOAT4X4> mvpCBO;
 
+static ino::d3d::cbo<DirectX::XMFLOAT4X4> u_cbo;
+static ino::d3d::cbo<DirectX::XMFLOAT4X4> n_cbo;
+static ino::d3d::cbo<DirectX::XMFLOAT4X4> ti_cbo;
 
 DLL_EXPORT BOOL InitDxContext(HWND hwnd, UINT width, UINT height)
 {
@@ -184,9 +211,14 @@ DLL_EXPORT BOOL InitDxContext(HWND hwnd, UINT width, UINT height)
 
 	mvpCBO.Create();
 
+	u_cbo.Create();
+	n_cbo.Create();
+	ti_cbo.Create();
 	//load default shape
-	vbos.push_back( ino::shape::CreateCube() );
-	vbos.push_back( ino::shape::CreateCube() );
+	mesh.push_back( ino::shape::CreateCube() );
+	mesh.push_back( ino::shape::CreateCharMesh(L'‚¤', L"‚l‚r –¾’©"));
+	mesh.push_back(ino::shape::CreateCharMesh(L'‚ñ', L"‚l‚r –¾’©"));
+	mesh.push_back(ino::shape::CreateCharMesh(L'‚¿', L"‚l‚r –¾’©"));
 
 	return ret;
 }
@@ -247,13 +279,28 @@ DLL_EXPORT BOOL DxContextFlush()
 			DX::XMStoreFloat4x4(&Mat, XMMatrixTranspose(model * view * projection));
 			
 			val.cbo.Set(cmds[0], Mat, 0);
-			vbos[0].Draw(cmds[0]);
+			mesh[0].Draw(cmds[0]);
 		}
 	}
 	model = obj.matBegin;
 	DX::XMStoreFloat4x4(&Mat, XMMatrixTranspose(model * view * projection));
 	mvpCBO.Set(cmds[0], Mat, 0);
-	vbos[0].Draw(cmds[0]);
+	mesh[0].Draw(cmds[0]);
+
+	model = GenModelMatrix(point(-5, 10, 0, 0), point(0, 0, 0, 0), point(0.1, 0.1, 5, 1));
+	DX::XMStoreFloat4x4(&Mat, XMMatrixTranspose(model * view * projection));
+	u_cbo.Set(cmds[0], Mat, 0);
+	mesh[1].Draw(cmds[0]);
+
+	model = GenModelMatrix(point(0, 10, 0, 0), point(0, 0, 0, 0), point(0.1, 0.1, 5, 1));
+	DX::XMStoreFloat4x4(&Mat, XMMatrixTranspose(model * view * projection));
+	n_cbo.Set(cmds[0], Mat, 0);
+	mesh[2].Draw(cmds[0]);
+
+	model = GenModelMatrix(point(5,10,0,0), point(0,0,0,0), point(0.1,0.1,5,1));
+	DX::XMStoreFloat4x4(&Mat, XMMatrixTranspose(model * view * projection));
+	ti_cbo.Set(cmds[0], Mat, 0);
+	mesh[3].Draw(cmds[0]);
 	pipe[0].End();
 
 	cmds[1] = pipe[1].Begin();
@@ -346,27 +393,6 @@ DLL_EXPORT UINT GetCurrentCameraTime(UINT id)
 	if (id < camPlots.size())
 		return static_cast<UINT>(camPlots[id].plotTime*frameTime);
 	return 0;
-}
-
-DirectX::XMMATRIX GenModelMatrix(const point& pos, const point& rot, const point& sc)
-{
-	namespace DX = DirectX;
-	const DX::XMMATRIX translate = DX::XMMatrixTranslation(pos.x, pos.y, pos.z);
-	const DX::XMMATRIX rotX = DX::XMMatrixRotationAxis(DX::XMVectorSet(1, 0, 0, 0), rot.x);
-	const DX::XMMATRIX rotY = DX::XMMatrixRotationAxis(DX::XMVectorSet(0, 1, 0, 0), rot.y);
-	const DX::XMMATRIX rotZ = DX::XMMatrixRotationAxis(DX::XMVectorSet(0, 0, 1, 0), rot.z);
-	const DX::XMMATRIX scale = DX::XMMatrixScaling(sc.x, sc.y, sc.z);
-	return
-		DX::XMMatrixMultiply(
-			DX::XMMatrixMultiply(
-				DX::XMMatrixMultiply(
-					DX::XMMatrixMultiply(rotY, rotX),
-					rotZ
-				),
-				scale
-			),
-			translate
-		);
 }
 
 DLL_EXPORT void SetCurrentObject(UINT shape, point pos, point rot,point sc)

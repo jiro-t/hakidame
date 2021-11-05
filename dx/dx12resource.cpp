@@ -98,6 +98,62 @@ void texture::Set(ID3D12GraphicsCommandList* cmdList, UINT reg_id) {
 	cmdList->SetGraphicsRootDescriptorTable(reg_id, heap->GetGPUDescriptorHandleForHeapStart());
 }
 
+void ibo::Create(const uint32_t* indecies, UINT byteSize) {
+
+	D3D12_HEAP_PROPERTIES prop = {
+		.Type = D3D12_HEAP_TYPE_UPLOAD,
+		.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN,
+		.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN,
+		.CreationNodeMask = 1,
+		.VisibleNodeMask = 1,
+	};
+
+	D3D12_RESOURCE_DESC desc = {
+		.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER,
+		.Width = byteSize,
+		.Height = 1,
+		.DepthOrArraySize = 1,
+		.MipLevels = 1,
+		.Format = DXGI_FORMAT_UNKNOWN,
+		.SampleDesc = {
+			.Count = 1,
+			.Quality = 0,
+		},
+		.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR,
+	};
+
+	device->CreateCommittedResource(
+		&prop,
+		D3D12_HEAP_FLAG_NONE,
+		&desc,
+		D3D12_RESOURCE_STATE_GENERIC_READ,
+		nullptr,
+		IID_PPV_ARGS(&buffer)
+	);
+	//buffer = CreateResource(byteSize,D3D12_RESOURCE_STATE_GENERIC_READ);
+
+	UINT8* pIndexDataBegin;
+	D3D12_RANGE readRange;// We do not intend to read from this resource on the CPU.
+	readRange.Begin = 0;
+	readRange.End = 0;
+	buffer->Map(0, &readRange, reinterpret_cast<void**>(&pIndexDataBegin));
+	memcpy(pIndexDataBegin, indecies, byteSize);
+	buffer->Unmap(0, nullptr);
+
+	// Initialize the vertex buffer view.
+	view.BufferLocation = buffer->GetGPUVirtualAddress();
+	view.Format = DXGI_FORMAT_R32_UINT;
+	view.SizeInBytes = byteSize;
+
+	index_count = byteSize / sizeof(uint32_t);
+}
+
+void ibo::Draw(ID3D12GraphicsCommandList* cmdList) const
+{
+	cmdList->IASetIndexBuffer(&view);
+	cmdList->DrawIndexedInstanced(index_count,1,0,0,0);
+}
+
 void vbo::Create(const void* verts, UINT stride, UINT byteSize) {
 
 	D3D12_HEAP_PROPERTIES prop = {
@@ -154,5 +210,13 @@ void vbo::Draw(ID3D12GraphicsCommandList* cmdList) const
 	cmdList->IASetVertexBuffers(0, 1, &view);
 	cmdList->DrawInstanced(vert_count, 1, 0, 0);
 }
+
+void vbo::Draw(ID3D12GraphicsCommandList* cmdList, ibo const& index) const
+{
+	cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	cmdList->IASetVertexBuffers(0, 1,&view);
+	index.Draw(cmdList);
+}
+
 
 }

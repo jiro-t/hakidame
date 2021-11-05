@@ -43,108 +43,96 @@ DX::XMVECTOR cornelBox[] = {
 	DX::XMVectorSet(552.8f, 0, 0, 1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 	DX::XMVectorSet(0, 0, 0, 1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 	DX::XMVectorSet(0, 0, 559.2f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
-	DX::XMVectorSet(0, 0, 559.2f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 	DX::XMVectorSet(549.6f, 0, 559.2f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
-	DX::XMVectorSet(552.8f, 0, 0, 1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 	//ceiling
 	DX::XMVectorSet(552.8f, 548.8f, 0, 1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 	DX::XMVectorSet(0, 548.8f, 0, 1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 	DX::XMVectorSet(0, 548.8f, 559.2f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
-	DX::XMVectorSet(0, 548.8f, 559.2f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 	DX::XMVectorSet(549.6f, 548.8f, 559.2f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
-	DX::XMVectorSet(552.8f, 548.8f, 0, 1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 	//back-wall
 	DX::XMVectorSet(549.6f, 0, 559.2f, 1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 	DX::XMVectorSet(0, 0, 559.2f, 1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 	DX::XMVectorSet(0, 548.8f, 559.2f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
-	DX::XMVectorSet(0, 548.8f, 559.2f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 	DX::XMVectorSet(549.6f, 548.8f, 559.2f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
-	DX::XMVectorSet(549.6f, 0, 559.2f, 1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 	//right-wall
 	DX::XMVectorSet(0, 0, 559.2f, 1),DX::XMVectorSet(0,1.0f,0,1.0f),
 	DX::XMVectorSet(0, 0, 0, 1),DX::XMVectorSet(0,1.0f,0,1.0f),
 	DX::XMVectorSet(0, 548.8f, 0,1),DX::XMVectorSet(0,1.0f,0,1.0f),
-	DX::XMVectorSet(0, 548.8f, 0,1),DX::XMVectorSet(0,1.0f,0,1.0f),
 	DX::XMVectorSet(0, 548.8f, 559.2f,1),DX::XMVectorSet(0,1.0f,0,1.0f),
-	DX::XMVectorSet(0, 0, 559.2f, 1),DX::XMVectorSet(0,1.0f,0,1.0f),
 	//left-wall
 	DX::XMVectorSet(552.8f, 0, 0,1),DX::XMVectorSet(1.0f,0,0,1.0f),
 	DX::XMVectorSet(549.6f, 0, 559.2f,1),DX::XMVectorSet(1.0f,0,0,1.0f),
 	DX::XMVectorSet(556.0f, 548.8f, 559.2f,1),DX::XMVectorSet(1.0f,0,0,1.0f),
-	DX::XMVectorSet(556.0f, 548.8f, 559.2f,1),DX::XMVectorSet(1.0f,0,0,1.0f),
 	DX::XMVectorSet(556.0f, 548.8f, 0,1),DX::XMVectorSet(1.0f,0,0,1.0f),
-	DX::XMVectorSet(552.8f, 0, 0, 1),DX::XMVectorSet(1.0f,0,0,1.0f),
 	//rectangle - 1-1
 	DX::XMVectorSet(130.0f, 165.0f,  65.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 	DX::XMVectorSet(82.0f,  165.0f, 225.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 	DX::XMVectorSet(240.0f, 165.0f, 272.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
-	DX::XMVectorSet(240.0f, 165.0f, 272.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 	DX::XMVectorSet(290.0f, 165.0f, 114.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
-	DX::XMVectorSet(130.0f, 165.0f,  65.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 	//rectangle - 1-2
 	DX::XMVectorSet(290.0f,   0, 114.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 	DX::XMVectorSet(290.0f, 165.0f, 114.0,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 	DX::XMVectorSet(240.0f, 165.0f, 272.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
-	DX::XMVectorSet(240.0f, 165.0f, 272.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 	DX::XMVectorSet(240.0f, 0, 272.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
-	DX::XMVectorSet(290.0f,   0, 114.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 	//rectangle - 1-3
 	DX::XMVectorSet(130.0f, 0, 65.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 	DX::XMVectorSet(130.0f, 165.0f, 65.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 	DX::XMVectorSet(290.0f, 165.0f, 114.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
-	DX::XMVectorSet(290.0f, 165.0f, 114.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 	DX::XMVectorSet(290.0f, 0, 114.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
-	DX::XMVectorSet(130.0f, 0, 65.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 	//rectangle - 1-4
 	DX::XMVectorSet(82.0f, 0, 225.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 	DX::XMVectorSet(82.0f, 165.0f, 225.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 	DX::XMVectorSet(130.0f, 165.0f, 65.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
-	DX::XMVectorSet(130.0f, 165.0f, 65.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 	DX::XMVectorSet(130.0f,  0, 65.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
-	DX::XMVectorSet(82.0f, 0, 225.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 	//rectangle - 1-5
 	DX::XMVectorSet(240.0f, 0, 272.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 	DX::XMVectorSet(240.0f, 165.0f, 272.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 	DX::XMVectorSet(82.0f, 165.0f, 225.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
-	DX::XMVectorSet(82.0f, 165.0f, 225.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 	DX::XMVectorSet(82.0f, 0, 225.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
-	DX::XMVectorSet(240.0f, 0, 272.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 
 	//rectangle - 2-1
 	DX::XMVectorSet(423.0f, 330.0f, 247.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 	DX::XMVectorSet(265.0f, 330.0f, 296.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 	DX::XMVectorSet(314.0f, 330.0f, 456.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
-	DX::XMVectorSet(314.0f, 330.0f, 456.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 	DX::XMVectorSet(472.0f, 330.0f, 406.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
-	DX::XMVectorSet(423.0f, 330.0f, 247.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 	//rectangle - 2-2
 	DX::XMVectorSet(423.0f, 0, 247.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 	DX::XMVectorSet(423.0f, 330.0f, 247.0,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 	DX::XMVectorSet(472.0f, 330.0f, 406.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
-	DX::XMVectorSet(472.0f, 330.0f, 406.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 	DX::XMVectorSet(472.0f, 0, 406.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
-	DX::XMVectorSet(423.0f, 0, 247.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 	//rectangle - 2-3
 	DX::XMVectorSet(472.0f, 0, 406.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 	DX::XMVectorSet(472.0f, 330.0f, 406.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 	DX::XMVectorSet(314.0f, 330.0f, 456.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
-	DX::XMVectorSet(314.0f, 330.0f, 456.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 	DX::XMVectorSet(314.0f, 0, 456.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
-	DX::XMVectorSet(472.0f, 0, 406.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 	//rectangle - 2-4
 	DX::XMVectorSet(314.0f, 0, 456.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 	DX::XMVectorSet(314.0f, 330.0f, 456.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 	DX::XMVectorSet(265.0f, 330.0f, 296.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
-	DX::XMVectorSet(265.0f, 330.0f, 296.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 	DX::XMVectorSet(265.0f, 0, 296.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
-	DX::XMVectorSet(314.0f, 0, 456.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 	//rectangle - 2-5
 	DX::XMVectorSet(265.0f, 0, 296.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 	DX::XMVectorSet(265.0f, 330.0f, 296.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 	DX::XMVectorSet(423.0f, 330.0f, 247.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
-	DX::XMVectorSet(423.0f, 330.0f, 247.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 	DX::XMVectorSet(423.0f, 0, 247.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
-	DX::XMVectorSet(265.0f, 0, 296.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+};
+
+uint32_t g_indecies1[] = {
+	0,1,2,2,3,0,
+	4,5,6,6,7,4,
+	8,9,10,10,11,8,
+	12,13,14,14,15,12,
+	16,17,18,18,19,16,
+	20,21,22,22,23,20,
+	24,25,26,26,27,24,
+	28,29,30,30,31,28,
+	32,33,34,34,35,32,
+	36,37,38,38,39,36,
+	40,41,42,42,43,40,
+	44,45,46,46,47,44,
+	48,49,50,50,51,48,
+	52,53,54,54,55,52,
+	56,57,58,58,59,56,
 };
 
 char def_shader[] =
@@ -305,7 +293,9 @@ int main() {
 	vbo2->Create(g_Vertices2, 9 * sizeof(float), sizeof(g_Vertices2));
 
 	ino::d3d::vbo* vboCornelBox = new ino::d3d::vbo();
+	ino::d3d::ibo* iboCornelBox = new ino::d3d::ibo();
 	vboCornelBox->Create(cornelBox,8*sizeof(float),sizeof(cornelBox));
+	iboCornelBox->Create(g_indecies1, sizeof(g_indecies1));
 
 	ino::d3d::texture tex;
 	tex.Create(4,4);
@@ -342,7 +332,7 @@ int main() {
 				mvpCBO.Set(cmds[0], Mat,0);
 				pipe[0].Clear(clearColor);
 				//DrawPrimitive;
-				vboCornelBox->Draw(cmds[0]);
+				vboCornelBox->Draw(cmds[0],*iboCornelBox);
 				pipe[0].End(); 
 				m.unlock();
 		//	}
@@ -373,7 +363,7 @@ int main() {
 	delete vbo;
 	delete vbo2;
 	delete vboCornelBox;
-
+	delete iboCornelBox;
 	
 	ino::d3d::release();
 	return 0;

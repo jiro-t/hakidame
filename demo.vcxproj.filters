@@ -42,6 +42,9 @@
     <ClCompile Include="gfx\shapes.cpp">
       <Filter>ソース ファイル\gfx</Filter>
     </ClCompile>
+    <ClCompile Include="gfx\font.cpp">
+      <Filter>ソース ファイル\gfx</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="dx\dx12resource.hpp">
@@ -57,6 +60,9 @@
       <Filter>ヘッダー ファイル\dx</Filter>
     </ClInclude>
     <ClInclude Include="gfx\shapes.hpp">
+      <Filter>ヘッダー ファイル\gfx</Filter>
+    </ClInclude>
+    <ClInclude Include="gfx\font.hpp">
       <Filter>ヘッダー ファイル\gfx</Filter>
     </ClInclude>
   </ItemGroup>

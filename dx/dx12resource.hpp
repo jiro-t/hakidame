@@ -94,6 +94,17 @@ public:
 	inline ::Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>& GetHeap() { return heap; }
 };
 
+class ibo {
+	::Microsoft::WRL::ComPtr<ID3D12Resource> buffer;
+	D3D12_INDEX_BUFFER_VIEW view = {};
+public:
+	UINT index_count = 0;
+	void Create(const uint32_t* indecies, UINT byteSize);
+	void Draw(ID3D12GraphicsCommandList* cmdList) const;
+
+	D3D12_GPU_VIRTUAL_ADDRESS GetGPUVirtualAddress() { return buffer->GetGPUVirtualAddress(); }
+};
+
 class vbo {
 	::Microsoft::WRL::ComPtr<ID3D12Resource> buffer;
 	D3D12_VERTEX_BUFFER_VIEW view = {};
@@ -103,6 +114,7 @@ public:
 
 	void Create(const void* verts, UINT stride, UINT byteSize);
 	void Draw(ID3D12GraphicsCommandList* cmdList) const;
+	void Draw(ID3D12GraphicsCommandList* cmdList,ibo const& index) const;
 
 	D3D12_GPU_VIRTUAL_ADDRESS GetGPUVirtualAddress() { return buffer->GetGPUVirtualAddress(); }
 };
@@ -110,6 +122,13 @@ public:
 struct ByteCode {
 	std::shared_ptr<byte> data = nullptr;
 	uint32_t size = 0;
+};
+
+struct StaticMesh {
+	d3d::vbo vbo;
+	d3d::ibo ibo;
+
+	void Draw(ID3D12GraphicsCommandList* cmdList) const { vbo.Draw(cmdList, ibo); };
 };
 
 }

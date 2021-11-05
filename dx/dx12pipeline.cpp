@@ -165,7 +165,9 @@ void pipeline::LoadShader(ShaderTypes type, void* src, size_t src_size, LPCWSTR 
 	if (!bc)
 	{
 		result->GetErrorBuffer(&err);
+#ifdef _DEBUG
 		std::cout << (char*)err->GetBufferPointer() << std::endl;
+#endif
 	}
 
 	shader[static_cast<int>(type)].BytecodeLength = bc->GetBufferSize();
@@ -246,6 +248,18 @@ void pipeline::Create(
 	
 	result = D3DGetBlobPart(shader[static_cast<UINT>(ShaderTypes::VERTEX_SHADER)].pShaderBytecode, shader[static_cast<UINT>(ShaderTypes::VERTEX_SHADER)].BytecodeLength, D3D_BLOB_ROOT_SIGNATURE, 0, &signature);
 	device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rootSignature));
+
+	//static char num = 'A';
+	//std::string fname = "shader_";
+	//std::ofstream ofs(fname + num + ".t");
+	//ofs.write((char*)shader[static_cast<UINT>(ShaderTypes::VERTEX_SHADER)].pShaderBytecode, shader[static_cast<UINT>(ShaderTypes::VERTEX_SHADER)].BytecodeLength);
+	//ofs.close();
+	//num++;
+
+	//std::ofstream ofs2(fname + num + ".t");
+	//ofs2.write((char*)shader[static_cast<UINT>(ShaderTypes::FRAGMENT_SHADER)].pShaderBytecode, shader[static_cast<UINT>(ShaderTypes::FRAGMENT_SHADER)].BytecodeLength);
+	//ofs2.close();
+	//num++;
 
 	putErrorMsg(error);
 

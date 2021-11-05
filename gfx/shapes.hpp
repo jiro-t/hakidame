@@ -7,8 +7,8 @@
 namespace ino::shape
 {
 
-d3d::vbo CreateQuad();
-d3d::vbo CreateCube();
+d3d::StaticMesh CreateQuad();
+d3d::StaticMesh CreateCube();
 
 }
 

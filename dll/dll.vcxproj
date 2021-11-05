@@ -157,6 +157,7 @@
     <ClCompile Include="..\dx\dx.cpp" />
     <ClCompile Include="..\dx\dx12pipeline.cpp" />
     <ClCompile Include="..\dx\dx12resource.cpp" />
+    <ClCompile Include="..\gfx\font.cpp" />
     <ClCompile Include="..\gfx\shapes.cpp" />
     <ClCompile Include="dx_dll.cpp" />
   </ItemGroup>
@@ -165,6 +166,7 @@
     <ClInclude Include="..\dx\dx12pipeline.hpp" />
     <ClInclude Include="..\dx\dx12raytrace.hpp" />
     <ClInclude Include="..\dx\dx12resource.hpp" />
+    <ClInclude Include="..\gfx\font.hpp" />
     <ClInclude Include="..\gfx\shapes.hpp" />
     <ClInclude Include="dx_dll.h" />
   </ItemGroup>
