@@ -12,7 +12,7 @@ d3d::StaticMesh CreateCharMesh(wchar_t c, LPCWSTR font)
 {
 	namespace DX = DirectX;
 
-	int fontsize = 64;
+	const int fontsize = 128;
 	LOGFONT lf = { fontsize, 0, 0, 0, 0, 0, 0, 0, SHIFTJIS_CHARSET, OUT_TT_ONLY_PRECIS, CLIP_DEFAULT_PRECIS, PROOF_QUALITY, FIXED_PITCH | FF_MODERN, L"ＭＳ 明朝" };
 	HFONT hFont;
 	hFont = CreateFontIndirect(&lf);
@@ -65,45 +65,45 @@ d3d::StaticMesh CreateCharMesh(wchar_t c, LPCWSTR font)
 				id.push_back(i); id.push_back(i + 1); id.push_back(i + 2); id.push_back(i + 2); id.push_back(i + 3); id.push_back(i);
 				i += 4;
 
-				if (x == 0)
-				{
-					vert.push_back(DX::XMVectorSet(x, -y, 0, 1)); vert.push_back(DX::XMVectorSet(-1, 0, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
-					vert.push_back(DX::XMVectorSet(x, -y - 1, 0, 1)); vert.push_back(DX::XMVectorSet(-1, 0, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
-					vert.push_back(DX::XMVectorSet(x, -y - 1, 1, 1)); vert.push_back(DX::XMVectorSet(-1, 0, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
-					vert.push_back(DX::XMVectorSet(x, -y,- 1, 1)); vert.push_back(DX::XMVectorSet(-1, 0, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
-					id.push_back(i); id.push_back(i + 1); id.push_back(i + 2); id.push_back(i + 2); id.push_back(i + 3); id.push_back(i);
-					i += 4;
-				}
+				//if (x == 0)
+				//{
+				//	vert.push_back(DX::XMVectorSet(x, -y, 0, 1)); vert.push_back(DX::XMVectorSet(-1, 0, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
+				//	vert.push_back(DX::XMVectorSet(x, -y - 1, 0, 1)); vert.push_back(DX::XMVectorSet(-1, 0, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
+				//	vert.push_back(DX::XMVectorSet(x, -y - 1, 1, 1)); vert.push_back(DX::XMVectorSet(-1, 0, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
+				//	vert.push_back(DX::XMVectorSet(x, -y,- 1, 1)); vert.push_back(DX::XMVectorSet(-1, 0, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
+				//	id.push_back(i); id.push_back(i + 1); id.push_back(i + 2); id.push_back(i + 2); id.push_back(i + 3); id.push_back(i);
+				//	i += 4;
+				//}
 
-				if (x == offset_x + GM.gmBlackBoxX)
-				{
-					vert.push_back(DX::XMVectorSet(x, -y, 0, 1)); vert.push_back(DX::XMVectorSet(1, 0, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
-					vert.push_back(DX::XMVectorSet(x, -y - 1, 0, 1)); vert.push_back(DX::XMVectorSet(1, 0, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
-					vert.push_back(DX::XMVectorSet(x, -y - 1, 1, 1)); vert.push_back(DX::XMVectorSet(1, 0, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
-					vert.push_back(DX::XMVectorSet(x, -y, 1, 1)); vert.push_back(DX::XMVectorSet(1, 0, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
-					id.push_back(i); id.push_back(i + 1); id.push_back(i + 2); id.push_back(i + 2); id.push_back(i + 3); id.push_back(i);
-					i += 4;
-				}
+				//if (x == offset_x + GM.gmBlackBoxX)
+				//{
+				//	vert.push_back(DX::XMVectorSet(x, -y, 0, 1)); vert.push_back(DX::XMVectorSet(1, 0, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
+				//	vert.push_back(DX::XMVectorSet(x, -y - 1, 0, 1)); vert.push_back(DX::XMVectorSet(1, 0, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
+				//	vert.push_back(DX::XMVectorSet(x, -y - 1, 1, 1)); vert.push_back(DX::XMVectorSet(1, 0, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
+				//	vert.push_back(DX::XMVectorSet(x, -y, 1, 1)); vert.push_back(DX::XMVectorSet(1, 0, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
+				//	id.push_back(i); id.push_back(i + 1); id.push_back(i + 2); id.push_back(i + 2); id.push_back(i + 3); id.push_back(i);
+				//	i += 4;
+				//}
 
-				if (y == offset_y + h)
-				{
-					vert.push_back(DX::XMVectorSet(x, -y, 0, 1)); vert.push_back(DX::XMVectorSet(0, -1, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
-					vert.push_back(DX::XMVectorSet(x+1, -y, 0, 1)); vert.push_back(DX::XMVectorSet(0, -1, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
-					vert.push_back(DX::XMVectorSet(x+1, -y, 1, 1)); vert.push_back(DX::XMVectorSet(0, -1, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
-					vert.push_back(DX::XMVectorSet(x, -y, 1, 1)); vert.push_back(DX::XMVectorSet(0, -1, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
-					id.push_back(i); id.push_back(i + 1); id.push_back(i + 2); id.push_back(i + 2); id.push_back(i + 3); id.push_back(i);
-					i += 4;
-				}
+				//if (y == offset_y + h)
+				//{
+				//	vert.push_back(DX::XMVectorSet(x, -y, 0, 1)); vert.push_back(DX::XMVectorSet(0, -1, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
+				//	vert.push_back(DX::XMVectorSet(x+1, -y, 0, 1)); vert.push_back(DX::XMVectorSet(0, -1, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
+				//	vert.push_back(DX::XMVectorSet(x+1, -y, 1, 1)); vert.push_back(DX::XMVectorSet(0, -1, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
+				//	vert.push_back(DX::XMVectorSet(x, -y, 1, 1)); vert.push_back(DX::XMVectorSet(0, -1, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
+				//	id.push_back(i); id.push_back(i + 1); id.push_back(i + 2); id.push_back(i + 2); id.push_back(i + 3); id.push_back(i);
+				//	i += 4;
+				//}
 
-				if (y == 0)
-				{
-					vert.push_back(DX::XMVectorSet(x, -y, 0, 1)); vert.push_back(DX::XMVectorSet(0, 1, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
-					vert.push_back(DX::XMVectorSet(x + 1, -y, 0, 1)); vert.push_back(DX::XMVectorSet(0, 1, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
-					vert.push_back(DX::XMVectorSet(x + 1, -y, 1, 1)); vert.push_back(DX::XMVectorSet(0, 1, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
-					vert.push_back(DX::XMVectorSet(x, -y, 1, 1)); vert.push_back(DX::XMVectorSet(0, 1, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
-					id.push_back(i); id.push_back(i + 1); id.push_back(i + 2); id.push_back(i + 2); id.push_back(i + 3); id.push_back(i);
-					i += 4;
-				}
+				//if (y == 0)
+				//{
+				//	vert.push_back(DX::XMVectorSet(x, -y, 0, 1)); vert.push_back(DX::XMVectorSet(0, 1, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
+				//	vert.push_back(DX::XMVectorSet(x + 1, -y, 0, 1)); vert.push_back(DX::XMVectorSet(0, 1, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
+				//	vert.push_back(DX::XMVectorSet(x + 1, -y, 1, 1)); vert.push_back(DX::XMVectorSet(0, 1, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
+				//	vert.push_back(DX::XMVectorSet(x, -y, 1, 1)); vert.push_back(DX::XMVectorSet(0, 1, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
+				//	id.push_back(i); id.push_back(i + 1); id.push_back(i + 2); id.push_back(i + 2); id.push_back(i + 3); id.push_back(i);
+				//	i += 4;
+				//}
 			}
 			else//no pixel
 			{
@@ -186,12 +186,12 @@ d3d::StaticMesh CreateCharMesh(wchar_t c, LPCWSTR font)
 				//□■■
 				//□□■
 				//□□□
-				if (getAlpha(x - 1, y) > 0 && getAlpha(x - 1, y - 1) > 0 && getAlpha(x, y - 1) > 0)
+				if (getAlpha(x + 1, y) > 0 && getAlpha(x + 1, y - 1) > 0 && getAlpha(x, y - 1) > 0)
 				{
 					vert.push_back(DX::XMVectorSet(x, -y, 0, 1)); vert.push_back(DX::XMVectorSet(-0.5f, 0.5f, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
 					vert.push_back(DX::XMVectorSet(x, -y, 1, 1)); vert.push_back(DX::XMVectorSet(-0.5f, 0.5f, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
-					vert.push_back(DX::XMVectorSet(x, -y-1, 1, 1)); vert.push_back(DX::XMVectorSet(-0.5f, 0.5f, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
-					vert.push_back(DX::XMVectorSet(x, -y-1, 0, 1)); vert.push_back(DX::XMVectorSet(-0.5f, 0.5f, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
+					vert.push_back(DX::XMVectorSet(x+1, -y-1, 1, 1)); vert.push_back(DX::XMVectorSet(-0.5f, 0.5f, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
+					vert.push_back(DX::XMVectorSet(x+1, -y-1, 0, 1)); vert.push_back(DX::XMVectorSet(-0.5f, 0.5f, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
 					id.push_back(i); id.push_back(i + 1); id.push_back(i + 2); id.push_back(i + 2); id.push_back(i + 3); id.push_back(i);
 					i += 4;
 					vert.push_back(DX::XMVectorSet(x, -y, 0, 1)); vert.push_back(DX::XMVectorSet(0,0, 1, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));

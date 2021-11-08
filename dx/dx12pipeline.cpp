@@ -325,7 +325,7 @@ ID3D12GraphicsCommandList* pipeline::Begin(texture renderTarget,D3D12_VIEWPORT r
 	commandList->Reset(commandAllocators[currentBackBufferIndex].Get(), pipelineState.Get());
 
 	HRESULT result = NULL;
-
+	//D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE
 	barrier = {
 		.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION,
 		.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE,

@@ -116,17 +116,17 @@ float4 PSMain(PSInput input) : SV_TARGET\
 char tex_shader[] =
 "\
 #define rootSig \"RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT),CBV(b0),DescriptorTable(SRV(t0)),StaticSampler(s0) \"\n \
-Texture2D<float4> tex_ : register(t0);\
-SamplerState samp_ : register(s0);\
 cbuffer cb1 : register(b0){\
 float4x4 mvp;\
 };\
+Texture2D<float4> tex_ : register(t0);\
+SamplerState samp_ : register(s0);\
 struct PSInput {\
 	float4	position : SV_POSITION;\
 	float2	uv : TEXCOORD0;\
 };\
 [RootSignature(rootSig)]\
-PSInput VSMain(float4 position : POSITION,float4 normal : NORMAL,float4 uv : TEXCOORD0){\
+PSInput VSMain(float4 position : POSITION,float4 uv : TEXCOORD0,float4 color : COLOR){\
 	PSInput	result;\
 	result.position = mul(float4(position.xyz,1),mvp);\
 	result.uv = uv.xy;\
@@ -170,8 +170,8 @@ HRESULT create_pipeline_textured(ino::d3d::pipeline& pipe)
 
 	D3D12_INPUT_ELEMENT_DESC elementDescs[] = {
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, sizeof(float) * 4, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0,sizeof(float) * 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, sizeof(float) * 4, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{ "COLOR", 0, DXGI_FORMAT_R32G32_FLOAT, 0,sizeof(float) * 12, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 	};
 	D3D12_FILTER filter[] = { D3D12_FILTER::D3D12_FILTER_MIN_POINT_MAG_MIP_LINEAR };
 	D3D12_TEXTURE_ADDRESS_MODE wrap[] = { D3D12_TEXTURE_ADDRESS_MODE::D3D12_TEXTURE_ADDRESS_MODE_CLAMP };
@@ -197,6 +197,7 @@ static ino::d3d::cbo<DirectX::XMFLOAT4X4> mvpCBO;
 static ino::d3d::cbo<DirectX::XMFLOAT4X4> u_cbo;
 static ino::d3d::cbo<DirectX::XMFLOAT4X4> n_cbo;
 static ino::d3d::cbo<DirectX::XMFLOAT4X4> ti_cbo;
+static ino::d3d::cbo<DirectX::XMFLOAT4X4> offscreen_cbo;
 
 DLL_EXPORT BOOL InitDxContext(HWND hwnd, UINT width, UINT height)
 {
@@ -214,8 +215,10 @@ DLL_EXPORT BOOL InitDxContext(HWND hwnd, UINT width, UINT height)
 	u_cbo.Create();
 	n_cbo.Create();
 	ti_cbo.Create();
+	offscreen_cbo.Create();
 	//load default shape
 	mesh.push_back( ino::shape::CreateCube() );
+	mesh.push_back(ino::shape::CreateQuad());
 	mesh.push_back( ino::shape::CreateCharMesh(L'‚¤', L"‚l‚r –¾’©"));
 	mesh.push_back(ino::shape::CreateCharMesh(L'‚ñ', L"‚l‚r –¾’©"));
 	mesh.push_back(ino::shape::CreateCharMesh(L'‚¿', L"‚l‚r –¾’©"));
@@ -266,7 +269,16 @@ DLL_EXPORT BOOL DxContextFlush()
 	ID3D12GraphicsCommandList* cmds[_countof(pipe)] = {};
 	ino::d3d::begin();
 
-	static const FLOAT clearColor[] = { 0.4f, 0.6f, 0.9f, 0.0f };
+	static const FLOAT clearColor[] = { 0.4f, 0.6f, 0.9f, 1.0f };
+	static const FLOAT clearColor2[] = { 1.f, 0.f, 0.f, 1.0f };
+	//offscreen
+	//cmds[0] = pipe[0].Begin(ino::d3d::renderOffscreen,pipe[0].view, pipe[0].scissor);
+	//pipe[0].Clear(clearColor2);
+	//pipe[0].End();
+	//ino::d3d::excute(cmds, _countof(pipe));
+	//ino::d3d::wait();
+
+	//
 	cmds[0] = pipe[0].Begin();
 	pipe[0].Clear(clearColor);
 	for (auto& val : objPlots)
@@ -287,23 +299,28 @@ DLL_EXPORT BOOL DxContextFlush()
 	mvpCBO.Set(cmds[0], Mat, 0);
 	mesh[0].Draw(cmds[0]);
 
-	model = GenModelMatrix(point(-5, 10, 0, 0), point(0, 0, 0, 0), point(0.1, 0.1, 5, 1));
+	model = GenModelMatrix(point(-5, 10, 0, 0), point(0, 0, 0, 0), point(0.025, 0.025, 1, 1));
 	DX::XMStoreFloat4x4(&Mat, XMMatrixTranspose(model * view * projection));
 	u_cbo.Set(cmds[0], Mat, 0);
-	mesh[1].Draw(cmds[0]);
-
-	model = GenModelMatrix(point(0, 10, 0, 0), point(0, 0, 0, 0), point(0.1, 0.1, 5, 1));
-	DX::XMStoreFloat4x4(&Mat, XMMatrixTranspose(model * view * projection));
-	n_cbo.Set(cmds[0], Mat, 0);
 	mesh[2].Draw(cmds[0]);
 
-	model = GenModelMatrix(point(5,10,0,0), point(0,0,0,0), point(0.1,0.1,5,1));
+	model = GenModelMatrix(point(0, 10, 0, 0), point(0, 0, 0, 0), point(0.025, 0.025, 1, 1));
+	DX::XMStoreFloat4x4(&Mat, XMMatrixTranspose(model * view * projection));
+	n_cbo.Set(cmds[0], Mat, 0);
+	mesh[3].Draw(cmds[0]);
+
+	model = GenModelMatrix(point(5,10,0,0), point(0,0,0,0), point(0.025,0.025,1,1));
 	DX::XMStoreFloat4x4(&Mat, XMMatrixTranspose(model * view * projection));
 	ti_cbo.Set(cmds[0], Mat, 0);
-	mesh[3].Draw(cmds[0]);
+	mesh[4].Draw(cmds[0]);
 	pipe[0].End();
 
+	model = GenModelMatrix(point(0, 0, 0, 10), point(0, 0, 0, 0), point(1, 1, 1, 1));
+	DX::XMStoreFloat4x4(&Mat, XMMatrixTranspose(model * view * projection));
 	cmds[1] = pipe[1].Begin();
+	offscreen_cbo.Set(cmds[1], Mat, 0);
+	ino::d3d::renderOffscreen.Set(cmds[1], 1);
+	mesh[1].Draw(cmds[1]);
 	pipe[1].End();
 
 	ino::d3d::excute(cmds, _countof(pipe));

@@ -41,7 +41,7 @@ namespace ino::d3d {
 	return buffer;
 }
 
-void texture::Create(UINT width, UINT height,DXGI_FORMAT format) {
+void texture::Create(UINT width, UINT height,DXGI_FORMAT format,D3D12_RESOURCE_FLAGS flag) {
 	D3D12_HEAP_PROPERTIES heapProp = {
 		.Type = D3D12_HEAP_TYPE_CUSTOM,
 		.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_WRITE_BACK,
@@ -58,7 +58,8 @@ void texture::Create(UINT width, UINT height,DXGI_FORMAT format) {
 		.MipLevels = 1,
 		.Format = format,
 		.SampleDesc = {.Count = 1,.Quality = 0 },
-		.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN
+		.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN , 
+		.Flags = flag
 	};
 
 	device->CreateCommittedResource(&heapProp, D3D12_HEAP_FLAG_NONE, &resourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&buffer));
