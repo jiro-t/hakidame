@@ -303,6 +303,8 @@ int main() {
 	std::chrono::high_resolution_clock c;
 	std::chrono::high_resolution_clock::time_point time_o = c.now();
 	float rot = 0.0f;
+	Sleep(500);
+	ino::d3d::begin();
 	srand(0);
 	do {
 		MSG msg;
@@ -317,6 +319,12 @@ int main() {
 		ino::d3d::begin();
 
 		std::mutex m;
+
+		static const FLOAT clearColor2[] = { 1.f, 0.f, 0.f, 1.0f };
+		//offscreen
+		cmds[0] = pipe[0].Begin(ino::d3d::renderOffscreen);
+		pipe[0].Clear(ino::d3d::renderOffscreen,clearColor2);
+		pipe[0].End();
 
 		//std::thread t1([&cmds, &pipe,&vboCornelBox, &m,&mvpCBO]() {
 			auto model = DX::XMMatrixIdentity();
@@ -344,7 +352,7 @@ int main() {
 		cmds[1] = pipe[1].Begin();
 		fCBO[0].Set(cmds[1],sinf(local_time),0);
 		fCBO[1].Set(cmds[1],cosf(local_time),1);
-		tex.Set(cmds[1],2);
+		ino::d3d::renderOffscreen.Set(cmds[1],2);
 		//DrawPrimitive;
 		vbo2->Draw(cmds[1]);
 		vbo->Draw(cmds[1]);
@@ -352,7 +360,7 @@ int main() {
 		m.unlock();
 
 		//t1.join();
-
+		//for (auto& c : cmds)c->Close();
 		ino::d3d::excute(cmds, _countof(pipe));
 		ino::d3d::wait();
 		Sleep(16);

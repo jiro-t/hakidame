@@ -31,6 +31,7 @@ constexpr int num_swap_buffers = 2;//2 to  DXGI_MAX_SWAP_CHAIN_BUFFERS
 namespace ino::d3d
 {
 class texture;
+class renderTexture;
 
 extern int screen_width;
 extern int screen_height;
@@ -42,10 +43,10 @@ extern	::Microsoft::WRL::ComPtr<ID3D12Device5> device;
 extern	::Microsoft::WRL::ComPtr<ID3D12CommandAllocator> commandAllocators[num_swap_buffers];
 extern	UINT currentBackBufferIndex;
 extern	::Microsoft::WRL::ComPtr<ID3D12CommandQueue> commandQueue;
-extern texture renderOffscreen;
+extern renderTexture renderOffscreen;
 extern texture renderTargets[num_swap_buffers];
 #ifdef USE_STENCIL_BUFFER
-extern texture	stencilBuffer;
+extern texture	stencilBuffer[num_swap_buffers];
 #endif
 
 extern	::Microsoft::WRL::ComPtr<ID3D12Fence> fence;

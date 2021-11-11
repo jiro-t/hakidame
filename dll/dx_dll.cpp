@@ -268,17 +268,14 @@ DLL_EXPORT BOOL DxContextFlush()
 	
 	ID3D12GraphicsCommandList* cmds[_countof(pipe)] = {};
 	ino::d3d::begin();
-
+	for (auto& p : pipe)p.Reset();
 	static const FLOAT clearColor[] = { 0.4f, 0.6f, 0.9f, 1.0f };
 	static const FLOAT clearColor2[] = { 1.f, 0.f, 0.f, 1.0f };
 	//offscreen
-	//cmds[0] = pipe[0].Begin(ino::d3d::renderOffscreen,pipe[0].view, pipe[0].scissor);
-	//pipe[0].Clear(clearColor2);
-	//pipe[0].End();
-	//ino::d3d::excute(cmds, _countof(pipe));
-	//ino::d3d::wait();
+	cmds[0] = pipe[0].Begin(ino::d3d::renderOffscreen);
+	pipe[0].Clear(clearColor2);
+	pipe[0].End();
 
-	//
 	cmds[0] = pipe[0].Begin();
 	pipe[0].Clear(clearColor);
 	for (auto& val : objPlots)

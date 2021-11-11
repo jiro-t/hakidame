@@ -90,8 +90,10 @@ public:
 		D3D12_RASTERIZER_DESC const& rasterDesc = defaultRasterizerDesc());
 	::Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> const& Get();
 
-	ID3D12GraphicsCommandList* Begin(texture renderTarget, D3D12_VIEWPORT rtView, D3D12_RECT rtRect);
+	void Reset(){ commandList->Reset(commandAllocators[currentBackBufferIndex].Get(), pipelineState.Get());}
+	ID3D12GraphicsCommandList* Begin(renderTexture renderTarget);
 	ID3D12GraphicsCommandList* Begin();
+	void Clear(renderTexture renderTarget,FLOAT const clearColor[]);
 	void Clear(FLOAT const clearColor[]);
 	void End();
 };
