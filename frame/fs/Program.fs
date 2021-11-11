@@ -94,6 +94,7 @@ type MFrame (title : string,timeLength : int) as this =
         let mutable camTar = vec(x = 0.f,y = 0.f,z = 1.f,w = 0.f)
         let mutable camUp = vec(x = 0.f,y = 1.f,z = 0.f,w = 0.f)
         let mutable camRot = vec(x = 0.f,y = 0.f,z = 0.f,w = 0.f)
+
         //WriteFile
         let writeFile() = do
             let dlg = new System.Windows.Forms.SaveFileDialog()

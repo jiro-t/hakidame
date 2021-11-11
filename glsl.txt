@@ -1,0 +1,82 @@
+vec4 drawLine(vec2 coord,vec2 be,vec2 en,float wid,vec4 col,vec4 bg)
+{
+    vec2 l = en - be;
+    if( abs(l.x) < abs(l.y) )
+    {
+        float a = (l.x/l.y);
+        float b = be.x - a*be.y;
+        if(
+            coord.y > be.y && coord.y < en.y &&
+            coord.y*a + b > coord.x - wid && 
+            coord.y*a + b < coord.x + wid)
+        {
+            return col;
+        }
+    }
+
+    float a = (l.y/l.x);
+    float b = be.y - a*be.x;
+    if(
+        coord.x > be.x && coord.x < en.x &&
+        coord.x*a + b > coord.y - wid && 
+        coord.x*a + b < coord.y + wid)
+    {
+        return col;
+    }
+    return bg;
+}
+
+vec4 drawQuad(vec2 coord,vec2 be,vec2 en,vec4 col,vec4 bg)
+{
+    if(coord.x > be.x && coord.x < en.x &&
+        coord.y > be.y && coord.y < en.y )
+        return col;
+    return bg;
+}
+
+void mainImage( out vec4 fragColor, in vec2 fragCoord )
+{
+    float time = iTime;
+    // Normalized pixel coordinates (from 0 to 1)
+    vec2 uv = fragCoord/iResolution.xy;
+
+    // Time varying pixel color
+    vec4 col = vec4(0.8,0,0.6,1.0);
+
+    float top = min(0.0 + time*0.1,0.8);
+    float bottom = 1.0 - top;
+    
+    vec4 gcol = vec4(0.6,1.1,0,5);
+    //col
+    for(float i = 0.0;i < 7.0;i += 1.0){
+        float t = mod(i + time*2.0,7.0);
+        col = drawLine(uv,vec2(0.0,i/7.0-top),vec2(1.0,i/7.0-top),0.005,gcol,col);
+    }
+    //row
+    for(float i = 0.0;i < 7.0;i += 1.0){
+        float t = mod(i + time*2.0,7.0);
+        float of = (t - 5.0)*top*0.1;
+        col = drawLine(uv,vec2(t/7.0+of,0.0),vec2(t/7.0,1.0 - top),0.005,gcol,col);
+    }
+    
+    if(uv.y > bottom)
+    {
+        float b = uv.y - bottom;
+        col = vec4(1.0 - b*0.1,0,0.6 + b*0.2,1.0);
+        //buildings
+        for(float i = 0.0;i < 6.0;i += 1.0){
+            float t = mod(i + time*abs(sin((i+0.1)*190.0)),7.0);
+            float h = (i*0.1);
+            col = drawQuad(uv,vec2(t/6.0-0.2,bottom),vec2(t/6.0,0.9-h),vec4(0,0.3,0.7,1),col);
+            col = drawQuad(uv,vec2(t/6.0-0.2+0.1,bottom),vec2(t/6.0,0.9-h),vec4(0.7,0.7,0,1),col);
+            for(float j = 0.0;j < 8.0;j += 1.0)
+            {
+                col = drawQuad(uv,vec2(t/6.0-0.2+0.1+0.02,0.9-h-0.06-0.08*j),vec2(t/6.0-0.05,0.9-h-0.03-0.08*j),vec4(0,0.3,0.7,1),col);             
+                col = drawQuad(uv,vec2(t/6.0-0.2+0.1+0.065,0.9-h-0.06-0.08*j),vec2(t/6.0-0.01,0.9-h-0.03-0.08*j),vec4(0,0.3,0.7,1),col);             
+            }
+        }
+    }
+    
+    // Output to screen
+    fragColor = col;
+}

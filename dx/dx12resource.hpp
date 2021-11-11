@@ -89,9 +89,26 @@ public:
 	void Map(void* src, UINT width, UINT height, UINT num_channel = 4);
 	void Set(ID3D12GraphicsCommandList* cmdList, UINT reg_id);
 
-	inline D3D12_CPU_DESCRIPTOR_HANDLE GetCpuHeapHundle() { return heap->GetCPUDescriptorHandleForHeapStart(); }
-	inline ::Microsoft::WRL::ComPtr<ID3D12Resource>& GetHundle() { return buffer; }
+	inline D3D12_CPU_DESCRIPTOR_HANDLE GetCpuHeapHandle() { return heap->GetCPUDescriptorHandleForHeapStart(); }
+	inline ::Microsoft::WRL::ComPtr<ID3D12Resource>& GetHandle() { return buffer; }
 	inline ::Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>& GetHeap() { return heap; }
+};
+
+class renderTexture {
+	::Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> renderTargetHeap;
+	::Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> afterHeap;
+
+	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle;
+	::Microsoft::WRL::ComPtr<ID3D12Resource> buffer;
+
+	D3D12_RECT scissor;
+public:
+	void Create(UINT width, UINT height, DXGI_FORMAT format = DXGI_FORMAT_B8G8R8A8_UNORM, D3D12_RESOURCE_FLAGS flag = D3D12_RESOURCE_FLAG_NONE);
+	void Set(ID3D12GraphicsCommandList* cmdList, UINT reg_id);
+	void RenderTarget(ID3D12GraphicsCommandList* cmdList);
+
+	inline ::Microsoft::WRL::ComPtr<ID3D12Resource>& GetHandle() { return buffer; }
+	inline D3D12_CPU_DESCRIPTOR_HANDLE GetRtvHandle() { return rtvHandle; }
 };
 
 class ibo {
