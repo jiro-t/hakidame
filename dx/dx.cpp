@@ -18,9 +18,7 @@ texture renderTargets[num_swap_buffers];
 ::Microsoft::WRL::ComPtr<ID3D12CommandAllocator> commandAllocators[num_swap_buffers] = {};
 UINT currentBackBufferIndex = 0;
 ::Microsoft::WRL::ComPtr<ID3D12CommandQueue> commandQueue = nullptr;
-#ifdef USE_STENCIL_BUFFER
-texture stencilBuffer[num_swap_buffers];
-#endif
+texture depthBuffer[num_swap_buffers];
 
 
 ::Microsoft::WRL::ComPtr<ID3D12Fence> fence = nullptr;
@@ -154,7 +152,7 @@ BOOL allowTearing = FALSE;
 	DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {
 		.Width = width,
 		.Height = height,
-		.Format = DXGI_FORMAT_R8G8B8A8_UNORM,
+		.Format = rtvFormat,
 		.Stereo = FALSE,
 		.SampleDesc = { 1, 0 },
 		.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT,
@@ -234,12 +232,11 @@ HRESULT init(HWND hwnd, bool useWarp, int width, int height)
 		renderTargets[i].GetHeap() = CreateDescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_RTV, 1);
 	CreateRenderTargetViews(device, swapChain);
 
-	renderOffscreen.Create(width, height, DXGI_FORMAT_R32G32B32A32_FLOAT, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
-#ifdef USE_STENCIL_BUFFER
+	renderOffscreen.Create(width, height, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
 	//stencil buffer
 	for (std::size_t i = 0; i < num_swap_buffers; ++i)
 	{
-		stencilBuffer[i].GetHeap() = CreateDescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_DSV, 1);
+		depthBuffer[i].GetHeap() = CreateDescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_DSV, 1);
 		D3D12_CLEAR_VALUE clearValue = {
 			.Format = DXGI_FORMAT_D32_FLOAT,
 			.DepthStencil = {.Depth = 1.f,.Stencil = 0 }
@@ -270,7 +267,7 @@ HRESULT init(HWND hwnd, bool useWarp, int width, int height)
 			&desc,
 			D3D12_RESOURCE_STATE_DEPTH_WRITE,
 			&clearValue,
-			IID_PPV_ARGS(&stencilBuffer[i].GetHandle())
+			IID_PPV_ARGS(&depthBuffer[i].GetHandle())
 		);
 
 		D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc = {
@@ -279,11 +276,10 @@ HRESULT init(HWND hwnd, bool useWarp, int width, int height)
 			.Flags = D3D12_DSV_FLAG_NONE
 		};
 		device->CreateDepthStencilView(
-			stencilBuffer[i].GetHandle().Get(),
+			depthBuffer[i].GetHandle().Get(),
 			&dsvDesc,
-			stencilBuffer[i].GetCpuHeapHandle());
+			depthBuffer[i].GetCpuHeapHandle());
 	}
-#endif
 
 	for (int i = 0; i < num_swap_buffers; ++i)
 	{

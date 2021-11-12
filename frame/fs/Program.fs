@@ -186,7 +186,7 @@ type MFrame (title : string,timeLength : int) as this =
             camTarUI.Enable(false)
             for ui in [objPosUI;objRotUI;objScaleUI] do
                 if ui = objScaleUI then ui.setValue(1.f,1.f,1.f) else ui.setValue(0.f,0.f,0.f)
-                ui.Edit(fun _ -> SetCurrentObject( 0,objPosUI.xyz,objRotUI.xyz,objScaleUI.xyz ) )
+                ui.Edit(fun _ -> SetCurrentObject( modelID.Select,objPosUI.xyz,objRotUI.xyz,objScaleUI.xyz ) )
             //Controls
             renderTarget.Click.Add(fun _ -> renderTarget.Focus() |> ignore )
             renderTarget.KeyDown.Add(fun e -> do
@@ -295,6 +295,12 @@ type MFrame (title : string,timeLength : int) as this =
                 objScaleUI.setValue(scale.x,scale.y,scale.z)
                 timeScroll.Value <- time;
                 timeCaption.Text <- time.ToString()
+            )
+            modelID.Add( fun _ -> do
+                modelID.AddItem
+            )
+            modelID.SelectedIndexChanged(fun _ -> do
+                SetCurrentObject( modelID.Select,objPosUI.xyz,objRotUI.xyz,objScaleUI.xyz )
             )
             // ----- TimerDriven --------
             if InitDxContext( renderTarget.Handle,renderTarget.Width,renderTarget.Height ) = false then MessageBox.Show("Error:InitDx12") |> ignore

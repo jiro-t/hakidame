@@ -237,29 +237,15 @@ void pipeline::CreateSampler(
 void pipeline::Create(
 	D3D12_INPUT_ELEMENT_DESC* elementDescs,
 	UINT elemntCount,
-	BOOL enableDepth,
 	D3D12_BLEND_DESC const& blendDesc,
 	D3D12_RASTERIZER_DESC const& rasterDesc) {
 	HRESULT result = S_OK;
-	use_depth = enableDepth;
 
 	::Microsoft::WRL::ComPtr<ID3DBlob> signature;
 	::Microsoft::WRL::ComPtr<ID3DBlob> error;
 	
 	result = D3DGetBlobPart(shader[static_cast<UINT>(ShaderTypes::VERTEX_SHADER)].pShaderBytecode, shader[static_cast<UINT>(ShaderTypes::VERTEX_SHADER)].BytecodeLength, D3D_BLOB_ROOT_SIGNATURE, 0, &signature);
 	device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rootSignature));
-
-	//static char num = 'A';
-	//std::string fname = "shader_";
-	//std::ofstream ofs(fname + num + ".t");
-	//ofs.write((char*)shader[static_cast<UINT>(ShaderTypes::VERTEX_SHADER)].pShaderBytecode, shader[static_cast<UINT>(ShaderTypes::VERTEX_SHADER)].BytecodeLength);
-	//ofs.close();
-	//num++;
-
-	//std::ofstream ofs2(fname + num + ".t");
-	//ofs2.write((char*)shader[static_cast<UINT>(ShaderTypes::FRAGMENT_SHADER)].pShaderBytecode, shader[static_cast<UINT>(ShaderTypes::FRAGMENT_SHADER)].BytecodeLength);
-	//ofs2.close();
-	//num++;
 
 	putErrorMsg(error);
 
@@ -269,9 +255,9 @@ void pipeline::Create(
 		.SampleMask = UINT_MAX,
 		.RasterizerState = rasterDesc,
 		.DepthStencilState = {
-			.DepthEnable = enableDepth ? TRUE : FALSE,
+			.DepthEnable = TRUE,
 			.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL,
-			.DepthFunc = enableDepth ? D3D12_COMPARISON_FUNC_LESS_EQUAL : D3D12_COMPARISON_FUNC_NEVER,
+			.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL,
 			.StencilEnable = FALSE,
 			.StencilReadMask = D3D12_DEFAULT_STENCIL_READ_MASK,
 			.StencilWriteMask = D3D12_DEFAULT_STENCIL_WRITE_MASK,
@@ -291,7 +277,7 @@ void pipeline::Create(
 		.InputLayout = { elementDescs, elemntCount },
 		.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE,
 		.NumRenderTargets = 1,
-		.RTVFormats = { DXGI_FORMAT_R8G8B8A8_UNORM,} ,
+		.RTVFormats = { rtvFormat,} ,
 		.DSVFormat = DXGI_FORMAT_D32_FLOAT,
 		.SampleDesc = {.Count = 1,},
 	};
@@ -333,7 +319,7 @@ ID3D12GraphicsCommandList* pipeline::Begin(renderTexture renderTarget)
 		.Transition = {
 			.pResource = renderTarget.GetHandle().Get(),
 			.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES,
-			.StateBefore = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
+			.StateBefore = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE|D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
 			.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET,
 		},
 	};
@@ -368,19 +354,12 @@ ID3D12GraphicsCommandList* pipeline::Begin()
 	};
 	commandList->ResourceBarrier(1, &barrier);
 
-#ifdef USE_STENCIL_BUFFER
-	D3D12_CPU_DESCRIPTOR_HANDLE scvHandle = D3D12_CPU_DESCRIPTOR_HANDLE(stencilBuffer[currentBackBufferIndex].GetCpuHeapHandle());
-#endif
+
+	D3D12_CPU_DESCRIPTOR_HANDLE scvHandle = D3D12_CPU_DESCRIPTOR_HANDLE(depthBuffer[currentBackBufferIndex].GetCpuHeapHandle());
 	rtvHandle = D3D12_CPU_DESCRIPTOR_HANDLE(renderTargets[currentBackBufferIndex].GetCpuHeapHandle());
 
-#ifdef USE_STENCIL_BUFFER
-	if (use_depth)
-		commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, &scvHandle);
-	else
-		commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
-#else
-	commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, nullptr);
-#endif
+	commandList->OMSetRenderTargets(1, &rtvHandle, FALSE, &scvHandle);
+
 	commandList->SetGraphicsRootSignature(rootSignature.Get());
 	commandList->RSSetViewports(1, &view);
 	commandList->RSSetScissorRects(1, &scissor);
@@ -391,25 +370,17 @@ ID3D12GraphicsCommandList* pipeline::Begin()
 void pipeline::Clear(FLOAT const clearColor[])
 {
 	commandList->ClearRenderTargetView(rtvHandle, clearColor, 0, nullptr);
-#ifdef USE_STENCIL_BUFFER
-	if (use_depth)
-	{
-		D3D12_CPU_DESCRIPTOR_HANDLE scvHandle = D3D12_CPU_DESCRIPTOR_HANDLE(stencilBuffer[currentBackBufferIndex].GetCpuHeapHandle());
-		commandList->ClearDepthStencilView(scvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
-	}
-#endif
+
+	D3D12_CPU_DESCRIPTOR_HANDLE scvHandle = D3D12_CPU_DESCRIPTOR_HANDLE(depthBuffer[currentBackBufferIndex].GetCpuHeapHandle());
+	commandList->ClearDepthStencilView(scvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 }
 
 void pipeline::Clear(renderTexture target,FLOAT const clearColor[])
 {
 	commandList->ClearRenderTargetView(target.GetRtvHandle(), clearColor, 0, nullptr);
-#ifdef USE_STENCIL_BUFFER
-	if (use_depth)
-	{
-		D3D12_CPU_DESCRIPTOR_HANDLE scvHandle = D3D12_CPU_DESCRIPTOR_HANDLE(stencilBuffer[currentBackBufferIndex].GetCpuHeapHandle());
-		commandList->ClearDepthStencilView(scvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
-	}
-#endif
+
+	D3D12_CPU_DESCRIPTOR_HANDLE scvHandle = D3D12_CPU_DESCRIPTOR_HANDLE(target.GetDsvHandle());
+	commandList->ClearDepthStencilView(scvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 }
 
 void pipeline::End()

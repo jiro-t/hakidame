@@ -10,6 +10,8 @@ namespace ino::shape
 d3d::StaticMesh CreateQuad();
 d3d::StaticMesh CreateCube();
 
+d3d::StaticMesh CreateTestModel();
+
 }
 
 #endif

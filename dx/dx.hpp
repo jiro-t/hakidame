@@ -25,8 +25,7 @@
 #include <string>
 
 constexpr int num_swap_buffers = 2;//2 to  DXGI_MAX_SWAP_CHAIN_BUFFERS
-
-#define USE_STENCIL_BUFFER
+constexpr DXGI_FORMAT rtvFormat = DXGI_FORMAT_R16G16B16A16_FLOAT;
 
 namespace ino::d3d
 {
@@ -45,9 +44,7 @@ extern	UINT currentBackBufferIndex;
 extern	::Microsoft::WRL::ComPtr<ID3D12CommandQueue> commandQueue;
 extern renderTexture renderOffscreen;
 extern texture renderTargets[num_swap_buffers];
-#ifdef USE_STENCIL_BUFFER
-extern texture	stencilBuffer[num_swap_buffers];
-#endif
+extern texture	depthBuffer[num_swap_buffers];
 
 extern	::Microsoft::WRL::ComPtr<ID3D12Fence> fence;
 extern	uint64_t fenceValue;

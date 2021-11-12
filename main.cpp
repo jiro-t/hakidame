@@ -20,12 +20,12 @@ float local_time = 0.f;
 #include <chrono>
 
 static float g_Vertices[6][9] = {
-	{ 0.10f, 0.f, 0.5f,/**/ 1.0f, 1.0f, 1.0f,1.0f,/**/0.f,0.f }, // 1
-	{ 0.1f, 0.25f, 0.5f,/**/ 1.0f, 1.0f, 1.0f,1.0f,/**/0.f,1.f }, // 2
-	{ 0.35f, 0.25f, 0.5f,/**/ 1.0f, 1.0f, 1.0f,1.0f,/**/1.f,1.f }, // 3
-	{ 0.35f, 0.25f, 0.5f,/**/ 1.0f, 1.0f, 1.0f,1.0f,/**/1.f,1.f }, // 3
-	{ 0.35f, 0.f, 0.5f,/**/ 1.0f, 1.0f, 1.0f,1.0f,/**/1.f,0.f }, // 4
-	{ 0.10f, 0.f, 0.5f,/**/ 1.0f, 1.0f, 1.0f,1.0f,/**/0.f,0.f } // 1
+	{ 0.30f, 0.f, 0,/**/ 1.0f, 1.0f, 1.0f,1.0f,/**/0.f,0.f }, // 1
+	{ 0.3f, 0.55f, 0,/**/ 1.0f, 1.0f, 1.0f,1.0f,/**/0.f,1.f }, // 2
+	{ 0.55f, 0.55f, 0,/**/ 1.0f, 1.0f, 1.0f,1.0f,/**/1.f,1.f }, // 3
+	{ 0.55f, 0.55f, 0,/**/ 1.0f, 1.0f, 1.0f,1.0f,/**/1.f,1.f }, // 3
+	{ 0.55f, 0.f, 0,/**/ 1.0f, 1.0f, 1.0f,1.0f,/**/1.f,0.f }, // 4
+	{ 0.30f, 0.f, 0,/**/ 1.0f, 1.0f, 1.0f,1.0f,/**/0.f,0.f } // 1
 };
 
 static float g_Vertices2[6][9] = {
@@ -184,7 +184,7 @@ PSInput VSMain(float3 position : POSITION,float4 color : COLOR,float2 uv : TEXCO
 }\
 [RootSignature(rootSig)]\
 float4 PSMain(PSInput input) : SV_TARGET{\
-	return input.color*tex_.Sample(samp_, input.uv);\
+	return input.color*tex_.Sample(samp_, input.uv) + float4(0,0,0,1);\
 }\
 ";
 
@@ -192,14 +192,12 @@ HRESULT create_pipeline(ino::d3d::pipeline& pipe)
 {
 	pipe.LoadShader(ino::d3d::ShaderTypes::VERTEX_SHADER, def_shader, sizeof(def_shader), L"VSMain");
 	pipe.LoadShader(ino::d3d::ShaderTypes::FRAGMENT_SHADER, def_shader, sizeof(def_shader), L"PSMain");
-	//pipe.LoadShader(ino::d3d::ShaderTypes::VERTEX_SHADER, L"./vs.cso");
-	//pipe.LoadShader(ino::d3d::ShaderTypes::FRAGMENT_SHADER, L"./ps.cso");
 
 	D3D12_INPUT_ELEMENT_DESC elementDescs[] = {
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, sizeof(float)*4, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 	};
-	pipe.Create(elementDescs, 2,true);
+	pipe.Create(elementDescs, 2);
 	pipe.view = {
 		.Width = static_cast<FLOAT>(ino::d3d::screen_width),
 		.Height = static_cast<FLOAT>(ino::d3d::screen_height),
@@ -228,7 +226,7 @@ HRESULT create_pipeline_textured(ino::d3d::pipeline& pipe)
 	D3D12_TEXTURE_ADDRESS_MODE warp[] = { D3D12_TEXTURE_ADDRESS_MODE::D3D12_TEXTURE_ADDRESS_MODE_CLAMP };
 	pipe.CreateSampler(1, filter, warp);
 
-	pipe.Create(elementDescs, 3, false);
+	pipe.Create(elementDescs, 3);
 
 	pipe.view = {
 		.Width = static_cast<FLOAT>(ino::d3d::screen_width),
@@ -267,8 +265,11 @@ int main() {
 	//[[maybe_unused]] int a;
 
 	//setup pipeline
-	ino::d3d::cbo<DX::XMFLOAT4X4> mvpCBO;
+	ino::d3d::cbo<DX::XMFLOAT4X4> mvpCBO[2];
    	ino::d3d::cbo<float> fCBO[2];
+
+	ino::d3d::pipeline offscreenPipe;
+	create_pipeline(offscreenPipe);
 
 	ino::d3d::pipeline pipe[2];
 	create_pipeline(pipe[0]);
@@ -281,11 +282,12 @@ int main() {
 	}
 
 	//resource
-	mvpCBO.Create();
+	mvpCBO[0].Create();
+	mvpCBO[1].Create();
 	for (auto& val : fCBO)
 		val.Create();
 
-	ID3D12GraphicsCommandList* cmds[_countof(pipe)] = {};
+	ID3D12GraphicsCommandList* cmds[_countof(pipe)+1] = {};
 	ino::d3d::vbo* vbo = new ino::d3d::vbo();
 	vbo->Create(g_Vertices, 9 * sizeof(float), sizeof(g_Vertices));
 
@@ -314,54 +316,56 @@ int main() {
 			::DispatchMessage(&msg);
 		}
 
+		auto model = DX::XMMatrixIdentity();
+		rot += 0.01f;
+		auto view = DX::XMMatrixLookAtLH(DX::XMVectorSet(cos(rot) * 13, 3, sin(rot) * 13, 0), DX::XMVectorSet(0, 1.5, 0, 0), DX::XMVectorSet(0, 1, 0, 0));
+		auto projection = DX::XMMatrixPerspectiveFovLH(DX::XMConvertToRadians(60), ino::d3d::screen_width / (float)ino::d3d::screen_height, 0.01f, 100.f);
+
+		DX::XMFLOAT4X4 Mat;
+		DX::XMStoreFloat4x4(&Mat, XMMatrixTranspose(model * view * projection));
+
 		local_time += std::chrono::duration_cast<std::chrono::milliseconds>(c.now() - time_o).count() / 1000.f;
 		time_o = c.now();
 		ino::d3d::begin();
 
 		std::mutex m;
 
-		static const FLOAT clearColor2[] = { 1.f, 0.f, 0.f, 1.0f };
+		static const FLOAT clearColor2[] = { 1.f, 1.f, 0.f, 1.0f };
 		//offscreen
-		cmds[0] = pipe[0].Begin(ino::d3d::renderOffscreen);
-		pipe[0].Clear(ino::d3d::renderOffscreen,clearColor2);
-		pipe[0].End();
-
+		cmds[0] = offscreenPipe.Begin(ino::d3d::renderOffscreen);
+		mvpCBO[0].Set(cmds[0], Mat, 0);
+		offscreenPipe.Clear(ino::d3d::renderOffscreen,clearColor2);
+		vboCornelBox->Draw(cmds[0],*iboCornelBox);
+		offscreenPipe.End();
 		//std::thread t1([&cmds, &pipe,&vboCornelBox, &m,&mvpCBO]() {
-			auto model = DX::XMMatrixIdentity();
-			rot += 0.01f;
-			auto view = DX::XMMatrixLookAtLH(DX::XMVectorSet(cos(rot)*13, 3, sin(rot)*13, 0), DX::XMVectorSet(0, 1.5, 0, 0),DX::XMVectorSet(0,1,0,0));
-			auto projection = DX::XMMatrixPerspectiveFovLH(DX::XMConvertToRadians(60), ino::d3d::screen_width / (float)ino::d3d::screen_height, 0.01f, 100.f);
-			//DX::XMMATRIX mvp = model * view * projection;
-			DX::XMFLOAT4X4 Mat;
-			DX::XMStoreFloat4x4(&Mat, XMMatrixTranspose(model * view * projection));
+
 				const FLOAT clearColor[] = { 0.4f, 0.6f, 0.9f, 0.0f };
 				m.lock();
-				cmds[0] = pipe[0].Begin();
-				mvpCBO.Set(cmds[0], Mat,0);
+				cmds[1] = pipe[0].Begin();
+				mvpCBO[1].Set(cmds[1], Mat,0);
 				pipe[0].Clear(clearColor);
 				//DrawPrimitive;
-				vboCornelBox->Draw(cmds[0],*iboCornelBox);
+				vboCornelBox->Draw(cmds[1],*iboCornelBox);
 				pipe[0].End(); 
 				m.unlock();
 		//	}
 		//);
 
-		//const FLOAT clearColor[] = { 0.4f, 0.6f, 0.9f, 1.0f };
 
 		m.lock();
-		cmds[1] = pipe[1].Begin();
-		fCBO[0].Set(cmds[1],sinf(local_time),0);
-		fCBO[1].Set(cmds[1],cosf(local_time),1);
-		ino::d3d::renderOffscreen.Set(cmds[1],2);
+		cmds[2] = pipe[1].Begin();
+		fCBO[0].Set(cmds[2],sinf(local_time),0);
+		fCBO[1].Set(cmds[2],cosf(local_time),1);
+		ino::d3d::renderOffscreen.Set(cmds[2],2);
 		//DrawPrimitive;
-		vbo2->Draw(cmds[1]);
-		vbo->Draw(cmds[1]);
+		vbo2->Draw(cmds[2]);
+		vbo->Draw(cmds[2]);
 		pipe[1].End();
 		m.unlock();
 
 		//t1.join();
 		//for (auto& c : cmds)c->Close();
-		ino::d3d::excute(cmds, _countof(pipe));
+		ino::d3d::excute(cmds, _countof(pipe)+1);
 		ino::d3d::wait();
 		Sleep(16);
 		ino::d3d::end();

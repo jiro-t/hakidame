@@ -148,7 +148,7 @@ HRESULT create_pipeline(ino::d3d::pipeline& pipe)
 		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, sizeof(float) * 4, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, sizeof(float) * 8, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 	};
-	pipe.Create(elementDescs, 3, true);
+	pipe.Create(elementDescs, 3);
 	pipe.view = {
 		.Width = static_cast<FLOAT>(ino::d3d::screen_width),
 		.Height = static_cast<FLOAT>(ino::d3d::screen_height),
@@ -177,7 +177,7 @@ HRESULT create_pipeline_textured(ino::d3d::pipeline& pipe)
 	D3D12_TEXTURE_ADDRESS_MODE wrap[] = { D3D12_TEXTURE_ADDRESS_MODE::D3D12_TEXTURE_ADDRESS_MODE_CLAMP };
 	pipe.CreateSampler(1, filter, wrap);
 
-	pipe.Create(elementDescs, 3, false);
+	pipe.Create(elementDescs, 3);
 
 	pipe.view = {
 		.Width = static_cast<FLOAT>(ino::d3d::screen_width),
@@ -222,6 +222,7 @@ DLL_EXPORT BOOL InitDxContext(HWND hwnd, UINT width, UINT height)
 	mesh.push_back( ino::shape::CreateCharMesh(L'‚¤', L"‚l‚r –¾’©"));
 	mesh.push_back(ino::shape::CreateCharMesh(L'‚ñ', L"‚l‚r –¾’©"));
 	mesh.push_back(ino::shape::CreateCharMesh(L'‚¿', L"‚l‚r –¾’©"));
+	mesh.push_back(ino::shape::CreateTestModel());
 
 	return ret;
 }
@@ -268,13 +269,12 @@ DLL_EXPORT BOOL DxContextFlush()
 	
 	ID3D12GraphicsCommandList* cmds[_countof(pipe)] = {};
 	ino::d3d::begin();
-	for (auto& p : pipe)p.Reset();
 	static const FLOAT clearColor[] = { 0.4f, 0.6f, 0.9f, 1.0f };
 	static const FLOAT clearColor2[] = { 1.f, 0.f, 0.f, 1.0f };
 	//offscreen
-	cmds[0] = pipe[0].Begin(ino::d3d::renderOffscreen);
-	pipe[0].Clear(clearColor2);
-	pipe[0].End();
+	//cmds[0] = pipe[0].Begin(ino::d3d::renderOffscreen);
+	//pipe[0].Clear(clearColor2);
+	//pipe[0].End();
 
 	cmds[0] = pipe[0].Begin();
 	pipe[0].Clear(clearColor);
@@ -294,7 +294,7 @@ DLL_EXPORT BOOL DxContextFlush()
 	model = obj.matBegin;
 	DX::XMStoreFloat4x4(&Mat, XMMatrixTranspose(model * view * projection));
 	mvpCBO.Set(cmds[0], Mat, 0);
-	mesh[0].Draw(cmds[0]);
+	mesh[obj.shapeID].Draw(cmds[0]);
 
 	model = GenModelMatrix(point(-5, 10, 0, 0), point(0, 0, 0, 0), point(0.025, 0.025, 1, 1));
 	DX::XMStoreFloat4x4(&Mat, XMMatrixTranspose(model * view * projection));

@@ -61,7 +61,6 @@ class pipeline {
 	D3D12_STATIC_SAMPLER_DESC* samplers = nullptr;
 	D3D12_DESCRIPTOR_RANGE* sampler_ranges = nullptr;
 	UINT sampler_count = 0;
-	BOOL use_depth = FALSE;
 
 	D3D12_RESOURCE_BARRIER barrier = {};
 
@@ -85,12 +84,10 @@ public:
 	void Create(
 		D3D12_INPUT_ELEMENT_DESC* elementDescs,
 		UINT elemntCount,
-		BOOL enableDepth,
 		D3D12_BLEND_DESC const& blendDesc = defaultBlendDesc(),
 		D3D12_RASTERIZER_DESC const& rasterDesc = defaultRasterizerDesc());
 	::Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> const& Get();
 
-	void Reset(){ commandList->Reset(commandAllocators[currentBackBufferIndex].Get(), pipelineState.Get());}
 	ID3D12GraphicsCommandList* Begin(renderTexture renderTarget);
 	ID3D12GraphicsCommandList* Begin();
 	void Clear(renderTexture renderTarget,FLOAT const clearColor[]);

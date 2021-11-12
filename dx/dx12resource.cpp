@@ -63,6 +63,9 @@ void texture::Create(UINT width, UINT height,DXGI_FORMAT format,D3D12_RESOURCE_F
 	};
 
 	device->CreateCommittedResource(&heapProp, D3D12_HEAP_FLAG_NONE, &resourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&buffer));
+#ifdef _DEBUG
+	buffer->SetName(L"texture");
+#endif
 
 	D3D12_DESCRIPTOR_HEAP_DESC descriptor_heap_desc = {
 		.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
@@ -99,7 +102,7 @@ void texture::Set(ID3D12GraphicsCommandList* cmdList, UINT reg_id) {
 	cmdList->SetGraphicsRootDescriptorTable(reg_id, heap->GetGPUDescriptorHandleForHeapStart());
 }
 
-void renderTexture::Create(UINT width, UINT height, DXGI_FORMAT format, D3D12_RESOURCE_FLAGS flag)
+void renderTexture::Create(UINT width, UINT height, D3D12_RESOURCE_FLAGS flag)
 {
 	D3D12_HEAP_PROPERTIES heapProp = {
 		.Type = D3D12_HEAP_TYPE_CUSTOM,
@@ -115,26 +118,48 @@ void renderTexture::Create(UINT width, UINT height, DXGI_FORMAT format, D3D12_RE
 		.Height = height,
 		.DepthOrArraySize = 1,
 		.MipLevels = 1,
-		.Format = format,
+		.Format = rtvFormat,
 		.SampleDesc = {.Count = 1,.Quality = 0 },
 		.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN ,
 		.Flags = flag
 	};
-
 	D3D12_DESCRIPTOR_HEAP_DESC descriptor_heap_desc = {
 		.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV,
 		.NumDescriptors = 1,
 		.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE,
 	};
-	device->CreateCommittedResource(&heapProp, D3D12_HEAP_FLAG_NONE, &resourceDesc, D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&buffer));
+	device->CreateCommittedResource(&heapProp, D3D12_HEAP_FLAG_NONE, &resourceDesc,
+		D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE ,
+		nullptr, IID_PPV_ARGS(&buffer));
 	device->CreateDescriptorHeap(&descriptor_heap_desc, IID_PPV_ARGS(&renderTargetHeap));
+
+	resourceDesc.Format = DXGI_FORMAT_D32_FLOAT;
+	resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+	descriptor_heap_desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+	D3D12_CLEAR_VALUE clearValue = {
+		.Format = DXGI_FORMAT_D32_FLOAT,
+		.DepthStencil = {.Depth = 1.f,.Stencil = 0 }
+	};
+	device->CreateCommittedResource(&heapProp, D3D12_HEAP_FLAG_NONE, &resourceDesc,
+		D3D12_RESOURCE_STATE_DEPTH_WRITE,
+		&clearValue, IID_PPV_ARGS(&depthBuffer));
+	device->CreateDescriptorHeap(&descriptor_heap_desc, IID_PPV_ARGS(&depthHeap));
+#ifdef _DEBUG
+	buffer->SetName(L"offscreen buffer");
+#endif
 
 	rtvHandle = renderTargetHeap->GetCPUDescriptorHandleForHeapStart();
 
 	D3D12_RENDER_TARGET_VIEW_DESC rtvDesc = {};
 	rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
-	rtvDesc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+	rtvDesc.Format = rtvFormat;
 	device->CreateRenderTargetView(buffer.Get(), &rtvDesc, rtvHandle);
+
+	D3D12_DEPTH_STENCIL_VIEW_DESC depthDesc = {};
+	depthDesc.Format = DXGI_FORMAT_D32_FLOAT;
+	depthDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+	depthDesc.Flags = D3D12_DSV_FLAG_NONE;
+	device->CreateDepthStencilView(depthBuffer.Get(), &depthDesc, depthHeap->GetCPUDescriptorHandleForHeapStart() );
 
 	scissor.left = 0;
 	scissor.right = width;
@@ -147,18 +172,15 @@ void renderTexture::Create(UINT width, UINT height, DXGI_FORMAT format, D3D12_RE
 	descriptor_heap_desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	device->CreateDescriptorHeap(&descriptor_heap_desc, IID_PPV_ARGS(&afterHeap));
 
-	D3D12_CPU_DESCRIPTOR_HANDLE handle_srv{};
 	D3D12_SHADER_RESOURCE_VIEW_DESC resourct_view_desc{};
-	resourct_view_desc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+	resourct_view_desc.Format = rtvFormat;
 	resourct_view_desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
 	resourct_view_desc.Texture2D.MipLevels = 1;
 	resourct_view_desc.Texture2D.MostDetailedMip = 0;
 	resourct_view_desc.Texture2D.PlaneSlice = 0;
 	resourct_view_desc.Texture2D.ResourceMinLODClamp = 0.0F;
 	resourct_view_desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-
-	handle_srv = afterHeap->GetCPUDescriptorHandleForHeapStart();
-	device->CreateShaderResourceView(buffer.Get(), &resourct_view_desc, handle_srv);
+	device->CreateShaderResourceView(buffer.Get(), &resourct_view_desc, afterHeap->GetCPUDescriptorHandleForHeapStart());
 }
 
 void renderTexture::Set(ID3D12GraphicsCommandList* cmdList, UINT reg_id)
@@ -170,7 +192,7 @@ void renderTexture::Set(ID3D12GraphicsCommandList* cmdList, UINT reg_id)
 
 void renderTexture::RenderTarget(ID3D12GraphicsCommandList* cmdList)
 {
-	D3D12_CPU_DESCRIPTOR_HANDLE scvHandle = D3D12_CPU_DESCRIPTOR_HANDLE(stencilBuffer[currentBackBufferIndex].GetCpuHeapHandle());
+	D3D12_CPU_DESCRIPTOR_HANDLE scvHandle = D3D12_CPU_DESCRIPTOR_HANDLE(depthHeap->GetCPUDescriptorHandleForHeapStart());
 
 	cmdList->RSSetScissorRects(1, &scissor);
 	cmdList->OMSetRenderTargets(1, &rtvHandle, false, &scvHandle);
@@ -209,6 +231,9 @@ void ibo::Create(const uint32_t* indecies, UINT byteSize) {
 		IID_PPV_ARGS(&buffer)
 	);
 	//buffer = CreateResource(byteSize,D3D12_RESOURCE_STATE_GENERIC_READ);
+#ifdef _DEBUG
+	buffer->SetName(L"index buffer");
+#endif
 
 	UINT8* pIndexDataBegin;
 	D3D12_RANGE readRange;// We do not intend to read from this resource on the CPU.
@@ -265,6 +290,9 @@ void vbo::Create(const void* verts, UINT stride, UINT byteSize) {
 		IID_PPV_ARGS(&buffer)
 	);
 	//buffer = CreateResource(byteSize,D3D12_RESOURCE_STATE_GENERIC_READ);
+#ifdef _DEBUG
+	buffer->SetName(L"vertex buffer");
+#endif
 
 	UINT8* pVertexDataBegin;
 	D3D12_RANGE readRange;// We do not intend to read from this resource on the CPU.

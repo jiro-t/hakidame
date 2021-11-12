@@ -96,19 +96,22 @@ public:
 
 class renderTexture {
 	::Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> renderTargetHeap;
+	::Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> depthHeap;
 	::Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> afterHeap;
 
 	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle;
 	::Microsoft::WRL::ComPtr<ID3D12Resource> buffer;
+	::Microsoft::WRL::ComPtr<ID3D12Resource> depthBuffer;
 
 	D3D12_RECT scissor;
 public:
-	void Create(UINT width, UINT height, DXGI_FORMAT format = DXGI_FORMAT_B8G8R8A8_UNORM, D3D12_RESOURCE_FLAGS flag = D3D12_RESOURCE_FLAG_NONE);
+	void Create(UINT width, UINT height, D3D12_RESOURCE_FLAGS flag = D3D12_RESOURCE_FLAG_NONE);
 	void Set(ID3D12GraphicsCommandList* cmdList, UINT reg_id);
 	void RenderTarget(ID3D12GraphicsCommandList* cmdList);
 
 	inline ::Microsoft::WRL::ComPtr<ID3D12Resource>& GetHandle() { return buffer; }
 	inline D3D12_CPU_DESCRIPTOR_HANDLE GetRtvHandle() { return rtvHandle; }
+	inline D3D12_CPU_DESCRIPTOR_HANDLE GetDsvHandle() { return depthHeap->GetCPUDescriptorHandleForHeapStart(); }
 };
 
 class ibo {
