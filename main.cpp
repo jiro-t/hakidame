@@ -306,7 +306,7 @@ int main() {
 	std::chrono::high_resolution_clock::time_point time_o = c.now();
 	float rot = 0.0f;
 	Sleep(500);
-	ino::d3d::begin();
+	
 	srand(0);
 	do {
 		MSG msg;

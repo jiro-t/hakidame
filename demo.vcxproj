@@ -148,6 +148,7 @@
   <ItemGroup>
     <ClCompile Include="dx\dx.cpp" />
     <ClCompile Include="dx\dx12pipeline.cpp" />
+    <ClCompile Include="dx\dx12raytrace.cpp" />
     <ClCompile Include="dx\dx12resource.cpp" />
     <ClCompile Include="gfx\font.cpp" />
     <ClCompile Include="gfx\shapes.cpp" />

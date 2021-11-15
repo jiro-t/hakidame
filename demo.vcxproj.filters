@@ -45,6 +45,9 @@
     <ClCompile Include="gfx\font.cpp">
       <Filter>ソース ファイル\gfx</Filter>
     </ClCompile>
+    <ClCompile Include="dx\dx12raytrace.cpp">
+      <Filter>ソース ファイル\dx</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="dx\dx12resource.hpp">
