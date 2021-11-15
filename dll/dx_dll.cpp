@@ -288,7 +288,7 @@ DLL_EXPORT BOOL DxContextFlush()
 			DX::XMStoreFloat4x4(&Mat, XMMatrixTranspose(model * view * projection));
 			
 			val.cbo.Set(cmds[0], Mat, 0);
-			mesh[0].Draw(cmds[0]);
+			mesh[val.shapeID].Draw(cmds[0]);
 		}
 	}
 	model = obj.matBegin;

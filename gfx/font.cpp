@@ -265,6 +265,12 @@ d3d::StaticMesh CreateCharMesh(wchar_t c, LPCWSTR font)
 			}
 		}
 
+	for (int i = 0; i < vert.size(); i += 3)
+	{
+		vert[i] = DX::XMVectorMultiply(vert[i], DX::XMVectorSet(0.02f, 0.02f, 0.02f, 1));
+		vert[i] = DX::XMVectorAdd(vert[i], DX::XMVectorSet(-1.0f, 1.0f, -0.02f, 1));
+	}
+
 	delete[] ptr;
 
 	d3d::StaticMesh mesh;

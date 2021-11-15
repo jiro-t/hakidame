@@ -56,10 +56,14 @@ type PlotManager (text : string,x : int,y : int,control : System.Windows.Forms.C
         member this.SelectedIndexChanged f = cmb.SelectedIndexChanged.Add(f)
         member this.AddItem = do
             cmb.Items.Add( cmb.Items.Count ) |> ignore
+        member this.AddItemText text = do
+            cmb.Items.Add( cmb.Items.Count.ToString()+text ) |> ignore
         member this.DelItem index = do
             if index >= 0 then cmb.Items.RemoveAt( index ) |> ignore
             for idx = 1 to cmb.Items.Count do cmb.Items.Item(idx-1) <- idx-1
         member this.Count() = cmb.Items.Count
+        member this.SetValue(i) = do 
+            cmb.SelectedIndex <- i
     end
 
 let export owner = do
@@ -88,6 +92,8 @@ type MFrame (title : string,timeLength : int) as this =
         let objPosUI = new Edit3DPosition("object_position",this.Width - 280,150,this.Controls)
         let objRotUI = new Edit3DPosition("object_rotation",this.Width - 280,185,this.Controls)
         let objScaleUI = new Edit3DPosition("object_scale",this.Width - 280,220,this.Controls)
+        let resetPlotBtn = new Button(Text = "reset",Left = this.Width - 65,Top = 140,Width = 45,Height = 20)
+        let keyboardToObjChk = new CheckBox(Text = "keyObj",Left = this.Width - 160,Top = 142,Width = 105,Height = 20)
         let objPlot = new PlotManager("obj_plot",this.Width - 200,260,this.Controls)
         let modelID = new PlotManager("model_id",this.Width - 200,310,this.Controls)
         let mutable camPos = vec(x = 0.f,y = 0.f,z = -1.f,w = 0.f)
@@ -190,28 +196,38 @@ type MFrame (title : string,timeLength : int) as this =
             //Controls
             renderTarget.Click.Add(fun _ -> renderTarget.Focus() |> ignore )
             renderTarget.KeyDown.Add(fun e -> do
+
                 match e.KeyCode with
                 | Keys.Left ->  if e.Control then camRot <- camRot + vec(z = 0.1f)
                 | Keys.Right -> if e.Control then camRot <- camRot + vec(z = -0.1f)
                 | Keys.Up -> if e.Control then camPos <- camPos + camUp*0.11f
                 | Keys.Down -> if e.Control then camPos <- camPos - camUp*0.11f
-                | Keys.A -> if e.Control then camRot <- camRot + vec(y = 0.1f)
-                | Keys.D -> if e.Control then camRot <- camRot + vec(y = -0.1f)
-                | Keys.W -> if e.Control then do camRot <- camRot + vec(x = -0.1f)
-                | Keys.S -> if e.Control then do camRot <- camRot + vec(x = 0.1f)
+                | Keys.A -> if e.Control && keyboardToObjChk.Checked = false then camRot <- camRot + vec(y = 0.1f)
+                | Keys.D -> if e.Control && keyboardToObjChk.Checked = false then camRot <- camRot + vec(y = -0.1f)
+                | Keys.W -> if e.Control && keyboardToObjChk.Checked = false then do camRot <- camRot + vec(x = -0.1f)
+                | Keys.S -> if e.Control && keyboardToObjChk.Checked = false then do camRot <- camRot + vec(x = 0.1f)
+                | Keys.D1 ->  keyboardToObjChk.Checked <- not keyboardToObjChk.Checked
                 | _ -> ()
 
                 camTar <- rotY( rotX( rotZ ( vec(z = -1.f),float camRot.z ),float camRot.x ),float camRot.y )
                 camUp <- rotY( rotX( rotZ ( vec(y = 1.f),float camRot.z ),float camRot.x ),float camRot.y )
 
                 match e.KeyCode with
-                | Keys.A -> if not e.Control then camPos <- camPos + cross(camTar,camUp)*0.11f
-                | Keys.D -> if not e.Control then camPos <- camPos - cross(camTar,camUp)*0.11f
-                | Keys.W -> if not e.Control then camPos <- camPos + camTar*0.11f
-                | Keys.S -> if not e.Control then camPos <- camPos - camTar*0.11f
+                | Keys.A -> if not e.Control && keyboardToObjChk.Checked = false then camPos <- camPos + cross(camTar,camUp)*0.11f
+                | Keys.D -> if not e.Control && keyboardToObjChk.Checked = false then camPos <- camPos - cross(camTar,camUp)*0.11f
+                | Keys.W -> if not e.Control && keyboardToObjChk.Checked = false then camPos <- camPos + camTar*0.11f
+                | Keys.S -> if not e.Control && keyboardToObjChk.Checked = false then camPos <- camPos - camTar*0.11f
                 | _ -> ()
 
+                let mutable pos = objPosUI.xyz
+                match e.KeyCode with
+                | Keys.A -> if not e.Control && keyboardToObjChk.Checked = true then pos <- pos + cross(camTar,camUp)*0.11f
+                | Keys.D -> if not e.Control && keyboardToObjChk.Checked = true then pos <- pos - cross(camTar,camUp)*0.11f
+                | Keys.W -> if not e.Control && keyboardToObjChk.Checked = true then pos <- pos + camTar*0.11f
+                | Keys.S -> if not e.Control && keyboardToObjChk.Checked = true then pos <- pos - camTar*0.11f
+                | _ -> ()
 
+                objPosUI.setValue(pos.x,pos.y,pos.z)
                 camPosUI.setValue(camPos.x,camPos.y,camPos.z)
                 camTarUI.setValue(camTar.x,camTar.y,camTar.z)
                 SetCurrentCamera( camPos,camPos+camTar,camUp )
@@ -245,6 +261,8 @@ type MFrame (title : string,timeLength : int) as this =
                 if Keys.Escape = e.KeyCode then this.Close()
             )
             //PlotManage
+            this.Controls.Add(resetPlotBtn)
+            this.Controls.Add(keyboardToObjChk)
             camPlot.Add( fun _ -> do
                 AddPlotCamera(camPlot.Select,camPos,camTar,camUp,time)
                 camPlot.AddItem
@@ -269,10 +287,10 @@ type MFrame (title : string,timeLength : int) as this =
                 timeCaption.Text <- time.ToString()
             )
             objPlot.Add(fun _ -> 
-                objPlot.AddItem
-                objPlot.AddItem
+                objPlot.AddItemText "_be"
+                objPlot.AddItemText "_en"
                 AddPlotObject(
-                    0, (if objPlot.Select > 0 then objPlot.Select/2 else -1) ,
+                    modelID.Select, (if objPlot.Select > 0 then objPlot.Select/2 else -1) ,
                     objPosUI.xyz,objRotUI.xyz,objScaleUI.xyz,time) 
                 )
             objPlot.Del(fun _ -> do
@@ -328,6 +346,14 @@ type MFrame (title : string,timeLength : int) as this =
             renderTarget.Select()
             saveBtn.Click.Add ( fun _ -> do writeFile() )
             loadBtn.Click.Add ( fun _ -> do loadFile() )
+            resetPlotBtn.Click.Add(fun _ -> 
+                do 
+                    objPosUI.setValue(0.f,0.f,0.f)
+                    objRotUI.setValue(0.f,0.f,0.f)
+                    objScaleUI.setValue(1.f,1.f,1.f)
+            )
+            for i = 0 to 5 do modelID.AddItem
+            modelID.SetValue 0
         //--end Construct
         override this.Finalize() = ()
     end
