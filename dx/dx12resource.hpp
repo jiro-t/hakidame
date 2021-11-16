@@ -6,9 +6,16 @@
 
 namespace ino::d3d {
 
+	inline UINT32 d3d_cb_align(UINT32 byte) { return ((byte + 256 - 1) / 256) * 256; }
+
 ::Microsoft::WRL::ComPtr<ID3D12Resource> CreateResource(
 	UINT64 bufferSize,
 	D3D12_RESOURCE_STATES initialResourceState = D3D12_RESOURCE_STATE_COMMON,
+	D3D12_RESOURCE_FLAGS Flags = D3D12_RESOURCE_FLAG_NONE);
+
+::Microsoft::WRL::ComPtr<ID3D12Resource> CreateUploadResource(
+	UINT64 byteSize,
+	void* data,
 	D3D12_RESOURCE_FLAGS Flags = D3D12_RESOURCE_FLAG_NONE);
 
 template<typename T>
@@ -43,7 +50,7 @@ public:
 		D3D12_RESOURCE_DESC resourceDesc = {
 			.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER,
 			.Alignment = 0,
-			.Width = std::max<UINT>((UINT)256,(UINT)sizeof(T)),
+			.Width = d3d_cb_align(sizeof(T)),
 			.Height = 1,
 			.DepthOrArraySize = 1,
 			.MipLevels = 1,
@@ -65,7 +72,7 @@ public:
 	{
 		if (pDataBegin == nullptr)
 		{
-			UINT size = std::max<UINT>((UINT)256, (UINT)sizeof(T));
+			UINT size = d3d_cb_align(sizeof(T));
 			D3D12_CONSTANT_BUFFER_VIEW_DESC bufferDesc = {
 				.BufferLocation = buffer->GetGPUVirtualAddress(),
 				.SizeInBytes = size

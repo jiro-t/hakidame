@@ -217,12 +217,12 @@ struct Vertex\
 	float4 Color;\
 };\
 \
-RaytracingAccelerationStructure Scene : register(t0);\
-Texture2D<float4>               BackGround    : register(t1);\
-ByteAddressBuffer               Indices : register(t2);\
-ByteAddressBuffer               Vertices : register(t3);\
 RWTexture2D<float4>             RenderTarget  : register(u0);\
+RaytracingAccelerationStructure Scene : register(t0);\
+ByteAddressBuffer               Indices : register(t1);\
+ByteAddressBuffer               Vertices : register(t2);\
 ConstantBuffer<SceneParam>      SceneParam    : register(b0);\
+\
 SamplerState                    LinearSampler : register(s0);\
 \
 uint3 GetIndices(uint triangleIndex)\
@@ -323,6 +323,34 @@ void OnMiss(inout RayPayload payload)\
 
 namespace ino::d3d::dxr {
 
+static ::Microsoft::WRL::ComPtr<ID3D12Resource> dxrRenderTarget;
+static ::Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> dxrRtvHeap;
+
+struct Vertex
+{
+	DirectX::XMVECTOR position;
+	DirectX::XMVECTOR uv;
+};
+
+struct Material
+{
+	std::string name = "defaultMaterial";
+	std::string texturePath = "";
+	float  textureResolution = 512;
+};
+
+struct MaterialCB
+{
+	DirectX::XMFLOAT4 resolution;
+};
+
+struct ViewCB
+{
+	DirectX::XMMATRIX view = DirectX::XMMatrixIdentity();
+	DirectX::XMFLOAT4 viewOriginAndTanHalfFovY = DirectX::XMFLOAT4(0, 0.f, 0.f, 0.f);
+	DirectX::XMFLOAT2 resolution = DirectX::XMFLOAT2(1280, 720);
+};
+
 D3D12_SHADER_BYTECODE LoadShader(std::wstring_view path)
 {
 	D3D12_SHADER_BYTECODE ret;
@@ -350,185 +378,41 @@ D3D12_SHADER_BYTECODE LoadShader(std::wstring_view path)
 
 BOOL InitDXRDevice()
 {
-	HRESULT hr = S_OK;
+	// Create renderTarget
+	D3D12_HEAP_PROPERTIES prop = {
+		.Type = D3D12_HEAP_TYPE_UPLOAD,
+		.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN,
+		.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN,
+		.CreationNodeMask = 1,
+		.VisibleNodeMask = 1,
+	};
+	D3D12_RESOURCE_DESC desc = {};
+	desc.DepthOrArraySize = 1;
+	desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+	desc.Format = rtvFormat;
+	desc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
+	desc.Width = d3d::screen_width;
+	desc.Height = d3d::screen_height;
+	desc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+	desc.MipLevels = 1;
+	desc.SampleDesc.Count = 1;
+	desc.SampleDesc.Quality = 0;
 
-	hr = device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, commandAllocators[currentBackBufferIndex].Get(), nullptr, IID_PPV_ARGS(&dxrGraphCommandList));
-	if (hr != S_OK) return FALSE;
-	hr = dxrGraphCommandList->Close();
-	if (hr != S_OK) return FALSE;
-	hr = device->QueryInterface(IID_PPV_ARGS(&dxrDevice));
-	if (hr != S_OK) return FALSE;
-	hr = dxrGraphCommandList->QueryInterface(IID_PPV_ARGS(&dxrCommandList));
-	if (hr != S_OK) return FALSE;
+	device->CreateCommittedResource(&prop, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_COPY_SOURCE, nullptr, IID_PPV_ARGS(&dxrRenderTarget));
 
-	//Create Buffers
-	//D3D12_RESOURCE_DESC desc = {};
-	//desc.DepthOrArraySize = 1;
-	//desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-	//desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	//desc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
-	//desc.Width = d3d::screen_width;
-	//desc.Height = d3d::screen_height;
-	//desc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-	//desc.MipLevels = 1;
-	//desc.SampleDesc.Count = 1;
-	//desc.SampleDesc.Quality = 0;
-
-	//const D3D12_HEAP_PROPERTIES heapProp =
-	//{
-	//	D3D12_HEAP_TYPE_DEFAULT,
-	//	D3D12_CPU_PAGE_PROPERTY_UNKNOWN,
-	//	D3D12_MEMORY_POOL_UNKNOWN,
-	//	0, 0
-	//};
-
-	//hr = dxrDevice->CreateCommittedResource(&heapProp, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_COPY_SOURCE, nullptr, IID_PPV_ARGS(&dxr::frameBuffer));
-	//desc.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
-	//hr = dxrDevice->CreateCommittedResource(&heapProp, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_COPY_SOURCE, nullptr, IID_PPV_ARGS(&dxr::accumulationBuffer));
-
-	//	//Create Pipeline
-	//	int paramCount;
-	//	D3D12_ROOT_PARAMETER rootParam = {};
-	//	rootParam.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-	//	rootParam.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
-	////	rootParam.DescriptorTable.NumDescriptorRanges = _countof(ranges);
-	////	rootParam.DescriptorTable.pDescriptorRanges = ranges;
-	//
-	//	D3D12_ROOT_PARAMETER rootParams[1] = { rootParam };
-	//
-	//	D3D12_STATIC_SAMPLER_DESC staticSampler = {};
-	//	staticSampler.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
-	//	staticSampler.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-	//	staticSampler.AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-	//	staticSampler.AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
-	//	staticSampler.MipLODBias = 0.f;
-	//	staticSampler.MaxAnisotropy = 1;
-	//	staticSampler.ComparisonFunc = D3D12_COMPARISON_FUNC_ALWAYS;
-	//	staticSampler.BorderColor = D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK;
-	//	staticSampler.MinLOD = 0.f;
-	//	staticSampler.MaxLOD = D3D12_FLOAT32_MAX;
-	//	staticSampler.ShaderRegister = 0;
-	//	staticSampler.RegisterSpace = 0;
-	//	staticSampler.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
-	//
-	//	D3D12_ROOT_SIGNATURE_DESC rootDesc = {};
-	//	rootDesc.NumParameters = _countof(rootParams);
-	//	rootDesc.pParameters = rootParams;
-	//	rootDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_NONE;
-	//	rootDesc.NumStaticSamplers = 1;
-	//	rootDesc.pStaticSamplers = &staticSampler;
-	//
-	//	ID3DBlob* sig;
-	//	ID3DBlob* error;
-	//	hr = D3D12SerializeRootSignature(&rootDesc, D3D_ROOT_SIGNATURE_VERSION_1, &sig, &error);
-	//	ID3D12RootSignature* pRootSig;
-	//	hr = d3d::device->CreateRootSignature(0, sig->GetBufferPointer(), sig->GetBufferSize(), IID_PPV_ARGS(&d3d::dxr::globalRootSignature));
-	//
-	//	std::vector<D3D12_STATE_SUBOBJECT> subObjs;
-	//	struct EntryType {
-	//		std::wstring entryPoint;
-	//		D3D12_STATE_SUBOBJECT_TYPE state;
-	//	};
-	//
-	//	EntryType entries[] = {
-	//		{L"RayGen",D3D12_STATE_SUBOBJECT_TYPE_DXIL_LIBRARY},
-	//		{L"Miss",D3D12_STATE_SUBOBJECT_TYPE_DXIL_LIBRARY},
-	//		{L"HitGroup",D3D12_STATE_SUBOBJECT_TYPE_DXIL_LIBRARY},
-	//		{L"MissShadow",D3D12_STATE_SUBOBJECT_TYPE_DXIL_LIBRARY},
-	//		{L"HitGroupShadow",D3D12_STATE_SUBOBJECT_TYPE_DXIL_LIBRARY},
-	//
-	//		{L"AnyHit",D3D12_STATE_SUBOBJECT_TYPE_DXIL_LIBRARY},
-	//		{L"AnyHitShadow",D3D12_STATE_SUBOBJECT_TYPE_HIT_GROUP},
-	//		{L"ClosestHit",D3D12_STATE_SUBOBJECT_TYPE_HIT_GROUP},
-	//	};
-	/*
-		//shaderObjects
-		for (int i = 0;i < _countof(entries);++i)
-		{
-			D3D12_EXPORT_DESC exportDesc = {};
-			exportDesc.Name = entries[i].entryPoint.c_str();
-			exportDesc.ExportToRename = entries[i].entryPoint.c_str();
-			exportDesc.Flags = D3D12_EXPORT_FLAG_NONE;
-
-			D3D12_DXIL_LIBRARY_DESC	libDesc = {};
-			libDesc.DXILLibrary = LoadShader(L"shaders\\PathTracer.hlsl");
-			libDesc.NumExports = 1;
-			libDesc.pExports = &exportDesc;
-
-			D3D12_STATE_SUBOBJECT obj = {};
-			obj.Type = entries[i].state;
-			obj.pDesc = &libDesc;
-
-			subObjs.push_back(obj);
-		}
-
-		// shader list
-		const WCHAR* shaderExports[] = {
-			entries[0].entryPoint.c_str(),
-			entries[1].entryPoint.c_str(),
-			entries[2].entryPoint.c_str(),
-			entries[3].entryPoint.c_str(),
-			entries[4].entryPoint.c_str(),
-		};
-		D3D12_RAYTRACING_SHADER_CONFIG shaderDesc = {};
-		shaderDesc.MaxPayloadSizeInBytes = std::max(sizeof(HitInfo), sizeof(ShadowHitInfo));
-		shaderDesc.MaxAttributeSizeInBytes = D3D12_RAYTRACING_MAX_ATTRIBUTE_SIZE_IN_BYTES;
-
-		D3D12_STATE_SUBOBJECT shaderConfigObject = {};
-		shaderConfigObject.Type = D3D12_STATE_SUBOBJECT_TYPE_RAYTRACING_SHADER_CONFIG;
-		shaderConfigObject.pDesc = &shaderDesc;
-		subObjs.push_back(shaderConfigObject);
-
-		D3D12_SUBOBJECT_TO_EXPORTS_ASSOCIATION shaderPayloadAssociation = {};
-		shaderPayloadAssociation.NumExports = _countof(shaderExports);
-		shaderPayloadAssociation.pExports = shaderExports;
-		shaderPayloadAssociation.pSubobjectToAssociate = &subObjs.back();
-
-		D3D12_STATE_SUBOBJECT shaderPayloadAssociationObject = {};
-		shaderPayloadAssociationObject.Type = D3D12_STATE_SUBOBJECT_TYPE_SUBOBJECT_TO_EXPORTS_ASSOCIATION;
-		shaderPayloadAssociationObject.pDesc = &shaderPayloadAssociation;
-		subObjs.push_back(shaderPayloadAssociationObject);
-
-		D3D12_STATE_SUBOBJECT globalRootSig;
-		globalRootSig.Type = D3D12_STATE_SUBOBJECT_TYPE_GLOBAL_ROOT_SIGNATURE;
-		globalRootSig.pDesc = dxr::globalRootSignature.Get();
-		subObjs.push_back(globalRootSig);
-
-		D3D12_RAYTRACING_PIPELINE_CONFIG pipelineConfig = {};
-		pipelineConfig.MaxTraceRecursionDepth = 1;
-
-		D3D12_STATE_SUBOBJECT pipelineConfigObject = {};
-		pipelineConfigObject.Type = D3D12_STATE_SUBOBJECT_TYPE_RAYTRACING_PIPELINE_CONFIG;
-		pipelineConfigObject.pDesc = &pipelineConfig;
-		subObjs.push_back(pipelineConfigObject);
-
-		D3D12_STATE_OBJECT_DESC pipelineDesc = {};
-		pipelineDesc.Type = D3D12_STATE_OBJECT_TYPE_RAYTRACING_PIPELINE;
-		pipelineDesc.NumSubobjects = static_cast<UINT>(subObjs.size());
-		pipelineDesc.pSubobjects = &subObjs.front();
-
-		hr = d3d::device->CreateStateObject(&pipelineDesc, IID_PPV_ARGS(&dxr::rtpso));
-		hr = dxr::rtpso->QueryInterface(IID_PPV_ARGS(&dxr::rtpsoInfo));
-
-		//ShaderTable
-		uint32_t shaderIdSize = D3D12_SHADER_IDENTIFIER_SIZE_IN_BYTES;
-		dxr::shaderTableRecordSize = shaderIdSize;
-		dxr::shaderTableRecordSize = alignment(D3D12_RAYTRACING_SHADER_RECORD_BYTE_ALIGNMENT, dxr::shaderTableRecordSize);
-
-		uint32_t shaderTableSize = ( dxr::shaderTableRecordSize * _countof(shaderExports) );
-		shaderTableSize = alignment(D3D12_RAYTRACING_SHADER_TABLE_BYTE_ALIGNMENT, shaderTableSize);
-		dxr::shaderTableData.reserve(shaderTableSize);
-
-		uint8_t* pData = dxr::shaderTableData.data();
-		for (auto entry : shaderExports)
-		{
-			memcpy(pData, dxr::rtpsoInfo->GetShaderIdentifier(entry), shaderIdSize);
-			pData += dxr::shaderTableRecordSize;
-		}
-	*/
-
-	// Upload shader table to GPU
-	//D3DResources::UploadToGPU(d3d, dxr.shaderTableData.data(), dxr.shaderTable, D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE);
+	D3D12_HEAP_PROPERTIES heapProp = {
+		.Type = D3D12_HEAP_TYPE_CUSTOM,
+		.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_WRITE_BACK,
+		.MemoryPoolPreference = D3D12_MEMORY_POOL_L0,
+		.CreationNodeMask = 0,
+		.VisibleNodeMask = 0
+	};
+	D3D12_DESCRIPTOR_HEAP_DESC descriptor_heap_desc = {
+		.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV,
+		.NumDescriptors = 1,
+		.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE,
+	};
+	device->CreateDescriptorHeap(&descriptor_heap_desc, IID_PPV_ARGS(&dxrRtvHeap));
 
 	return TRUE;
 }
@@ -550,9 +434,10 @@ D3D12_RAYTRACING_GEOMETRY_DESC ToGeometoryDesc(StaticMesh mesh)
 	return geometryDesc;
 }
 
-void dxr_pipeline::Create()
+void DxrPipeline::Create()
 {
 	namespace DX = DirectX;
+
 	// Global Root Signature
 	{
 		D3D12_DESCRIPTOR_RANGE range[2] = {};
@@ -568,36 +453,32 @@ void dxr_pipeline::Create()
 		range[1].RegisterSpace = 0;
 		range[1].OffsetInDescriptorsFromTableStart = 0;
 
-		D3D12_ROOT_PARAMETER param[6] = {};
+		D3D12_ROOT_PARAMETER param[5] = {};
+		//u0
 		param[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
 		param[0].DescriptorTable.NumDescriptorRanges = 1;
 		param[0].DescriptorTable.pDescriptorRanges = &range[0];
 		param[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
-
+		//t0
 		param[1].ParameterType = D3D12_ROOT_PARAMETER_TYPE_SRV;
 		param[1].Descriptor.ShaderRegister = 0;
 		param[1].Descriptor.RegisterSpace = 0;
 		param[1].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
-
-		param[2].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-		param[2].DescriptorTable.NumDescriptorRanges = 1;
-		param[2].DescriptorTable.pDescriptorRanges = &range[1];
+		//t1
+		param[2].ParameterType = D3D12_ROOT_PARAMETER_TYPE_SRV;
+		param[2].Descriptor.ShaderRegister = 2;
+		param[2].Descriptor.RegisterSpace = 0;
 		param[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
-
+		//t2
 		param[3].ParameterType = D3D12_ROOT_PARAMETER_TYPE_SRV;
-		param[3].Descriptor.ShaderRegister = 2;
+		param[3].Descriptor.ShaderRegister = 3;
 		param[3].Descriptor.RegisterSpace = 0;
 		param[3].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
-
-		param[4].ParameterType = D3D12_ROOT_PARAMETER_TYPE_SRV;
-		param[4].Descriptor.ShaderRegister = 3;
+		//b0
+		param[4].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+		param[4].Descriptor.ShaderRegister = 0;
 		param[4].Descriptor.RegisterSpace = 0;
 		param[4].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
-
-		param[5].ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
-		param[5].Descriptor.ShaderRegister = 0;
-		param[5].Descriptor.RegisterSpace = 0;
-		param[5].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
 
 
 		D3D12_STATIC_SAMPLER_DESC sampler = {};
@@ -624,7 +505,7 @@ void dxr_pipeline::Create()
 		::Microsoft::WRL::ComPtr<ID3DBlob> signature;
 		::Microsoft::WRL::ComPtr<ID3DBlob> error;
 		D3D12SerializeRootSignature(&desc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error);
-		dxrDevice->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&globalRootSignature));
+		device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&globalRootSignature));
 	}
 	// Local Root Signature
 	{
@@ -638,100 +519,29 @@ void dxr_pipeline::Create()
 		::Microsoft::WRL::ComPtr<ID3DBlob> signature;
 		::Microsoft::WRL::ComPtr<ID3DBlob> error;
 		D3D12SerializeRootSignature(&desc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error);
-		dxrDevice->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&localRootSignature));
-	}
-/*
-	// Global Root Signature
-	{
-		D3D12_DESCRIPTOR_RANGE range = {
-			.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV,
-			.NumDescriptors = 1,
-			.BaseShaderRegister = 0,
-			.RegisterSpace = 0,
-			.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND,
-		};
-		params[static_cast<int>(GlobalRootSignatureParams::AccelerationStructureSlot)].ParameterType
-			= D3D12_ROOT_PARAMETER_TYPE_SRV;
-		params[static_cast<int>(GlobalRootSignatureParams::AccelerationStructureSlot)].ShaderVisibility
-			= D3D12_SHADER_VISIBILITY_ALL;
-		params[static_cast<int>(GlobalRootSignatureParams::AccelerationStructureSlot)].Descriptor.ShaderRegister
-			= 0;
-
-		params[static_cast<int>(GlobalRootSignatureParams::OutputViewSlot)].ParameterType
-			= D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-		params[static_cast<int>(GlobalRootSignatureParams::OutputViewSlot)].ShaderVisibility
-			= D3D12_SHADER_VISIBILITY_ALL;
-		params[static_cast<int>(GlobalRootSignatureParams::OutputViewSlot)].DescriptorTable.pDescriptorRanges
-			= &range;
-		params[static_cast<int>(GlobalRootSignatureParams::OutputViewSlot)].DescriptorTable.NumDescriptorRanges
-			= 1;
-		//D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE
-		D3D12_ROOT_SIGNATURE_DESC rootSignatureDesc = {
-			.NumParameters = globalParamCount,
-			.pParameters = params,
-			.NumStaticSamplers = 0,
-			.pStaticSamplers = nullptr,
-			.Flags = D3D12_ROOT_SIGNATURE_FLAG_NONE
-		};
-
-		::Microsoft::WRL::ComPtr<ID3DBlob> signature;
-		::Microsoft::WRL::ComPtr<ID3DBlob> error;
-		D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error);
-		device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&globalRootSignature));
-	}
-
-	cbo<RayGenConstantBuffer> rayGen;
-	rayGen.Create();
-	{
-		params[globalParamCount + static_cast<int>(LocalRootSignatureParams::CubeConstantSlot)].ParameterType
-			= D3D12_ROOT_PARAMETER_TYPE_32BIT_CONSTANTS;
-		params[globalParamCount + static_cast<int>(LocalRootSignatureParams::CubeConstantSlot)].ShaderVisibility
-			= D3D12_SHADER_VISIBILITY_ALL;
-		params[globalParamCount + static_cast<int>(LocalRootSignatureParams::CubeConstantSlot)].Constants.Num32BitValues
-			= ((sizeof(RayGenConstantBuffer) - 1) / sizeof(UINT32) + 1);
-		params[globalParamCount + static_cast<int>(LocalRootSignatureParams::CubeConstantSlot)].Constants.ShaderRegister
-			= 0;
-		params[globalParamCount + static_cast<int>(LocalRootSignatureParams::CubeConstantSlot)].Constants.RegisterSpace
-			= 0;
-
-		D3D12_ROOT_SIGNATURE_DESC rootSignatureDesc = {
-			.NumParameters = localParamCount,
-			.pParameters = params + globalParamCount,
-			.NumStaticSamplers = 0,
-			.pStaticSamplers = nullptr,
-			.Flags = D3D12_ROOT_SIGNATURE_FLAG_LOCAL_ROOT_SIGNATURE
-		};
-
-		::Microsoft::WRL::ComPtr<ID3DBlob> signature;
-		::Microsoft::WRL::ComPtr<ID3DBlob> error;
-		D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error);
 		device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&localRootSignature));
 	}
-*/
+
 	//Create pipeline object
 	D3D12_STATE_SUBOBJECT subObj = {};
-
 	D3D12_EXPORT_DESC exports[3] = {
 		{ L"OnGenerateRay", nullptr, D3D12_EXPORT_FLAG_NONE },
 		{ L"OnClosestHit",  nullptr, D3D12_EXPORT_FLAG_NONE },
 		{ L"OnMiss",        nullptr, D3D12_EXPORT_FLAG_NONE },
 	};
 
-	// グローバルルートシグニチャの設定.
 	D3D12_GLOBAL_ROOT_SIGNATURE globalRootSig = {};
 	globalRootSig.pGlobalRootSignature = globalRootSignature.Get();
 	subObj.pDesc = globalRootSignature.Get();
 	subObj.Type = D3D12_STATE_SUBOBJECT_TYPE_GLOBAL_ROOT_SIGNATURE;
 	subObjs.push_back(subObj);
 
-	// ローカルルートシグニチャの設定.
 	D3D12_LOCAL_ROOT_SIGNATURE localRootSig = {};
 	localRootSig.pLocalRootSignature = localRootSignature.Get();
 	subObj.pDesc = localRootSignature.Get();
 	subObj.Type = D3D12_STATE_SUBOBJECT_TYPE_LOCAL_ROOT_SIGNATURE;
 	subObjs.push_back(subObj);
 
-	// DXILライブラリの設定.
 	dxilLib.DXILLibrary = { simple_ray_shader, sizeof(simple_ray_shader) };
 	dxilLib.NumExports = _countof(exports);
 	dxilLib.pExports = exports;
@@ -739,7 +549,6 @@ void dxr_pipeline::Create()
 	subObj.Type = D3D12_STATE_SUBOBJECT_TYPE_DXIL_LIBRARY;
 	subObjs.push_back(subObj);
 
-	// ヒットグループの設定.
 	hitGroup.ClosestHitShaderImport = L"OnClosestHit";
 	hitGroup.HitGroupExport = L"MyHitGroup";
 	hitGroup.Type = D3D12_HIT_GROUP_TYPE_TRIANGLES;
@@ -747,14 +556,12 @@ void dxr_pipeline::Create()
 	subObj.Type = D3D12_STATE_SUBOBJECT_TYPE_HIT_GROUP;
 	subObjs.push_back(subObj);
 
-	// シェーダ設定.
 	shaderConfig.MaxPayloadSizeInBytes = sizeof(DX::XMVECTOR) + sizeof(DX::XMVECTOR);
 	shaderConfig.MaxAttributeSizeInBytes = sizeof(DX::XMVECTOR);
 	subObj.pDesc = &shaderConfig;
 	subObj.Type = D3D12_STATE_SUBOBJECT_TYPE_RAYTRACING_SHADER_CONFIG;
 	subObjs.push_back(subObj);
 
-	// パイプライン設定.
 	pipelineConfig.MaxTraceRecursionDepth = 1;
 	subObj.pDesc = &pipelineConfig;
 	subObj.Type = D3D12_STATE_SUBOBJECT_TYPE_RAYTRACING_PIPELINE_CONFIG;
@@ -765,7 +572,126 @@ void dxr_pipeline::Create()
 		.NumSubobjects = subObjs.size(),
 		.pSubobjects = &(subObjs[0])
 	};
-	dxrDevice->CreateStateObject(&desc, IID_PPV_ARGS(&rtpso));
+	device->CreateStateObject(&desc, IID_PPV_ARGS(&rtpso));
+
+	// shader table
+	{
+		::Microsoft::WRL::ComPtr<ID3D12StateObjectProperties> props;
+		rtpso->QueryInterface(IID_PPV_ARGS(&props));
+
+		rayGenShaderIdentifier = props->GetShaderIdentifier(L"OnGenerateRay");
+		missShaderIdentifier = props->GetShaderIdentifier(L"OnMiss");
+		hitGroupShaderIdentifier = props->GetShaderIdentifier(L"MyHitGroup");
+	}
+	/*
+	// Ray gen shader table
+	{
+		struct RootArguments {
+			RayGenConstantBuffer cb;
+		} rootArguments;
+		rootArguments.cb = m_rayGenCB;
+
+		UINT numShaderRecords = 1;
+		UINT shaderRecordSize = shaderIdentifierSize + sizeof(rootArguments);
+		ShaderTable rayGenShaderTable(device, numShaderRecords, shaderRecordSize, L"RayGenShaderTable");
+		rayGenShaderTable.push_back(ShaderRecord(rayGenShaderIdentifier, shaderIdentifierSize, &rootArguments, sizeof(rootArguments)));
+		m_rayGenShaderTable = rayGenShaderTable.GetResource();
+	}
+
+	// Miss shader table
+	{
+		UINT numShaderRecords = 1;
+		UINT shaderRecordSize = shaderIdentifierSize;
+		ShaderTable missShaderTable(device, numShaderRecords, shaderRecordSize, L"MissShaderTable");
+		missShaderTable.push_back(ShaderRecord(missShaderIdentifier, shaderIdentifierSize));
+		m_missShaderTable = missShaderTable.GetResource();
+	}
+
+	// Hit group shader table
+	{
+		UINT numShaderRecords = 1;
+		UINT shaderRecordSize = shaderIdentifierSize;
+		ShaderTable hitGroupShaderTable(device, numShaderRecords, shaderRecordSize, L"HitGroupShaderTable");
+		hitGroupShaderTable.push_back(ShaderRecord(hitGroupShaderIdentifier, shaderIdentifierSize));
+		m_hitGroupShaderTable = hitGroupShaderTable.GetResource();
+	}
+	*/
+}
+
+void DxrPipeline::Dispatch()
+{
+	::Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList4> commandList;
+	auto& commandAllocator = commandAllocators[currentBackBufferIndex];
+	device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, commandAllocators[currentBackBufferIndex].Get(), nullptr, IID_PPV_ARGS(&commandList));
+
+	commandList->SetComputeRootSignature(globalRootSignature.Get());
+	commandList->SetPipelineState1(rtpso.Get());
+
+	D3D12_GPU_VIRTUAL_ADDRESS_RANGE gen = {};
+	D3D12_GPU_VIRTUAL_ADDRESS_AND_STRIDE miss = {};
+	D3D12_GPU_VIRTUAL_ADDRESS_AND_STRIDE hit = {};
+
+	D3D12_DISPATCH_RAYS_DESC desc = {};
+	//desc.HitGroupTable = m_HitGroupTable.GetTableView();
+	//desc.MissShaderTable = m_MissTable.GetTableView();
+	//desc.RayGenerationShaderRecord = m_RayGenTable.GetRecordView();
+	desc.Width = d3d::screen_width;
+	desc.Height = d3d::screen_height;
+	desc.Depth = 1;
+
+	commandList->DispatchRays(&desc);
+
+
+	D3D12_RESOURCE_BARRIER pre_barrier[2] = {
+		{
+			.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION,
+			.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE,
+			.Transition = {
+				.pResource = renderTargets[d3d::currentBackBufferIndex].GetHandle().Get(),
+				.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES,
+				.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET,
+				.StateAfter = D3D12_RESOURCE_STATE_COPY_DEST,
+			},
+		},
+		{
+			.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION,
+			.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE,
+			.Transition = {
+				.pResource = renderTargets[d3d::currentBackBufferIndex].GetHandle().Get(),
+				.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES,
+				.StateBefore = D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
+				.StateAfter = D3D12_RESOURCE_STATE_COPY_SOURCE,
+			},
+		},
+	};
+	commandList->ResourceBarrier(ARRAYSIZE(pre_barrier), pre_barrier);
+	commandList->CopyResource(renderTargets[d3d::currentBackBufferIndex].GetHandle().Get(), dxrRenderTarget.Get());
+
+	D3D12_RESOURCE_BARRIER post_barrier[2] = {
+		{
+			.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION,
+			.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE,
+			.Transition = {
+				.pResource = renderTargets[d3d::currentBackBufferIndex].GetHandle().Get(),
+				.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES,
+				.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST,
+				.StateAfter = D3D12_RESOURCE_STATE_PRESENT,
+			},
+		},
+		{
+			.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION,
+			.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE,
+			.Transition = {
+				.pResource = renderTargets[d3d::currentBackBufferIndex].GetHandle().Get(),
+				.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES,
+				.StateBefore = D3D12_RESOURCE_STATE_COPY_SOURCE,
+				.StateAfter = D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
+			},
+		},
+	};
+	commandList->ResourceBarrier(ARRAYSIZE(post_barrier), post_barrier);
+
+	commandList->Close();
 }
 
 }

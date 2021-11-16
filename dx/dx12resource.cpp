@@ -41,6 +41,50 @@ namespace ino::d3d {
 	return buffer;
 }
 
+::Microsoft::WRL::ComPtr<ID3D12Resource> CreateUploadResource(UINT64 byteSize,void* data,D3D12_RESOURCE_FLAGS Flags)
+{
+	D3D12_HEAP_PROPERTIES prop = {
+		.Type = D3D12_HEAP_TYPE_UPLOAD,
+		.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN,
+		.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN,
+		.CreationNodeMask = 1,
+		.VisibleNodeMask = 1,
+	};
+
+	D3D12_RESOURCE_DESC desc = {
+		.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER,
+		.Width = byteSize,
+		.Height = 1,
+		.DepthOrArraySize = 1,
+		.MipLevels = 1,
+		.Format = DXGI_FORMAT_UNKNOWN,
+		.SampleDesc = {
+			.Count = 1,
+			.Quality = 0,
+		},
+		.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR,
+	};
+
+	::Microsoft::WRL::ComPtr<ID3D12Resource> buffer;
+	HRESULT hr = device->CreateCommittedResource(
+		&prop,
+		D3D12_HEAP_FLAG_NONE,
+		&desc,
+		D3D12_RESOURCE_STATE_GENERIC_READ,
+		nullptr,
+		IID_PPV_ARGS(&buffer));
+	if (hr != S_OK)
+		return FALSE;
+
+	void* pMappedData;
+	buffer->Map(0, nullptr, &pMappedData);
+	memcpy(pMappedData, data, byteSize);
+	buffer->Unmap(0, nullptr);
+
+	return buffer;
+}
+
+
 void texture::Create(UINT width, UINT height,DXGI_FORMAT format,D3D12_RESOURCE_FLAGS flag) {
 	D3D12_HEAP_PROPERTIES heapProp = {
 		.Type = D3D12_HEAP_TYPE_CUSTOM,
