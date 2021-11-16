@@ -1,6 +1,12 @@
 ﻿#include "dx.hpp"
 #include "dx12resource.hpp"
 
+#include <filesystem>
+
+#include "..\resource.h"
+#include <fstream>
+
+LPDxcCreateInstance dllDxcCreateInstance;
 
 namespace ino::d3d
 {
@@ -209,8 +215,40 @@ void CreateRenderTargetViews(
 	}
 }
 
+void outputDll(UINT idr,std::wstring filename)
+{
+	HRSRC resInfo = FindResource(0,MAKEINTRESOURCE(idr),L"DLL");
+	HGLOBAL resData = LoadResource(0, resInfo);
+	LPVOID pvResData = LockResource(resData);
+
+	std::wstring path = std::filesystem::current_path();
+	if (std::filesystem::exists(path + filename))
+		return;
+
+	std::ofstream ofs(path + filename, std::ios::binary);
+	DWORD size = SizeofResource(0, resInfo);
+	ofs.write((char*)pvResData, size);
+	ofs.close();
+
+	UnlockResource(resData);
+	FreeResource(resData);
+
+	return;
+}
+
 HRESULT init(HWND hwnd, bool useWarp, int width, int height)
 {
+	//write out dll files
+	outputDll(IDR_DLL1,L"\\dxcompiler.dll");
+	outputDll(IDR_DLL2, L"\\dxil.dll");
+	//Load dxil.dll dxcompiler.dll
+	HMODULE module = LoadLibrary(L"dxcompiler.dll");
+	if (module == NULL)
+		return S_FALSE;
+	dllDxcCreateInstance = reinterpret_cast<LPDxcCreateInstance>(GetProcAddress(module,"DxcCreateInstance"));
+	BOOL FreeLibrary(
+		HMODULE hModule   // DLLモジュールのハンドル
+	);
 	HRESULT result = NULL;
 #ifdef _DEBUG
 	result = D3D12GetDebugInterface(IID_PPV_ARGS(&d3dDebuger));

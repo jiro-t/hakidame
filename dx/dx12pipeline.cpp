@@ -3,7 +3,6 @@
 #include <fstream>
 
 #include <dxcapi.h>
-#pragma comment(lib, "dxcompiler")
 
 namespace ino::d3d {
 
@@ -150,9 +149,9 @@ void pipeline::LoadShader(ShaderTypes type, void* src, size_t src_size, LPCWSTR 
 	::Microsoft::WRL::ComPtr <IDxcBlob> bc;
 
 	::Microsoft::WRL::ComPtr<IDxcLibrary> lib;
-	::DxcCreateInstance(CLSID_DxcLibrary, __uuidof(IDxcLibrary), &lib);
+	dllDxcCreateInstance(CLSID_DxcLibrary, __uuidof(IDxcLibrary), &lib);
 	::Microsoft::WRL::ComPtr<IDxcCompiler> compiler;
-	::DxcCreateInstance(CLSID_DxcCompiler, __uuidof(IDxcCompiler), &compiler);
+	dllDxcCreateInstance(CLSID_DxcCompiler, __uuidof(IDxcCompiler), &compiler);
 	::Microsoft::WRL::ComPtr<IDxcOperationResult> result;
 
 	::Microsoft::WRL::ComPtr <IDxcBlobEncoding> enc;

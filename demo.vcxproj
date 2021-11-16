@@ -105,6 +105,7 @@
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>Default</LanguageStandard_C>
       <PreprocessorDefinitions>NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <AdditionalDependencies>d3d12.lib;d3dcompiler.lib;dxgi.lib;winmm.lib;d3d12.lib;dxgi.lib;winmm.lib;%(AdditionalDependencies);%(AdditionalDependencies)</AdditionalDependencies>
@@ -161,9 +162,18 @@
     <ClInclude Include="dx\dx12resource.hpp" />
     <ClInclude Include="gfx\font.hpp" />
     <ClInclude Include="gfx\shapes.hpp" />
+    <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="dxcompiler.dll" />
+    <None Include="dxil.dll" />
     <None Include="readme.md" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="demo.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Media Include="song.wav" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

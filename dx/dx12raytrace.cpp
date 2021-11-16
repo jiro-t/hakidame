@@ -569,7 +569,7 @@ void DxrPipeline::Create()
 
 	D3D12_STATE_OBJECT_DESC desc = {
 		.Type = D3D12_STATE_OBJECT_TYPE_RAYTRACING_PIPELINE,
-		.NumSubobjects = subObjs.size(),
+		.NumSubobjects = static_cast<UINT>(subObjs.size()),
 		.pSubobjects = &(subObjs[0])
 	};
 	device->CreateStateObject(&desc, IID_PPV_ARGS(&rtpso));

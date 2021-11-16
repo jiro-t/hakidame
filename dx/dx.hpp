@@ -24,6 +24,9 @@
 #endif
 #include <string>
 
+typedef UINT(CALLBACK* LPDxcCreateInstance)(_GUID const&,_GUID const&,void**);
+extern LPDxcCreateInstance dllDxcCreateInstance;
+
 constexpr int num_swap_buffers = 3;//2 to  DXGI_MAX_SWAP_CHAIN_BUFFERS
 constexpr DXGI_FORMAT rtvFormat = DXGI_FORMAT_R16G16B16A16_FLOAT;
 								//DXGI_FORMAT_R8G8B8A8_UNORM;

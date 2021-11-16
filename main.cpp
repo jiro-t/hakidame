@@ -19,6 +19,8 @@ float local_time = 0.f;
 
 #include <chrono>
 
+#include "resource.h"
+
 static float g_Vertices[6][9] = {
 	{ 0.30f, 0.f, 0,/**/ 1.0f, 1.0f, 1.0f,1.0f,/**/0.f,0.f }, // 1
 	{ 0.3f, 0.55f, 0,/**/ 1.0f, 1.0f, 1.0f,1.0f,/**/0.f,1.f }, // 2
@@ -247,6 +249,17 @@ static BYTE texData[] = {
 	0xff,0xff,0xff,0xff, 0xff,0xff,0xff,0xff,	0xff,0xff,0xff,0xff, 0xff,0xff,0xff,0xff,
 };
 
+HGLOBAL Music()
+{
+	HRSRC resInfo = FindResource(0, MAKEINTRESOURCE(IDR_WAVE1), L"WAVE");
+	HGLOBAL resData = LoadResource(0, resInfo);
+	LPVOID pvResData = LockResource(resData);
+
+	sndPlaySound((LPCWSTR)pvResData, SND_MEMORY | SND_ASYNC | SND_NODEFAULT);
+
+	return resData;
+}
+
 #ifndef _DEBUG
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
 #else
@@ -306,6 +319,9 @@ int main() {
 	std::chrono::high_resolution_clock::time_point time_o = c.now();
 	float rot = 0.0f;
 	Sleep(500);
+
+	//playSound
+	auto musicHandle = Music();
 	
 	srand(0);
 	do {
@@ -376,7 +392,10 @@ int main() {
 	delete vbo2;
 	delete vboCornelBox;
 	delete iboCornelBox;
-	
+
+	UnlockResource(musicHandle);
+	FreeResource(musicHandle);
+
 	ino::d3d::release();
 	return 0;
 }
