@@ -74,8 +74,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="readme.md" />
-    <None Include="dxcompiler.dll" />
-    <None Include="dxil.dll" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="demo.rc">

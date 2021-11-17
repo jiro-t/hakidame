@@ -3,8 +3,6 @@
 // demo.rc ‚ÅŽg—p
 //
 #define IDR_WAVE1                       101
-#define IDR_DLL1                        102
-#define IDR_DLL2                        103
 
 // Next default values for new objects
 // 

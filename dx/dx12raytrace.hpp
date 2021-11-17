@@ -25,6 +25,26 @@ struct RtProgram
 	}
 };
 */
+extern ::Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList4> dxrCommandList;
+extern ::Microsoft::WRL::ComPtr<ID3D12Resource> dxrRenderTarget;
+extern ::Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> dxrRtvHeap;
+
+BOOL InitDXRDevice();
+
+struct Material
+{
+	DirectX::XMVECTOR albedo;
+};
+
+struct SceneConstant
+{
+	DirectX::XMMATRIX proj;
+	DirectX::XMVECTOR cameraPos;
+	DirectX::XMVECTOR lightPosition;
+	DirectX::XMVECTOR lightAmbientColor;
+	DirectX::XMVECTOR lightDiffuseColor;
+};
+
 
 class AccelerationStructure
 {
@@ -37,109 +57,133 @@ class AccelerationStructure
 	::Microsoft::WRL::ComPtr<ID3D12Resource> scratchResource;
 	::Microsoft::WRL::ComPtr<ID3D12Resource> instanceDescs;
 public:
-	void ClearGeometory()
-	{
-		geometryMat.clear();
-		geometryDescs.clear();
-	}
+	inline ::Microsoft::WRL::ComPtr<ID3D12Resource> blas() noexcept { return bottomLevelAccelerationStructure; }
+	inline ::Microsoft::WRL::ComPtr<ID3D12Resource> tlas() noexcept { return topLevelAccelerationStructure; }
 
-	void AddGeometory(StaticMesh mesh,DirectX::XMMATRIX matrix = DirectX::XMMatrixIdentity() ) {
-		geometryMat.push_back(CreateUploadResource(sizeof(DirectX::XMMATRIX), &matrix));
-
-		D3D12_RAYTRACING_GEOMETRY_DESC geom_desc = {};
-		geom_desc.Type = D3D12_RAYTRACING_GEOMETRY_TYPE_TRIANGLES;
-		geom_desc.Triangles.IndexBuffer = mesh.ibo.GetGPUVirtualAddress();
-		geom_desc.Triangles.IndexCount = mesh.ibo.index_count;
-		geom_desc.Triangles.IndexFormat = DXGI_FORMAT_R32_UINT;
-		geom_desc.Triangles.Transform3x4 = geometryMat.back()->GetGPUVirtualAddress();
-		geom_desc.Triangles.VertexFormat = DXGI_FORMAT_R32G32B32A32_FLOAT;
-		geom_desc.Triangles.VertexCount = mesh.vbo.vert_count;
-		geom_desc.Triangles.VertexBuffer.StartAddress = mesh.vbo.GetGPUVirtualAddress();
-		geom_desc.Triangles.VertexBuffer.StrideInBytes = mesh.vbo.vert_stride;
-
-		geometryDescs.push_back(geom_desc);
-	}
-
-	void Build()
-	{
-		::Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> commandList;
-		auto& commandAllocator = commandAllocators[currentBackBufferIndex];
-		device->CreateCommandList(0,D3D12_COMMAND_LIST_TYPE_DIRECT,commandAllocators[currentBackBufferIndex].Get(),nullptr,IID_PPV_ARGS(&commandList));
-
-		commandList->Reset(commandAllocator.Get(), nullptr);
-
-		D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAGS buildFlags = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_TRACE;
-		D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS topLevelInputs = {};
-		topLevelInputs.DescsLayout = D3D12_ELEMENTS_LAYOUT_ARRAY;
-		topLevelInputs.Flags = buildFlags;
-		topLevelInputs.NumDescs = 1;
-		topLevelInputs.Type = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL;
-
-		D3D12_RAYTRACING_ACCELERATION_STRUCTURE_PREBUILD_INFO topLevelPrebuildInfo = {};
-		device->GetRaytracingAccelerationStructurePrebuildInfo(&topLevelInputs, &topLevelPrebuildInfo);
-		if(topLevelPrebuildInfo.ResultDataMaxSizeInBytes <= 0)
-			return;
-
-		D3D12_RAYTRACING_ACCELERATION_STRUCTURE_PREBUILD_INFO bottomLevelPrebuildInfo = {};
-		D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS bottomLevelInputs = topLevelInputs;
-		bottomLevelInputs.DescsLayout = D3D12_ELEMENTS_LAYOUT_ARRAY;
-		bottomLevelInputs.Flags = buildFlags;
-		bottomLevelInputs.NumDescs = geometryDescs.size();
-		bottomLevelInputs.Type = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL;
-		bottomLevelInputs.pGeometryDescs = &geometryDescs[0];
-		device->GetRaytracingAccelerationStructurePrebuildInfo(&bottomLevelInputs, &bottomLevelPrebuildInfo);
-		if(bottomLevelPrebuildInfo.ResultDataMaxSizeInBytes <= 0)
-			return;
-
-		scratchResource = CreateResource(std::max(topLevelPrebuildInfo.ScratchDataSizeInBytes, bottomLevelPrebuildInfo.ScratchDataSizeInBytes), D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
-
-		bottomLevelAccelerationStructure = CreateResource(bottomLevelPrebuildInfo.ResultDataMaxSizeInBytes, D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
-		topLevelAccelerationStructure = CreateResource(topLevelPrebuildInfo.ResultDataMaxSizeInBytes, D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
-
-		D3D12_RAYTRACING_INSTANCE_DESC instanceDesc = {};
-		instanceDesc.Transform[0][0] = instanceDesc.Transform[1][1] = instanceDesc.Transform[2][2] = 1;
-		instanceDesc.InstanceMask = 1;
-		instanceDesc.AccelerationStructure = bottomLevelAccelerationStructure->GetGPUVirtualAddress();
-		instanceDescs = CreateUploadResource(sizeof(instanceDesc), &instanceDesc);
-
-		D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC bottomLevelBuildDesc = {};
-		{
-			bottomLevelBuildDesc.ScratchAccelerationStructureData = scratchResource->GetGPUVirtualAddress();
-			bottomLevelBuildDesc.DestAccelerationStructureData = bottomLevelAccelerationStructure->GetGPUVirtualAddress();
-		}
-
-		D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC topLevelBuildDesc = {};
-		{
-			topLevelBuildDesc.DestAccelerationStructureData = topLevelAccelerationStructure->GetGPUVirtualAddress();
-			topLevelBuildDesc.ScratchAccelerationStructureData = scratchResource->GetGPUVirtualAddress();
-			topLevelBuildDesc.Inputs.InstanceDescs = instanceDescs->GetGPUVirtualAddress();
-		}
-		/*
-		dxrCommandList->BuildRaytracingAccelerationStructure(&bottomLevelBuildDesc, 0, nullptr);
-		D3D12_RESOURCE_BARRIER barrier = {};
-		barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_UAV;
-		barrier.UAV.pResource = bottomLevelAccelerationStructure.Get();
-		commandList->ResourceBarrier(1,&barrier);
-		dxrCommandList->BuildRaytracingAccelerationStructure(&topLevelBuildDesc, 0, nullptr);
-
-		commandList->Close();
-		ID3D12CommandList* commandLists[] = { commandList.Get() };
-		commandQueue->ExecuteCommandLists(ARRAYSIZE(commandLists), commandLists);
-
-		wait();
-		*/
-	}
+	void ClearGeometory() noexcept;
+	void AddGeometory(StaticMesh mesh, DirectX::XMMATRIX matrix = DirectX::XMMatrixIdentity());
+	void Build();
 };
 
-BOOL InitDXRDevice();
+class ShaderRecord
+{
+public:
+	ShaderRecord(void* pShaderIdentifier, UINT shaderIdentifierSize) :
+		shaderIdentifier(pShaderIdentifier, shaderIdentifierSize)
+	{
+	}
+
+	ShaderRecord(void* pShaderIdentifier, UINT shaderIdentifierSize, void* pLocalRootArguments, UINT localRootArgumentsSize) :
+		shaderIdentifier(pShaderIdentifier, shaderIdentifierSize),
+		localRootArguments(pLocalRootArguments, localRootArgumentsSize)
+	{
+	}
+
+	void CopyTo(void* dest) const noexcept
+	{
+		uint8_t* byteDest = static_cast<uint8_t*>(dest);
+		memcpy(byteDest, shaderIdentifier.ptr, shaderIdentifier.size);
+		if (localRootArguments.ptr)
+		{
+			memcpy(byteDest + shaderIdentifier.size, localRootArguments.ptr, localRootArguments.size);
+		}
+	}
+
+	struct PointerWithSize {
+		void* ptr;
+		UINT size;
+
+		PointerWithSize() noexcept : ptr(nullptr), size(0)  {}
+		PointerWithSize(void* _ptr, UINT _size) noexcept : ptr(_ptr), size(_size) {};
+	};
+	PointerWithSize shaderIdentifier;
+	PointerWithSize localRootArguments;
+};
+
+class ShaderTable
+{
+	uint8_t* m_mappedShaderRecords;
+	UINT m_shaderRecordSize;
+
+	// Debug support
+	std::wstring m_name;
+	std::vector<ShaderRecord> m_shaderRecords;
+
+	::Microsoft::WRL::ComPtr<ID3D12Resource> m_resource;
+
+	inline UINT aligment(UINT a, UINT b) noexcept { return ((a + b - 1) / b) * b; }
+	ShaderTable() noexcept  {}
+public:
+	ShaderTable(ID3D12Device* device, UINT numShaderRecords, UINT shaderRecordSize, LPCWSTR resourceName = nullptr)
+		: m_name(resourceName)
+	{
+		m_shaderRecordSize = aligment(shaderRecordSize, D3D12_RAYTRACING_SHADER_RECORD_BYTE_ALIGNMENT);
+		m_shaderRecords.reserve(numShaderRecords);
+		UINT bufferSize = numShaderRecords * m_shaderRecordSize;
+
+		D3D12_HEAP_PROPERTIES uploadHeapProperties = {
+			.Type = D3D12_HEAP_TYPE_UPLOAD,
+			.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN,
+			.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN,
+			.CreationNodeMask = 1,
+			.VisibleNodeMask = 1
+		};
+
+		D3D12_RESOURCE_DESC bufferDesc = {};
+		bufferDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+		bufferDesc.Alignment = 0;
+		bufferDesc.Width = bufferSize;
+		bufferDesc.Height = 1;
+		bufferDesc.DepthOrArraySize = 1;
+		bufferDesc.MipLevels = 1;
+		bufferDesc.Format = DXGI_FORMAT_UNKNOWN;
+		bufferDesc.SampleDesc.Count = 1;
+		bufferDesc.SampleDesc.Quality = 0;
+		bufferDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+		bufferDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+
+		device->CreateCommittedResource(
+			&uploadHeapProperties,
+			D3D12_HEAP_FLAG_NONE,
+			&bufferDesc,
+			D3D12_RESOURCE_STATE_GENERIC_READ,
+			nullptr,
+			IID_PPV_ARGS(&m_resource));
+		uint8_t* mappedData;
+		D3D12_RANGE readRange = {};
+		m_resource->Map(0, &readRange, reinterpret_cast<void**>(&mappedData));
+		m_mappedShaderRecords = mappedData;
+	}
+
+	void push_back(const ShaderRecord& shaderRecord)
+	{
+		m_shaderRecords.push_back(shaderRecord);
+		shaderRecord.CopyTo(m_mappedShaderRecords);
+		m_mappedShaderRecords += m_shaderRecordSize;
+	}
+
+	inline ::Microsoft::WRL::ComPtr<ID3D12Resource> GetResource() noexcept { return m_resource; }
+	inline UINT GetShaderRecordSize() noexcept { return m_shaderRecordSize; }
+};
 
 class DxrPipeline {
 	// Root signatures
-	::Microsoft::WRL::ComPtr<ID3D12RootSignature> globalRootSignature;
-	::Microsoft::WRL::ComPtr<ID3D12RootSignature> localRootSignature;
+	::Microsoft::WRL::ComPtr<ID3D12RootSignature> globalRootSignature = nullptr;
+	::Microsoft::WRL::ComPtr<ID3D12RootSignature> localRootSignature = nullptr;
 
 	::Microsoft::WRL::ComPtr<ID3D12StateObject> rtpso = nullptr;
 	::Microsoft::WRL::ComPtr<ID3D12StateObjectProperties> rtpsoInfo = nullptr;
+
+	::Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> descriptorHeap = nullptr;
+	UINT descriptorSize = 0;
+
+	union AlignedSceneConstant
+	{
+		SceneConstant constants;
+		uint8_t alignmentPadding[D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT];
+	};
+	AlignedSceneConstant* mappedConstantData;
+	::Microsoft::WRL::ComPtr<ID3D12Resource> sceneConstants = nullptr;
 
 	std::vector<D3D12_STATE_SUBOBJECT> subObjs;
 	D3D12_DXIL_LIBRARY_DESC dxilLib = {};
@@ -152,6 +196,12 @@ class DxrPipeline {
 	void* rayGenShaderIdentifier;
 	void* missShaderIdentifier;
 	void* hitGroupShaderIdentifier;
+	::Microsoft::WRL::ComPtr<ID3D12Resource> resMissShaderTable;
+	::Microsoft::WRL::ComPtr<ID3D12Resource> resHitGroupShaderTable;
+	::Microsoft::WRL::ComPtr<ID3D12Resource> resRayGenShaderTable;
+
+	SceneConstant sceneCB[num_swap_buffers];
+	Material materialCB;
 public:
 	D3D12_VIEWPORT view = { .MinDepth = 0.f,.MaxDepth = 1.f };
 	D3D12_RECT scissor = {};
@@ -240,4 +290,5 @@ void Excute()
 	asdx::GfxDevice().FrameSync();
 }
 */
+
 }

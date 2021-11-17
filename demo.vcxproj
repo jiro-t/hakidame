@@ -165,8 +165,6 @@
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="dxcompiler.dll" />
-    <None Include="dxil.dll" />
     <None Include="readme.md" />
   </ItemGroup>
   <ItemGroup>
