@@ -18,6 +18,7 @@ float local_time = 0.f;
 #include <vector>
 
 #include <chrono>
+#include "gfx/obj_loader.hpp"
 
 #include "resource.h"
 
@@ -249,12 +250,71 @@ static BYTE texData[] = {
 	0xff,0xff,0xff,0xff, 0xff,0xff,0xff,0xff,	0xff,0xff,0xff,0xff, 0xff,0xff,0xff,0xff,
 };
 
+void LoadWave(std::istream& input)
+{
+	typedef struct
+	{
+		int fs; //サンプリング周波数
+		int bits; //量子化bit数
+		int L; //データ長
+	} WAV_PRM;
+
+	WAV_PRM* prm;
+	int n;
+
+	double* data;
+	char header_ID[4];
+	long header_size;
+	char header_type[4];
+	char fmt_ID[4];
+	long fmt_size;
+	short fmt_format;
+	short fmt_channel;
+	long fmt_samples_per_sec;
+	long fmt_bytes_per_sec;
+	short fmt_block_size;
+	short fmt_bits_per_sample;
+	char data_ID[4];
+	long data_size;
+	short data_data;
+
+	//wavデータ読み込み
+	input.read((char*)&header_ID[0], 4);
+	input.read((char*)&header_size, 4);
+	input.read((char*)&header_type[0], 4);
+	input.read((char*)&fmt_ID[0], 4);
+	input.read((char*)&fmt_size, 4);
+	input.read((char*)&fmt_format, 2);
+	input.read((char*)&fmt_channel, 2);
+	input.read((char*)&fmt_samples_per_sec, 4);
+	input.read((char*)&fmt_bytes_per_sec, 4);
+	input.read((char*)&fmt_block_size, 2);
+	input.read((char*)&fmt_bits_per_sample, 2);
+	input.read((char*)&data_ID[0], 4);
+	input.read((char*)&data_size, 4);
+
+	//パラメータ
+	prm->fs = fmt_samples_per_sec;
+	prm->bits = fmt_bits_per_sample;
+	prm->L = data_size / 2;
+
+	//音声データ
+	data = (double*)malloc(prm->L*sizeof(double));
+	for (n = 0; n < prm->L; n++) {
+		input.read((char*)&data_data, 2);
+
+		data[n] = (double)data_data / 32768.0;
+	}
+	//return data;
+}
+
 HGLOBAL Music()
 {
 	HRSRC resInfo = FindResource(0, MAKEINTRESOURCE(IDR_WAVE1), L"WAVE");
 	HGLOBAL resData = LoadResource(0, resInfo);
 	LPVOID pvResData = LockResource(resData);
 
+	//mciSendCommand
 	sndPlaySound((LPCWSTR)pvResData, SND_MEMORY | SND_ASYNC | SND_NODEFAULT);
 
 	return resData;

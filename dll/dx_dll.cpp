@@ -7,11 +7,13 @@
 
 #include "../gfx/shapes.hpp"
 #include "../gfx/font.hpp"
+#include "../gfx/obj_loader.hpp"
 
 #include <DirectXMath.h>
 #include <vector>
 
 #include <iostream>
+#include <fstream>
 
 float t = 0.f;
 UINT plotMode = 0;
@@ -217,9 +219,11 @@ DLL_EXPORT BOOL InitDxContext(HWND hwnd, UINT width, UINT height)
 	ti_cbo.Create();
 	offscreen_cbo.Create();
 	//load default shape
-	mesh.push_back( ino::shape::CreateCube() );
+	//std::ifstream ifs("sponza.obj");
+	mesh.push_back(ino::shape::CreateCube() );
 	mesh.push_back(ino::shape::CreateQuad());
-	mesh.push_back( ino::shape::CreateCharMesh(L'‚¤', L"‚l‚r –¾’©"));
+	//mesh.push_back(ino::gfx::obj::load_obj(ifs) );
+	mesh.push_back(ino::shape::CreateCharMesh(L'‚¤', L"‚l‚r –¾’©"));
 	mesh.push_back(ino::shape::CreateCharMesh(L'‚ñ', L"‚l‚r –¾’©"));
 	mesh.push_back(ino::shape::CreateCharMesh(L'‚¿', L"‚l‚r –¾’©"));
 	mesh.push_back(ino::shape::CreateTestModel());

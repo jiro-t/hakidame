@@ -48,6 +48,9 @@
     <ClCompile Include="dx\dx12raytrace.cpp">
       <Filter>ソース ファイル\dx</Filter>
     </ClCompile>
+    <ClCompile Include="gfx\obj_loader.cpp">
+      <Filter>ソース ファイル\gfx</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="dx\dx12resource.hpp">
@@ -70,6 +73,9 @@
     </ClInclude>
     <ClInclude Include="resource.h">
       <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="gfx\obj_loader.hpp">
+      <Filter>ヘッダー ファイル\gfx</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

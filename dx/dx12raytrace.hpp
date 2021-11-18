@@ -31,7 +31,7 @@ extern ::Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> dxrRtvHeap;
 
 BOOL InitDXRDevice();
 
-struct Material
+struct VertexMaterial
 {
 	DirectX::XMVECTOR albedo;
 };
@@ -49,20 +49,23 @@ struct SceneConstant
 class AccelerationStructure
 {
 	std::vector<D3D12_RAYTRACING_GEOMETRY_DESC>  geometryDescs;
-	std::vector<::Microsoft::WRL::ComPtr<ID3D12Resource>>  geometryMat;
+	std::vector< std::pair<UINT, DirectX::XMMATRIX> >  instanceMat;
 
-	::Microsoft::WRL::ComPtr<ID3D12Resource> bottomLevelAccelerationStructure;
+	std::vector<::Microsoft::WRL::ComPtr<ID3D12Resource>> bottomLevelAccelerationStructure;
 	::Microsoft::WRL::ComPtr<ID3D12Resource> topLevelAccelerationStructure;
 
 	::Microsoft::WRL::ComPtr<ID3D12Resource> scratchResource;
 	::Microsoft::WRL::ComPtr<ID3D12Resource> instanceDescs;
 public:
-	inline ::Microsoft::WRL::ComPtr<ID3D12Resource> blas() noexcept { return bottomLevelAccelerationStructure; }
+	inline ::Microsoft::WRL::ComPtr<ID3D12Resource> blas(UINT id) noexcept { return bottomLevelAccelerationStructure[id]; }
 	inline ::Microsoft::WRL::ComPtr<ID3D12Resource> tlas() noexcept { return topLevelAccelerationStructure; }
 
 	void ClearGeometory() noexcept;
-	void AddGeometory(StaticMesh mesh, DirectX::XMMATRIX matrix = DirectX::XMMatrixIdentity());
-	void Build();
+	void ClearInstance() noexcept;
+	void AddGeometory(StaticMesh mesh);
+	void AddInstance(UINT objID, DirectX::XMMATRIX matrix = DirectX::XMMatrixIdentity());
+	void BuildBlas();
+	void BuildTlas();
 };
 
 class ShaderRecord
@@ -201,7 +204,7 @@ class DxrPipeline {
 	::Microsoft::WRL::ComPtr<ID3D12Resource> resRayGenShaderTable;
 
 	SceneConstant sceneCB[num_swap_buffers];
-	Material materialCB;
+	VertexMaterial materialCB;
 public:
 	D3D12_VIEWPORT view = { .MinDepth = 0.f,.MaxDepth = 1.f };
 	D3D12_RECT scissor = {};
