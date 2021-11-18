@@ -259,7 +259,7 @@ void LoadWave(std::istream& input)
 		int L; //データ長
 	} WAV_PRM;
 
-	WAV_PRM* prm;
+	WAV_PRM prm = {};
 	int n;
 
 	double* data;
@@ -294,13 +294,13 @@ void LoadWave(std::istream& input)
 	input.read((char*)&data_size, 4);
 
 	//パラメータ
-	prm->fs = fmt_samples_per_sec;
-	prm->bits = fmt_bits_per_sample;
-	prm->L = data_size / 2;
+	prm.fs = fmt_samples_per_sec;
+	prm.bits = fmt_bits_per_sample;
+	prm.L = data_size / 2;
 
 	//音声データ
-	data = (double*)malloc(prm->L*sizeof(double));
-	for (n = 0; n < prm->L; n++) {
+	data = (double*)malloc(prm.L*sizeof(double));
+	for (n = 0; n < prm.L; n++) {
 		input.read((char*)&data_data, 2);
 
 		data[n] = (double)data_data / 32768.0;
@@ -349,9 +349,10 @@ int main() {
 	create_pipeline_textured(pipe[1]);
 
 	BOOL useDXR = FALSE;
-	if (ino::d3d::CheckDXRSupport(ino::d3d::device))
+	if (!ino::d3d::CheckDXRSupport(ino::d3d::device))
 	{
-		//useDXR = ino::d3d::dxr::InitDXRDevice();
+		MessageBox(0,L"nthis demo is using DXR!",L"",MB_OK);
+		return 0;
 	}
 
 	//resource
@@ -367,10 +368,13 @@ int main() {
 	ino::d3d::vbo* vbo2 = new ino::d3d::vbo();
 	vbo2->Create(g_Vertices2, 9 * sizeof(float), sizeof(g_Vertices2));
 
+	ino::d3d::StaticMesh cornel_box;
 	ino::d3d::vbo* vboCornelBox = new ino::d3d::vbo();
 	ino::d3d::ibo* iboCornelBox = new ino::d3d::ibo();
 	vboCornelBox->Create(cornelBox,8*sizeof(float),sizeof(cornelBox));
 	iboCornelBox->Create(g_indecies1, sizeof(g_indecies1));
+	cornel_box.vbo = *vboCornelBox;
+	cornel_box.ibo = *iboCornelBox;
 
 	ino::d3d::texture tex;
 	tex.Create(4,4);
@@ -378,6 +382,18 @@ int main() {
 	std::chrono::high_resolution_clock c;
 	std::chrono::high_resolution_clock::time_point time_o = c.now();
 	float rot = 0.0f;
+
+	ino::d3d::begin();
+	//Init DXR
+	ino::d3d::dxr::InitDXRDevice();
+	ino::d3d::dxr::AccelerationStructure as;
+	as.AddGeometory(cornel_box);
+	as.BuildBlas();
+	as.AddInstance(0);
+	as.BuildTlas();
+	ino::d3d::dxr::DxrPipeline dxrPipe;
+	dxrPipe.Create();
+	ino::d3d::end();
 	Sleep(500);
 
 	//playSound

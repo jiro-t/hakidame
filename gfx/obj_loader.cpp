@@ -184,8 +184,9 @@ ino::d3d::StaticMesh load_obj(std::istream& ifs)
 	index_t tmp_idx;
 
 	parse_obj_mesh(ifs,tmp_vert.v_p,tmp_vert.v_t,tmp_vert.v_n,tmp_idx);
-
+#ifdef _DEBUG
 	std::cout << "v :" << tmp_vert.v_p.size() << std::endl;
+#endif
 	//GL_T2F_N3F_V3F
 	std::vector<float> gl_vert;
 	gl_vert.reserve(init_vert_length*3+init_vert_length*2+init_vert_length*3);
@@ -226,7 +227,9 @@ ino::d3d::StaticMesh load_obj(std::istream& ifs)
 			}
 			else
 			{
+#ifdef _DEBUG
 				std::cout << "out of range about triangulate :" << *it_cnt << std::endl;
+#endif
 			}
 			++it_cnt;
 		}

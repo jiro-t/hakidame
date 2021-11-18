@@ -2,9 +2,6 @@
 
 #include <fstream>
 
-#include <dxcapi.h>
-#pragma comment(lib,"dxcompiler")
-
 namespace ino::d3d {
 
 LPCSTR constexpr pipeline::getCstrShaderType(ShaderTypes type) const

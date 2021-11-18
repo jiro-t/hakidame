@@ -25,6 +25,7 @@ struct RtProgram
 	}
 };
 */
+extern	::Microsoft::WRL::ComPtr<ID3D12Device5> dxrDevice;
 extern ::Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList4> dxrCommandList;
 extern ::Microsoft::WRL::ComPtr<ID3D12Resource> dxrRenderTarget;
 extern ::Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> dxrRtvHeap;
@@ -48,15 +49,15 @@ struct SceneConstant
 
 class AccelerationStructure
 {
-	std::vector<D3D12_RAYTRACING_GEOMETRY_DESC>  geometryDescs;
-	std::vector< std::pair<UINT, DirectX::XMMATRIX> >  instanceMat;
-
 	std::vector<::Microsoft::WRL::ComPtr<ID3D12Resource>> bottomLevelAccelerationStructure;
 	::Microsoft::WRL::ComPtr<ID3D12Resource> topLevelAccelerationStructure;
 
 	::Microsoft::WRL::ComPtr<ID3D12Resource> scratchResource;
 	::Microsoft::WRL::ComPtr<ID3D12Resource> instanceDescs;
 public:
+	std::vector<D3D12_RAYTRACING_GEOMETRY_DESC>  geometryDescs;
+	std::vector< std::pair<UINT, DirectX::XMMATRIX> >  instanceMat;
+
 	inline ::Microsoft::WRL::ComPtr<ID3D12Resource> blas(UINT id) noexcept { return bottomLevelAccelerationStructure[id]; }
 	inline ::Microsoft::WRL::ComPtr<ID3D12Resource> tlas() noexcept { return topLevelAccelerationStructure; }
 
@@ -202,96 +203,28 @@ class DxrPipeline {
 	::Microsoft::WRL::ComPtr<ID3D12Resource> resMissShaderTable;
 	::Microsoft::WRL::ComPtr<ID3D12Resource> resHitGroupShaderTable;
 	::Microsoft::WRL::ComPtr<ID3D12Resource> resRayGenShaderTable;
+	UINT rayGenShaderTableStride;
+	UINT missShaderTableStride;
+	UINT hitGroupShaderTableStride;
 
 	SceneConstant sceneCB[num_swap_buffers];
 	VertexMaterial materialCB;
 public:
+	~DxrPipeline()
+	{
+		if (dxilLib.DXILLibrary.pShaderBytecode)
+		{
+			delete[] dxilLib.DXILLibrary.pShaderBytecode;
+			dxilLib.DXILLibrary.pShaderBytecode = nullptr;
+		}
+	}
 	D3D12_VIEWPORT view = { .MinDepth = 0.f,.MaxDepth = 1.f };
 	D3D12_RECT scissor = {};
 
 	void Create();
+	void CreateShaderTable(AccelerationStructure& as);
 	void Dispatch();
+	void CopyToScreen();
 };
-
-/*
-void Excute()
-{
-	asdx::GfxDevice().SetUploadCommand(pCmd);
-
-	{
-		// ビュー行列.
-		auto view = asdx::Matrix::CreateLookAt(
-			asdx::Vector3(0.0f, 0.0f, -2.0f),
-			asdx::Vector3(0.0f, 0.0f, 0.0f),
-			asdx::Vector3(0.0f, 1.0f, 0.0f));
-
-		// 射影行列.
-		auto proj = asdx::Matrix::CreatePerspectiveFieldOfView(
-			asdx::ToRadian(37.5f),
-			float(m_Width) / float(m_Height),
-			1.0f,
-			1000.0f);
-
-		SceneParam res = {};
-		res.InvView = asdx::Matrix::Invert(view);
-		res.InvViewProj = asdx::Matrix::Invert(proj) * res.InvView;
-
-		m_SceneBuffer.SwapBuffer();
-		m_SceneBuffer.Update(&res, sizeof(res));
-	}
-
-	// レイトレ実行.
-	{
-		pCmd->SetComputeRootSignature(m_GlobalRootSig.GetPtr());
-		// ステートオブジェクト設定.
-		pCmd->SetPipelineState1(m_StateObject.GetPtr());
-
-		// リソースをバインド.
-		asdx::SetTable(pCmd, ROOT_PARAM_U0, m_Canvas.GetUAV(), true);
-		asdx::SetSRV(pCmd, ROOT_PARAM_T0, m_TLAS.GetResource(), true);
-		asdx::SetTable(pCmd, ROOT_PARAM_T1, m_BackGround.GetView(), true);
-		asdx::SetSRV(pCmd, ROOT_PARAM_T2, m_IndexSRV.GetPtr(), true);
-		asdx::SetSRV(pCmd, ROOT_PARAM_T3, m_VertexSRV.GetPtr(), true);
-		asdx::SetCBV(pCmd, ROOT_PARAM_B0, m_SceneBuffer.GetView(), true);
-
-		D3D12_DISPATCH_RAYS_DESC desc = {};
-		desc.HitGroupTable = m_HitGroupTable.GetTableView();
-		desc.MissShaderTable = m_MissTable.GetTableView();
-		desc.RayGenerationShaderRecord = m_RayGenTable.GetRecordView();
-		desc.Width = UINT(m_Canvas.GetDesc().Width);
-		desc.Height = m_Canvas.GetDesc().Height;
-		desc.Depth = 1;
-
-		pCmd->DispatchRays(&desc);
-
-		// バリアを張っておく.
-		asdx::BarrierUAV(pCmd, m_Canvas.GetResource());
-	}
-
-
-	{
-		asdx::ScopedTransition b0(pCmd, m_Canvas.GetResource(), asdx::STATE_UAV, asdx::STATE_COPY_SRC);
-		asdx::ScopedTransition b1(pCmd, m_ColorTarget[idx].GetResource(), asdx::STATE_PRESENT, asdx::STATE_COPY_DST);
-		pCmd->CopyResource(m_ColorTarget[idx].GetResource(), m_Canvas.GetResource());
-	}
-
-	pCmd->Close();
-
-	ID3D12CommandList* pCmds[] = {
-		pCmd
-	};
-
-	// 前フレームの描画の完了を待機.
-	if (m_FrameWaitPoint.IsValid())
-	{
-		m_pGraphicsQueue->Sync(m_FrameWaitPoint);
-	}
-	m_pGraphicsQueue->Execute(1, pCmds);
-
-	m_FrameWaitPoint = m_pGraphicsQueue->Signal();
-	Present(0);
-	asdx::GfxDevice().FrameSync();
-}
-*/
 
 }

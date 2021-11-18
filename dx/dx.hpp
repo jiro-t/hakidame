@@ -19,6 +19,9 @@
 //ARGV
 #include <shellapi.h>
 
+#include <dxcapi.h>
+#pragma comment(lib,"dxcompiler")
+
 #ifdef _DEBUG
 #include <iostream>
 #endif
