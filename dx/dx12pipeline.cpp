@@ -132,12 +132,13 @@ void pipeline::LoadShader(ShaderTypes type, void* src, size_t src_size, LPCSTR e
 		hlsl_compile_flag,
 		0, &blob, &error);
 
+	putErrorMsg(error);
+
 	shader[static_cast<int>(type)].BytecodeLength = blob->GetBufferSize();
 	void* p = new byte[blob->GetBufferSize()];
 	memcpy(p, blob->GetBufferPointer(), blob->GetBufferSize());
 	shader[static_cast<int>(type)].pShaderBytecode = p;
 
-	putErrorMsg(error);
 	if(blob)blob->Release();
 	if(error)error->Release();
 }
@@ -145,11 +146,6 @@ void pipeline::LoadShader(ShaderTypes type, void* src, size_t src_size, LPCSTR e
 void pipeline::LoadShader(ShaderTypes type, void* src, size_t src_size, LPCWSTR entryPoint)
 {
 	::Microsoft::WRL::ComPtr <IDxcBlob> bc;
-
-	::Microsoft::WRL::ComPtr<IDxcLibrary> lib;
-	DxcCreateInstance(CLSID_DxcLibrary, __uuidof(IDxcLibrary), &lib);
-	::Microsoft::WRL::ComPtr<IDxcCompiler> compiler;
-	DxcCreateInstance(CLSID_DxcCompiler, __uuidof(IDxcCompiler), &compiler);
 	::Microsoft::WRL::ComPtr<IDxcOperationResult> result;
 
 	::Microsoft::WRL::ComPtr <IDxcBlobEncoding> enc;
@@ -164,6 +160,13 @@ void pipeline::LoadShader(ShaderTypes type, void* src, size_t src_size, LPCWSTR 
 		result->GetErrorBuffer(&err);
 #ifdef _DEBUG
 		std::cout << (char*)err->GetBufferPointer() << std::endl;
+#endif
+	}
+
+	if (bc->GetBufferSize() <= 0)
+	{
+#ifdef _DEBUG
+		std::cout << (char*)enc->GetBufferPointer() << std::endl;
 #endif
 	}
 

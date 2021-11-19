@@ -49,6 +49,10 @@ extern	::Microsoft::WRL::ComPtr<ID3D12Device5> device;
 extern	::Microsoft::WRL::ComPtr<ID3D12CommandAllocator> commandAllocators[num_swap_buffers];
 extern	UINT currentBackBufferIndex;
 extern	::Microsoft::WRL::ComPtr<ID3D12CommandQueue> commandQueue;
+
+extern ::Microsoft::WRL::ComPtr<IDxcLibrary> lib;
+extern ::Microsoft::WRL::ComPtr<IDxcCompiler> compiler;
+
 extern renderTexture renderOffscreen;
 extern texture renderTargets[num_swap_buffers];
 extern texture	depthBuffer[num_swap_buffers];

@@ -164,6 +164,7 @@
     <ClInclude Include="gfx\font.hpp" />
     <ClInclude Include="gfx\obj_loader.hpp" />
     <ClInclude Include="gfx\shapes.hpp" />
+    <ClInclude Include="raster_shader.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>

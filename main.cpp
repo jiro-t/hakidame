@@ -21,6 +21,7 @@ float local_time = 0.f;
 #include "gfx/obj_loader.hpp"
 
 #include "resource.h"
+#include "raster_shader.h"
 
 static float g_Vertices[6][9] = {
 	{ 0.30f, 0.f, 0,/**/ 1.0f, 1.0f, 1.0f,1.0f,/**/0.f,0.f }, // 1
@@ -33,10 +34,10 @@ static float g_Vertices[6][9] = {
 
 static float g_Vertices2[6][9] = {
 	{ 0.0f, 0.f, 0.0f,/**/ 1.0f, 0.0f, 0.0f,1.0f,/**/0.f,0.f }, // 1
-	{ 0.f, 0.25f, 0.0f,/**/ 0.0f, 1.0f, 0.0f,1.0f,/**/0.f,1.f }, // 2
-	{ 0.25f, 0.25f, 0.0f,/**/ 0.0f, 0.0f, 1.0f,1.0f,/**/1.f,1.f }, // 3
-	{ 0.25f, 0.25f, 0.0f,/**/ 0.0f, 0.0f, 1.0f,1.0f,/**/1.f,1.f }, // 3
-	{ 0.25f, 0.f, 0.0f,/**/ 1.0f, 0.0f, 1.0f,1.0f,/**/1.f,0.f }, // 4
+	{ 0.f, 1.25f, 0.0f,/**/ 0.0f, 1.0f, 0.0f,1.0f,/**/0.f,1.f }, // 2
+	{ 1.25f, 1.25f, 0.0f,/**/ 0.0f, 0.0f, 1.0f,1.0f,/**/1.f,1.f }, // 3
+	{ 1.25f, 1.25f, 0.0f,/**/ 0.0f, 0.0f, 1.0f,1.0f,/**/1.f,1.f }, // 3
+	{ 1.25f, 0.f, 0.0f,/**/ 1.0f, 0.0f, 1.0f,1.0f,/**/1.f,0.f }, // 4
 	{ 0.0f, 0.f, 0.0f,/**/ 1.0f, 0.0f, 0.0f,1.0f,/**/0.f,0.f } // 1
 };
 
@@ -243,6 +244,30 @@ HRESULT create_pipeline_textured(ino::d3d::pipeline& pipe)
 	return S_OK;
 }
 
+HRESULT create_pipeline_tex_gen1(ino::d3d::pipeline& pipe)
+{
+	pipe.LoadShader(ino::d3d::ShaderTypes::VERTEX_SHADER, tex_gen_shader1, sizeof(tex_gen_shader1), L"VSMain");
+	pipe.LoadShader(ino::d3d::ShaderTypes::FRAGMENT_SHADER, tex_gen_shader1, sizeof(tex_gen_shader1), L"PSMain");
+
+	D3D12_INPUT_ELEMENT_DESC elementDescs[] = {
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, sizeof(float) * 3, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0,sizeof(float) * 3 + sizeof(float) * 4, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+	};
+	pipe.Create(elementDescs, 3);
+
+	pipe.view = {
+		.Width = static_cast<FLOAT>(ino::d3d::screen_width),
+		.Height = static_cast<FLOAT>(ino::d3d::screen_height),
+	};
+	pipe.scissor = {
+		.right = ino::d3d::screen_width,
+		.bottom = ino::d3d::screen_height
+	};
+
+	return S_OK;
+}
+
 static BYTE texData[] = {
 	0xff,0xff,0xff,0xff, 0xff,0xff,0xff,0xff,	0xff,0x9f,0xff,0xff, 0xff,0xff,0xff,0xff,
 	0xff,0xff,0xff,0xff, 0xff,0xff,0xff,0x4f,	0xff,0x8f,0xff,0xff, 0xff,0xff,0xff,0xff,
@@ -250,63 +275,98 @@ static BYTE texData[] = {
 	0xff,0xff,0xff,0xff, 0xff,0xff,0xff,0xff,	0xff,0xff,0xff,0xff, 0xff,0xff,0xff,0xff,
 };
 
-void LoadWave(std::istream& input)
-{
-	typedef struct
+class WaveSound {
+	int fs=0; //サンプリング周波数
+	int bits=0; //量子化bit数
+	int L=0; //データ長
+
+	std::vector<double> data;
+
+	HWAVEOUT handle;
+	WAVEHDR  header;
+	WAVEFORMATEX formatter;
+public:
+	WaveSound()
 	{
-		int fs; //サンプリング周波数
-		int bits; //量子化bit数
-		int L; //データ長
-	} WAV_PRM;
-
-	WAV_PRM prm = {};
-	int n;
-
-	double* data;
-	char header_ID[4];
-	long header_size;
-	char header_type[4];
-	char fmt_ID[4];
-	long fmt_size;
-	short fmt_format;
-	short fmt_channel;
-	long fmt_samples_per_sec;
-	long fmt_bytes_per_sec;
-	short fmt_block_size;
-	short fmt_bits_per_sample;
-	char data_ID[4];
-	long data_size;
-	short data_data;
-
-	//wavデータ読み込み
-	input.read((char*)&header_ID[0], 4);
-	input.read((char*)&header_size, 4);
-	input.read((char*)&header_type[0], 4);
-	input.read((char*)&fmt_ID[0], 4);
-	input.read((char*)&fmt_size, 4);
-	input.read((char*)&fmt_format, 2);
-	input.read((char*)&fmt_channel, 2);
-	input.read((char*)&fmt_samples_per_sec, 4);
-	input.read((char*)&fmt_bytes_per_sec, 4);
-	input.read((char*)&fmt_block_size, 2);
-	input.read((char*)&fmt_bits_per_sample, 2);
-	input.read((char*)&data_ID[0], 4);
-	input.read((char*)&data_size, 4);
-
-	//パラメータ
-	prm.fs = fmt_samples_per_sec;
-	prm.bits = fmt_bits_per_sample;
-	prm.L = data_size / 2;
-
-	//音声データ
-	data = (double*)malloc(prm.L*sizeof(double));
-	for (n = 0; n < prm.L; n++) {
-		input.read((char*)&data_data, 2);
-
-		data[n] = (double)data_data / 32768.0;
+		MMRESULT result = waveOutOpen(&handle, WAVE_MAPPER, &formatter, 0, 0, CALLBACK_NULL);
 	}
-	//return data;
-}
+	~WaveSound()
+	{
+		waveOutReset(handle);
+		waveOutUnprepareHeader(handle, &header, sizeof(WAVEHDR));
+		waveOutClose(handle);
+	}
+
+	void Load(std::istream& input)
+	{
+		char header_ID[4];
+		long header_size;
+		char header_type[4];
+		char fmt_ID[4];
+		long fmt_size;
+		short fmt_format;
+		short fmt_channel;
+		long fmt_samples_per_sec;
+		long fmt_bytes_per_sec;
+		short fmt_block_size;
+		short fmt_bits_per_sample;
+		char data_ID[4];
+		long data_size;
+		short data_data;
+
+		//wavデータ読み込み
+		input.read((char*)&header_ID[0], 4);
+		input.read((char*)&header_size, 4);
+		input.read((char*)&header_type[0], 4);
+		input.read((char*)&fmt_ID[0], 4);
+		input.read((char*)&fmt_size, 4);
+		input.read((char*)&fmt_format, 2);
+		input.read((char*)&fmt_channel, 2);
+		input.read((char*)&fmt_samples_per_sec, 4);
+		input.read((char*)&fmt_bytes_per_sec, 4);
+		input.read((char*)&fmt_block_size, 2);
+		input.read((char*)&fmt_bits_per_sample, 2);
+		input.read((char*)&data_ID[0], 4);
+		input.read((char*)&data_size, 4);
+
+		//パラメータ
+		fs = fmt_samples_per_sec;
+		bits = fmt_bits_per_sample;
+		L = data_size / 2;
+
+		//音声データ
+		data.resize(L * sizeof(double));
+		for (int n = 0; n < L; n++) {
+			input.read((char*)&data_data, 2);
+
+			data[n] = (double)data_data;
+		}
+	}
+
+	void Play()
+	{
+		header.lpData = (LPSTR)&data[0];
+		header.dwBufferLength = L;
+		header.dwFlags = 0;
+
+		waveOutPrepareHeader(handle, &header, sizeof(WAVEHDR));
+		waveOutWrite(handle, &header, sizeof(WAVEHDR));
+	}
+};
+
+#define resToStream(idr_,type) \
+HRSRC resInfo = FindResource(0, MAKEINTRESOURCE(idr_),type);\
+HGLOBAL resData = LoadResource(0, resInfo);\
+LPVOID pvResData = LockResource(resData);\
+\
+DWORD size = SizeofResource(0, resInfo);\
+struct membuf : std::streambuf {\
+membuf(char* base, std::ptrdiff_t n) {\
+	this->setg(base, base, base + n);\
+}\
+};\
+membuf sbuf((char*)pvResData, size);\
+std::istream resStream = std::istream(&sbuf)\
 
 HGLOBAL Music()
 {
@@ -339,29 +399,31 @@ int main() {
 
 	//setup pipeline
 	ino::d3d::cbo<DX::XMFLOAT4X4> mvpCBO[2];
-   	ino::d3d::cbo<float> fCBO[2];
-
-	ino::d3d::pipeline offscreenPipe;
-	create_pipeline(offscreenPipe);
+	ino::d3d::cbo<float> fCBO[2];
 
 	ino::d3d::pipeline pipe[2];
 	create_pipeline(pipe[0]);
 	create_pipeline_textured(pipe[1]);
 
+	ino::d3d::cbo<float> timeCbo;
+	ino::d3d::pipeline offscreenPipe;
+	create_pipeline_tex_gen1(offscreenPipe);
+
 	BOOL useDXR = FALSE;
 	if (!ino::d3d::CheckDXRSupport(ino::d3d::device))
 	{
-		MessageBox(0,L"nthis demo is using DXR!",L"",MB_OK);
-		return 0;
+//		MessageBox(0, L"nthis demo is using DXR!", L"", MB_OK);
+//		return 0;
 	}
 
 	//resource
 	mvpCBO[0].Create();
 	mvpCBO[1].Create();
+	timeCbo.Create();
 	for (auto& val : fCBO)
 		val.Create();
 
-	ID3D12GraphicsCommandList* cmds[_countof(pipe)+1] = {};
+	ID3D12GraphicsCommandList* cmds[_countof(pipe) + 1] = {};
 	ino::d3d::vbo* vbo = new ino::d3d::vbo();
 	vbo->Create(g_Vertices, 9 * sizeof(float), sizeof(g_Vertices));
 
@@ -371,29 +433,31 @@ int main() {
 	ino::d3d::StaticMesh cornel_box;
 	ino::d3d::vbo* vboCornelBox = new ino::d3d::vbo();
 	ino::d3d::ibo* iboCornelBox = new ino::d3d::ibo();
-	vboCornelBox->Create(cornelBox,8*sizeof(float),sizeof(cornelBox));
+	vboCornelBox->Create(cornelBox, 8 * sizeof(float), sizeof(cornelBox));
 	iboCornelBox->Create(g_indecies1, sizeof(g_indecies1));
 	cornel_box.vbo = *vboCornelBox;
 	cornel_box.ibo = *iboCornelBox;
 
 	ino::d3d::texture tex;
-	tex.Create(4,4);
-	tex.Map(texData,4,4, 4);
+	tex.Create(4, 4);
+	tex.Map(texData, 4, 4, 4);
 	std::chrono::high_resolution_clock c;
 	std::chrono::high_resolution_clock::time_point time_o = c.now();
 	float rot = 0.0f;
 
 	ino::d3d::begin();
 	//Init DXR
-	ino::d3d::dxr::InitDXRDevice();
-	ino::d3d::dxr::AccelerationStructure as;
-	as.AddGeometory(cornel_box);
-	as.BuildBlas();
-	as.AddInstance(0);
-	as.BuildTlas();
-	ino::d3d::dxr::DxrPipeline dxrPipe;
-	dxrPipe.Create();
-	ino::d3d::end();
+	{
+		//ino::d3d::dxr::InitDXRDevice();
+		//ino::d3d::dxr::AccelerationStructure as;
+		//as.AddGeometory(cornel_box);
+		//as.BuildBlas();
+		//as.AddInstance(0);
+		//as.BuildTlas();
+		//ino::d3d::dxr::DxrPipeline dxrPipe;
+		//dxrPipe.Create();
+		//ino::d3d::end();
+	}
 	Sleep(500);
 
 	//playSound
@@ -425,9 +489,9 @@ int main() {
 		static const FLOAT clearColor2[] = { 1.f, 1.f, 0.f, 1.0f };
 		//offscreen
 		cmds[0] = offscreenPipe.Begin(ino::d3d::renderOffscreen);
-		mvpCBO[0].Set(cmds[0], Mat, 0);
 		offscreenPipe.Clear(ino::d3d::renderOffscreen,clearColor2);
-		vboCornelBox->Draw(cmds[0],*iboCornelBox);
+		timeCbo.Set(cmds[0], local_time, 0);
+		vbo->Draw(cmds[0]);
 		offscreenPipe.End();
 		//std::thread t1([&cmds, &pipe,&vboCornelBox, &m,&mvpCBO]() {
 

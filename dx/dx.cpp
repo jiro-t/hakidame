@@ -24,6 +24,10 @@ texture renderTargets[num_swap_buffers];
 ::Microsoft::WRL::ComPtr<ID3D12CommandAllocator> commandAllocators[num_swap_buffers] = {};
 UINT currentBackBufferIndex = 0;
 ::Microsoft::WRL::ComPtr<ID3D12CommandQueue> commandQueue = nullptr;
+
+::Microsoft::WRL::ComPtr<IDxcLibrary> lib;
+::Microsoft::WRL::ComPtr<IDxcCompiler> compiler;
+
 texture depthBuffer[num_swap_buffers];
 
 
@@ -330,6 +334,9 @@ HRESULT init(HWND hwnd, bool useWarp, int width, int height)
 
 	screen_width = width;
 	screen_height = height;
+
+	DxcCreateInstance(CLSID_DxcLibrary, __uuidof(IDxcLibrary), &lib);
+	DxcCreateInstance(CLSID_DxcCompiler, __uuidof(IDxcCompiler), &compiler);
 
 	return result;
 }

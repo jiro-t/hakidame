@@ -456,11 +456,6 @@ void AccelerationStructure::BuildTlas()
 D3D12_SHADER_BYTECODE CompileLibShader(void* src, uint32_t size) noexcept
 {
 	::Microsoft::WRL::ComPtr <IDxcBlob> bc;
-
-	::Microsoft::WRL::ComPtr<IDxcLibrary> lib;
-	DxcCreateInstance(CLSID_DxcLibrary, __uuidof(IDxcLibrary), &lib);
-	::Microsoft::WRL::ComPtr<IDxcCompiler> compiler;
-	DxcCreateInstance(CLSID_DxcCompiler, __uuidof(IDxcCompiler), &compiler);
 	::Microsoft::WRL::ComPtr<IDxcOperationResult> result;
 
 	::Microsoft::WRL::ComPtr <IDxcBlobEncoding> enc;
