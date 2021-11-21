@@ -41,6 +41,17 @@ static float g_Vertices2[6][9] = {
 	{ 0.0f, 0.f, 0.0f,/**/ 1.0f, 0.0f, 0.0f,1.0f,/**/0.f,0.f } // 1
 };
 
+uint32_t tri_i[] =
+{
+	0, 1, 2
+};
+float tri_v[] =
+{
+	0, -0.7f, 1,
+	-0.7f, 0,7, 1 ,
+	0.7f, 0,7, 1
+};
+
 namespace DX = DirectX;
 DX::XMVECTOR cornelBox[] = {
 	//floor
@@ -268,6 +279,30 @@ HRESULT create_pipeline_tex_gen1(ino::d3d::pipeline& pipe)
 	return S_OK;
 }
 
+HRESULT create_pipeline_loading(ino::d3d::pipeline& pipe)
+{
+	pipe.LoadShader(ino::d3d::ShaderTypes::VERTEX_SHADER, loading_shader, sizeof(loading_shader), L"VSMain");
+	pipe.LoadShader(ino::d3d::ShaderTypes::FRAGMENT_SHADER, loading_shader, sizeof(loading_shader), L"PSMain");
+
+	D3D12_INPUT_ELEMENT_DESC elementDescs[] = {
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, sizeof(float) * 3, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0,sizeof(float) * 3 + sizeof(float) * 4, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+	};
+	pipe.Create(elementDescs, 3);
+
+	pipe.view = {
+		.Width = static_cast<FLOAT>(ino::d3d::screen_width),
+		.Height = static_cast<FLOAT>(ino::d3d::screen_height),
+	};
+	pipe.scissor = {
+		.right = ino::d3d::screen_width,
+		.bottom = ino::d3d::screen_height
+	};
+
+	return S_OK;
+}
+
 static BYTE texData[] = {
 	0xff,0xff,0xff,0xff, 0xff,0xff,0xff,0xff,	0xff,0x9f,0xff,0xff, 0xff,0xff,0xff,0xff,
 	0xff,0xff,0xff,0xff, 0xff,0xff,0xff,0x4f,	0xff,0x8f,0xff,0xff, 0xff,0xff,0xff,0xff,
@@ -368,6 +403,8 @@ membuf(char* base, std::ptrdiff_t n) {\
 membuf sbuf((char*)pvResData, size);\
 std::istream resStream = std::istream(&sbuf)\
 
+ino::d3d::renderTexture renderOffscreen[2];
+
 HGLOBAL Music()
 {
 	HRSRC resInfo = FindResource(0, MAKEINTRESOURCE(IDR_WAVE1), L"WAVE");
@@ -409,11 +446,14 @@ int main() {
 	ino::d3d::pipeline offscreenPipe;
 	create_pipeline_tex_gen1(offscreenPipe);
 
+	ino::d3d::pipeline loadingPipe;
+	create_pipeline_loading(loadingPipe);
+
 	BOOL useDXR = FALSE;
 	if (!ino::d3d::CheckDXRSupport(ino::d3d::device))
 	{
-//		MessageBox(0, L"nthis demo is using DXR!", L"", MB_OK);
-//		return 0;
+		MessageBox(0, L"this demo is using DXR!", L"", MB_OK);
+		return 0;
 	}
 
 	//resource
@@ -422,10 +462,31 @@ int main() {
 	timeCbo.Create();
 	for (auto& val : fCBO)
 		val.Create();
-
-	ID3D12GraphicsCommandList* cmds[_countof(pipe) + 1] = {};
 	ino::d3d::vbo* vbo = new ino::d3d::vbo();
 	vbo->Create(g_Vertices, 9 * sizeof(float), sizeof(g_Vertices));
+
+	std::vector<ID3D12GraphicsCommandList*> cmds;
+	const FLOAT clearColor[] = { 0.4f, 0.6f, 0.9f, 0.0f };
+	auto draw_Loading = [hwnd,&cmds,&loadingPipe,&clearColor,&vbo,&timeCbo](float t) {
+		MSG msg;
+		if (PeekMessage(&msg,hwnd, 0, 0, 0));
+		ino::d3d::begin();
+		cmds.push_back(loadingPipe.Begin());
+		loadingPipe.Clear(clearColor);
+		timeCbo.Set(cmds.back(), t, 0);
+		vbo->Draw(cmds.back());
+		loadingPipe.End();
+
+		ino::d3d::excute(&cmds[0], cmds.size());
+		ino::d3d::wait();
+		ino::d3d::end();
+		Sleep(16);
+		cmds.clear();
+	};
+
+	draw_Loading(0);
+	renderOffscreen[0].Create(ino::d3d::screen_width, ino::d3d::screen_height, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
+	renderOffscreen[1].Create(ino::d3d::screen_width, ino::d3d::screen_height, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
 
 	ino::d3d::vbo* vbo2 = new ino::d3d::vbo();
 	vbo2->Create(g_Vertices2, 9 * sizeof(float), sizeof(g_Vertices2));
@@ -438,6 +499,10 @@ int main() {
 	cornel_box.vbo = *vboCornelBox;
 	cornel_box.ibo = *iboCornelBox;
 
+	draw_Loading(0.2);
+	ino::d3d::StaticMesh tri;
+	tri.vbo.Create(tri_v, 3 * sizeof(float),sizeof(tri_v));
+	tri.ibo.Create(tri_i, sizeof(tri_i));
 	ino::d3d::texture tex;
 	tex.Create(4, 4);
 	tex.Map(texData, 4, 4, 4);
@@ -445,26 +510,28 @@ int main() {
 	std::chrono::high_resolution_clock::time_point time_o = c.now();
 	float rot = 0.0f;
 
-	ino::d3d::begin();
+	draw_Loading(0.3);
 	//Init DXR
-	{
-		//ino::d3d::dxr::InitDXRDevice();
-		//ino::d3d::dxr::AccelerationStructure as;
-		//as.AddGeometory(cornel_box);
-		//as.BuildBlas();
-		//as.AddInstance(0);
-		//as.BuildTlas();
-		//ino::d3d::dxr::DxrPipeline dxrPipe;
-		//dxrPipe.Create();
-		//ino::d3d::end();
-	}
+	ino::d3d::begin();
+	ino::d3d::dxr::InitDXRDevice();
+	ino::d3d::dxr::Blas blases[2];
+	ino::d3d::dxr::Tlas tlas;
+	blases[0].Build(cornel_box);
+	blases[1].Build(tri);
+
+	ino::d3d::dxr::DxrPipeline dxrPipe;
+	dxrPipe.Create();
+	ino::d3d::end();
 	Sleep(500);
 
+	draw_Loading(1);
 	//playSound
 	auto musicHandle = Music();
-	
+	ShowCursor(false);
 	srand(0);
+	cmds.reserve(256);
 	do {
+		cmds.clear();
 		MSG msg;
 		if (PeekMessage(&msg, hwnd, 0, 0, 0))
 		{
@@ -476,6 +543,8 @@ int main() {
 		rot += 0.01f;
 		auto view = DX::XMMatrixLookAtLH(DX::XMVectorSet(cos(rot) * 13, 3, sin(rot) * 13, 0), DX::XMVectorSet(0, 1.5, 0, 0), DX::XMVectorSet(0, 1, 0, 0));
 		auto projection = DX::XMMatrixPerspectiveFovLH(DX::XMConvertToRadians(60), ino::d3d::screen_width / (float)ino::d3d::screen_height, 0.01f, 100.f);
+		auto invView = DX::XMMatrixInverse(nullptr, view);
+		auto invViewProj = DX::XMMatrixInverse(nullptr, projection);
 
 		DX::XMFLOAT4X4 Mat;
 		DX::XMStoreFloat4x4(&Mat, XMMatrixTranspose(model * view * projection));
@@ -484,44 +553,60 @@ int main() {
 		time_o = c.now();
 		ino::d3d::begin();
 
-		std::mutex m;
+		ino::d3d::dxr::SceneConstant constants;
+		constants.viewport = { -1,-1,1,1 };
+		constants.cameraPos = DX::XMVectorSet(1, 0, 0, 1);
+		dxrPipe.SetConstantBuffer(&constants, sizeof(ino::d3d::dxr::SceneConstant));
 
 		static const FLOAT clearColor2[] = { 1.f, 1.f, 0.f, 1.0f };
 		//offscreen
-		cmds[0] = offscreenPipe.Begin(ino::d3d::renderOffscreen);
-		offscreenPipe.Clear(ino::d3d::renderOffscreen,clearColor2);
-		timeCbo.Set(cmds[0], local_time, 0);
-		vbo->Draw(cmds[0]);
+		cmds.push_back(offscreenPipe.Begin(renderOffscreen[0]));
+		offscreenPipe.Clear(renderOffscreen[0],clearColor2);
+		timeCbo.Set(cmds.back(), local_time, 0);
+		vbo->Draw(cmds.back());
 		offscreenPipe.End();
+
+		cmds.push_back(pipe[0].Begin(renderOffscreen[1]));
+		pipe[0].Clear(renderOffscreen[1], clearColor2);
+		mvpCBO[1].Set(cmds.back(), Mat, 0);
+		vboCornelBox->Draw(cmds.back(), *iboCornelBox);
+		pipe[0].End();
 		//std::thread t1([&cmds, &pipe,&vboCornelBox, &m,&mvpCBO]() {
 
-				const FLOAT clearColor[] = { 0.4f, 0.6f, 0.9f, 0.0f };
-				m.lock();
-				cmds[1] = pipe[0].Begin();
-				mvpCBO[1].Set(cmds[1], Mat,0);
-				pipe[0].Clear(clearColor);
-				//DrawPrimitive;
-				vboCornelBox->Draw(cmds[1],*iboCornelBox);
-				pipe[0].End(); 
-				m.unlock();
-		//	}
-		//);
+		//cmds.push_back(pipe[0].Begin());
+		//mvpCBO[1].Set(cmds.back(), Mat,0);
+		//pipe[0].Clear(clearColor);
+		////DrawPrimitive;
+		//vboCornelBox->Draw(cmds.back(),*iboCornelBox);
+		//pipe[0].End(); 
 
-
-		m.lock();
-		cmds[2] = pipe[1].Begin();
-		fCBO[0].Set(cmds[2],sinf(local_time),0);
-		fCBO[1].Set(cmds[2],cosf(local_time),1);
-		ino::d3d::renderOffscreen.Set(cmds[2],2);
+		cmds.push_back(pipe[1].Begin());
+		pipe[1].Clear(clearColor);
+		fCBO[0].Set(cmds.back(),sinf(local_time),0);
+		fCBO[1].Set(cmds.back(),cosf(local_time),1);
+		renderOffscreen[0].Set(cmds.back(),2);
 		//DrawPrimitive;
-		vbo2->Draw(cmds[2]);
-		vbo->Draw(cmds[2]);
+		vbo2->Draw(cmds.back());
+		renderOffscreen[1].Set(cmds.back(), 2);
+		vbo->Draw(cmds.back());
 		pipe[1].End();
-		m.unlock();
 
-		//t1.join();
-		//for (auto& c : cmds)c->Close();
-		ino::d3d::excute(cmds, _countof(pipe)+1);
+		//Raytrace!
+		{
+			tlas.ClearInstance();
+			tlas.AddInstance(blases[0].Get(), DirectX::XMMatrixScaling(1, 1, 1));
+			tlas.AddInstance(blases[1].Get(), DirectX::XMMatrixScaling(1, 1, 1));
+			//as.AddInstance(0, DirectX::XMMatrixMultiply(DirectX::XMMatrixIdentity(), DirectX::XMMatrixScaling(0.1, 0.1, 0.1)));
+			tlas.Build();
+
+			cmds.push_back(dxrPipe.Begin().Get());
+			dxrPipe.CreateShaderTable(tlas);
+			dxrPipe.Dispatch(tlas);
+			dxrPipe.CopyToScreen();
+			dxrPipe.End();
+		}
+
+		ino::d3d::excute(&cmds[0], cmds.size());
 		ino::d3d::wait();
 		Sleep(16);
 		ino::d3d::end();
@@ -537,5 +622,6 @@ int main() {
 	FreeResource(musicHandle);
 
 	ino::d3d::release();
+	ShowCursor(true);
 	return 0;
 }

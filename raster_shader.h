@@ -90,3 +90,40 @@ float4 PSMain(PSInput input) : SV_TARGET\n\
     return col;\n\
 }\n\
 ";
+
+char loading_shader[] ="\
+#define rootSig \"RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT),CBV(b0)\" \n\
+float time : register(b0);\n\
+struct PSInput {\n\
+    float4	position : SV_POSITION;\n\
+    float4	color : COLOR;\n\
+    float2	uv : TEXCOORD0;\n\
+};\n\
+float4 drawRect(float2 uv, float2 b, float2 e, float4 c, float4 bg)\n\
+{\n\
+    if (b.x < uv.x && e.x > uv.x && b.y < uv.y && e.y > uv.y)\n\
+        return c;\n\
+    return bg;\n\
+}\n\
+[RootSignature(rootSig)]\n\
+PSInput VSMain(float3 position : POSITION, float4 color : COLOR, float2 uv : TEXCOORD0) {\n\
+\n\
+    PSInput	result;\n\
+    result.position = float4(uv.x * 2.0 - 1.0, uv.y * 2.0 - 1.0, 0, 1);\n\
+    result.uv = uv;\n\
+    return result;\n\
+}\n\
+[RootSignature(rootSig)]\n\
+float4 PSMain(PSInput input) : SV_TARGET\n\
+{\n\
+    float2 uv = input.uv;\n\
+\n\
+    float4 col = float4(0.0,0.0,0.0,1.0);\n\
+    col = drawRect(uv, float2(0.1, 0.45), float2(0.9, 0.55), float4(1.0,1.0,1.0,1.0), col); \n\
+    float a = min(time, 1.0);\n\
+    float ep = 0.11 * (1.0 - a) + 0.89 * a;\n\
+    col = drawRect(uv, float2(0.11, 0.46), float2(ep, 0.54), float4(0.0, 1.0, 0.0,1.0), col);\n\
+\n\
+    return col;\n\
+}\n\
+";

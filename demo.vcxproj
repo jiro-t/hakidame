@@ -157,6 +157,7 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="dx\d3dx12.h" />
     <ClInclude Include="dx\dx.hpp" />
     <ClInclude Include="dx\dx12pipeline.hpp" />
     <ClInclude Include="dx\dx12raytrace.hpp" />
@@ -169,6 +170,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="readme.md" />
+    <None Include="resource\shop.model" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="demo.rc" />

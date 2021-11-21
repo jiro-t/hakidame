@@ -8,27 +8,14 @@
 #include <vector>
 #include <fstream>
 
+#include "d3dx12.h"
+
 namespace ino::d3d::dxr
 {
 
-/* ref:https://github.com/acmarrs/IntroToDXR
-struct RtProgram
-{
-	D3D12ShaderInfo			info = {};
-	IDxcBlob* blob = nullptr;
-
-	RtProgram() {}
-
-	RtProgram(D3D12ShaderInfo shaderInfo)
-	{
-		info = shaderInfo;
-	}
-};
-*/
 extern	::Microsoft::WRL::ComPtr<ID3D12Device5> dxrDevice;
-extern ::Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList4> dxrCommandList;
 extern ::Microsoft::WRL::ComPtr<ID3D12Resource> dxrRenderTarget;
-extern ::Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> dxrRtvHeap;
+extern ::Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> dxrHeap;
 
 BOOL InitDXRDevice();
 
@@ -37,36 +24,49 @@ struct VertexMaterial
 	DirectX::XMVECTOR albedo;
 };
 
+struct Viewport
+{
+	float left;
+	float top;
+	float right;
+	float bottom;
+};
+
 struct SceneConstant
 {
-	DirectX::XMMATRIX proj;
+	Viewport viewport;
+
+	DirectX::XMVECTOR cameraPos;
+/*	DirectX::XMMATRIX proj;
 	DirectX::XMVECTOR cameraPos;
 	DirectX::XMVECTOR lightPosition;
 	DirectX::XMVECTOR lightAmbientColor;
-	DirectX::XMVECTOR lightDiffuseColor;
+	DirectX::XMVECTOR lightDiffuseColor;*/
 };
 
+class Blas {
+	::Microsoft::WRL::ComPtr<ID3D12Resource> bottomLevelAccelerationStructure;
+	::Microsoft::WRL::ComPtr<ID3D12Resource> scratchResource;
+	std::vector<D3D12_RAYTRACING_GEOMETRY_DESC>  geometryDescs;
 
-class AccelerationStructure
-{
-	std::vector<::Microsoft::WRL::ComPtr<ID3D12Resource>> bottomLevelAccelerationStructure;
+	::Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList4> commandList;
+public:
+	void Build(StaticMesh& mesh);
+	inline ::Microsoft::WRL::ComPtr<ID3D12Resource> Get() noexcept { return bottomLevelAccelerationStructure; }
+};
+
+class Tlas {
 	::Microsoft::WRL::ComPtr<ID3D12Resource> topLevelAccelerationStructure;
-
 	::Microsoft::WRL::ComPtr<ID3D12Resource> scratchResource;
 	::Microsoft::WRL::ComPtr<ID3D12Resource> instanceDescs;
+	std::vector< std::pair<::Microsoft::WRL::ComPtr<ID3D12Resource>, DirectX::XMMATRIX> >  instanceMat;
+
+	::Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList4> commandList;
 public:
-	std::vector<D3D12_RAYTRACING_GEOMETRY_DESC>  geometryDescs;
-	std::vector< std::pair<UINT, DirectX::XMMATRIX> >  instanceMat;
-
-	inline ::Microsoft::WRL::ComPtr<ID3D12Resource> blas(UINT id) noexcept { return bottomLevelAccelerationStructure[id]; }
-	inline ::Microsoft::WRL::ComPtr<ID3D12Resource> tlas() noexcept { return topLevelAccelerationStructure; }
-
-	void ClearGeometory() noexcept;
 	void ClearInstance() noexcept;
-	void AddGeometory(StaticMesh mesh);
-	void AddInstance(UINT objID, DirectX::XMMATRIX matrix = DirectX::XMMatrixIdentity());
-	void BuildBlas();
-	void BuildTlas();
+	void AddInstance(::Microsoft::WRL::ComPtr<ID3D12Resource> blas, DirectX::XMMATRIX matrix = DirectX::XMMatrixIdentity());
+	void Build();
+	inline ::Microsoft::WRL::ComPtr<ID3D12Resource> Get() noexcept { return topLevelAccelerationStructure; }
 };
 
 class ShaderRecord
@@ -181,19 +181,9 @@ class DxrPipeline {
 	::Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> descriptorHeap = nullptr;
 	UINT descriptorSize = 0;
 
-	union AlignedSceneConstant
-	{
-		SceneConstant constants;
-		uint8_t alignmentPadding[D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT];
-	};
-	AlignedSceneConstant* mappedConstantData;
 	::Microsoft::WRL::ComPtr<ID3D12Resource> sceneConstants = nullptr;
 
-	std::vector<D3D12_STATE_SUBOBJECT> subObjs;
-	D3D12_DXIL_LIBRARY_DESC dxilLib = {};
-	D3D12_HIT_GROUP_DESC hitGroup = {};
-	D3D12_RAYTRACING_SHADER_CONFIG shaderConfig = {};
-	D3D12_RAYTRACING_PIPELINE_CONFIG pipelineConfig = {};
+	CD3DX12_STATE_OBJECT_DESC pipelineDesc = { D3D12_STATE_OBJECT_TYPE_RAYTRACING_PIPELINE };
 
 	D3D12_RESOURCE_BARRIER barrier = {};
 
@@ -208,23 +198,31 @@ class DxrPipeline {
 	UINT hitGroupShaderTableStride;
 
 	SceneConstant sceneCB[num_swap_buffers];
-	VertexMaterial materialCB;
+	//VertexMaterial materialCB;
+
+	::Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList4> dxrCommandList;
 public:
 	~DxrPipeline()
 	{
-		if (dxilLib.DXILLibrary.pShaderBytecode)
-		{
-			delete[] dxilLib.DXILLibrary.pShaderBytecode;
-			dxilLib.DXILLibrary.pShaderBytecode = nullptr;
-		}
 	}
-	D3D12_VIEWPORT view = { .MinDepth = 0.f,.MaxDepth = 1.f };
-	D3D12_RECT scissor = {};
 
+	void SetConstantBuffer(void* src, uint32_t size) {
+		memcpy(&sceneCB[currentBackBufferIndex], src, size);
+	}
 	void Create();
-	void CreateShaderTable(AccelerationStructure& as);
-	void Dispatch();
+	void CreateShaderTable(Tlas& as);
+	void Dispatch(Tlas& as);
 	void CopyToScreen();
+
+	::Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList4> Begin()
+	{
+		device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, commandAllocators[currentBackBufferIndex].Get(), nullptr, IID_PPV_ARGS(&dxrCommandList));
+		return dxrCommandList;
+	}
+	void End()
+	{
+		dxrCommandList->Close();
+	}
 };
 
 }

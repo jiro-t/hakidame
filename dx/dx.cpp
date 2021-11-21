@@ -19,7 +19,6 @@ int screen_height = 600;
 #endif
 ::Microsoft::WRL::ComPtr<IDXGISwapChain4> swapChain = nullptr;
 ::Microsoft::WRL::ComPtr<ID3D12Device5> device = nullptr;
-renderTexture renderOffscreen;
 texture renderTargets[num_swap_buffers];
 ::Microsoft::WRL::ComPtr<ID3D12CommandAllocator> commandAllocators[num_swap_buffers] = {};
 UINT currentBackBufferIndex = 0;
@@ -274,7 +273,6 @@ HRESULT init(HWND hwnd, bool useWarp, int width, int height)
 		renderTargets[i].GetHeap() = CreateDescriptorHeap(device, D3D12_DESCRIPTOR_HEAP_TYPE_RTV, 1);
 	CreateRenderTargetViews(device, swapChain);
 
-	renderOffscreen.Create(width, height, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
 	//stencil buffer
 	for (std::size_t i = 0; i < num_swap_buffers; ++i)
 	{

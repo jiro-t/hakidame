@@ -80,9 +80,15 @@
     <ClInclude Include="raster_shader.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="dx\d3dx12.h">
+      <Filter>ヘッダー ファイル\dx</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="readme.md" />
+    <None Include="resource\shop.model">
+      <Filter>リソース ファイル</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="demo.rc">
