@@ -41,22 +41,23 @@ std::vector<Camera> camPlots;
 static int camPlotsIndex = 0;
 static Camera cam;
 
+struct Plot {
+	float Time;
+
+	DirectX::XMVECTOR pos = DirectX::XMVectorSet(0, 0, 0, 0);
+	DirectX::XMVECTOR rot = DirectX::XMVectorSet(0, 0, 0, 0);
+	DirectX::XMVECTOR scale = DirectX::XMVectorSet(0, 0, 0, 0);
+	DirectX::XMMATRIX mat = DirectX::XMMatrixIdentity();
+};
+
 struct DrawObject {
-	UINT shapeID;
-	DirectX::XMMATRIX matBegin = DirectX::XMMatrixIdentity();
-	DirectX::XMMATRIX matEnd = DirectX::XMMatrixIdentity();
+	UINT shapeID = 0;
 
-	float plotTimeBegin;
-	float plotTimeEnd;
-
-	DirectX::XMVECTOR posBegin = DirectX::XMVectorSet(0, 0, 0, 0);
-	DirectX::XMVECTOR rotBegin = DirectX::XMVectorSet(0, 0, 0, 0);
-	DirectX::XMVECTOR scaleBegin = DirectX::XMVectorSet(0, 0, 0, 0);
-	DirectX::XMVECTOR posEnd = DirectX::XMVectorSet(0, 0, 0, 0);
-	DirectX::XMVECTOR rotEnd = DirectX::XMVectorSet(0, 0, 0, 0);
-	DirectX::XMVECTOR scaleEnd = DirectX::XMVectorSet(0, 0, 0, 0);
-
-
+	UINT currentPlot = 0;
+	float plotTimeEnd = 0;
+	
+	UINT plotCount = 0;
+	Plot plots[64] = {};
 	ino::d3d::cbo<DirectX::XMFLOAT4X4> cbo;
 };
 
@@ -81,7 +82,7 @@ DirectX::XMMATRIX GenModelMatrix(const point& pos, const point& rot, const point
 		);
 }
 std::vector<DrawObject> objPlots;
-static DrawObject obj;
+static DrawObject obj = {};
 
 std::vector<ino::d3d::StaticMesh> mesh;
 
@@ -212,6 +213,7 @@ DLL_EXPORT BOOL InitDxContext(HWND hwnd, UINT width, UINT height)
 	camPlots.reserve(2048);
 	objPlots.reserve(2048);
 
+	obj.cbo.Create();
 	mvpCBO.Create();
 
 	u_cbo.Create();
@@ -219,14 +221,15 @@ DLL_EXPORT BOOL InitDxContext(HWND hwnd, UINT width, UINT height)
 	ti_cbo.Create();
 	offscreen_cbo.Create();
 	//load default shape
-	//std::ifstream ifs("sponza.obj");
 	mesh.push_back(ino::shape::CreateCube() );
 	mesh.push_back(ino::shape::CreateQuad());
 	//mesh.push_back(ino::gfx::obj::load_obj(ifs) );
+	//std::ifstream ifs("resource/shop.model");
+	//mesh.push_back(ino::gfx::obj::load_obj(ifs));
 	mesh.push_back(ino::shape::CreateCharMesh(L'‚¤', L"‚l‚r –¾’©"));
 	mesh.push_back(ino::shape::CreateCharMesh(L'‚ñ', L"‚l‚r –¾’©"));
 	mesh.push_back(ino::shape::CreateCharMesh(L'‚¿', L"‚l‚r –¾’©"));
-	mesh.push_back(ino::shape::CreateTestModel());
+	//mesh.push_back(ino::shape::CreateTestModel());));
 
 	return ret;
 }
@@ -271,7 +274,7 @@ DLL_EXPORT BOOL DxContextFlush()
 	DX::XMFLOAT4X4 Mat;
 	DX::XMStoreFloat4x4(&Mat, XMMatrixTranspose(model * view * projection));
 	
-	ID3D12GraphicsCommandList4* cmds[_countof(pipe)] = {};
+	ID3D12GraphicsCommandList* cmds[_countof(pipe)] = {};
 	ino::d3d::begin();
 	static const FLOAT clearColor[] = { 0.4f, 0.6f, 0.9f, 1.0f };
 	static const FLOAT clearColor2[] = { 1.f, 0.f, 0.f, 1.0f };
@@ -284,18 +287,23 @@ DLL_EXPORT BOOL DxContextFlush()
 	pipe[0].Clear(clearColor);
 	for (auto& val : objPlots)
 	{
-		if (val.plotTimeBegin <= t && val.plotTimeEnd >= t)
+		if (val.plotCount < 2)
+			continue;
+		int currentPlot = 0;
+		for (int i = 0; i < val.plotCount - 1; ++i)
 		{
-			const float w = val.plotTimeEnd - val.plotTimeBegin;
-			const float ab = std::min(1.f, (val.plotTimeEnd - t) / w);
-			model = val.matBegin*(ab) + val.matEnd*(1.f - ab);
-			DX::XMStoreFloat4x4(&Mat, XMMatrixTranspose(model * view * projection));
-			
-			val.cbo.Set(cmds[0], Mat, 0);
-			mesh[val.shapeID].Draw(cmds[0]);
+			if(val.plots[i].Time <= t && val.plots[i + 1].Time >= t)
+				currentPlot = i;
 		}
+
+		const float w = val.plots[currentPlot +1].Time - val.plots[currentPlot].Time;
+		const float ab = std::min(1.f, (val.plotTimeEnd - t) / w);
+		model = val.plots[currentPlot].mat *(ab) +val.plots[currentPlot+1].mat *(1.f - ab);
+		DX::XMStoreFloat4x4(&Mat, XMMatrixTranspose(model * view * projection));
+		val.cbo.Set(cmds[0], Mat, 0);
+		mesh[val.shapeID].Draw(cmds[0]);
 	}
-	model = obj.matBegin;
+	model = obj.plots[0].mat;
 	DX::XMStoreFloat4x4(&Mat, XMMatrixTranspose(model * view * projection));
 	mvpCBO.Set(cmds[0], Mat, 0);
 	mesh[obj.shapeID].Draw(cmds[0]);
@@ -316,12 +324,12 @@ DLL_EXPORT BOOL DxContextFlush()
 	mesh[4].Draw(cmds[0]);
 	pipe[0].End();
 
-	model = GenModelMatrix(point(0, 0, 0, 10), point(0, 0, 0, 0), point(1, 1, 1, 1));
-	DX::XMStoreFloat4x4(&Mat, XMMatrixTranspose(model * view * projection));
+	//model = GenModelMatrix(point(0, 0, 0, 10), point(0, 0, 0, 0), point(1, 1, 1, 1));
+	//DX::XMStoreFloat4x4(&Mat, XMMatrixTranspose(model * view * projection));
 	cmds[1] = pipe[1].Begin();
-	offscreen_cbo.Set(cmds[1], Mat, 0);
-	ino::d3d::renderOffscreen.Set(cmds[1], 1);
-	mesh[1].Draw(cmds[1]);
+	//offscreen_cbo.Set(cmds[1], Mat, 0);
+	//ino::d3d::renderOffscreen.Set(cmds[1], 1);
+	//mesh[1].Draw(cmds[1]);
 	pipe[1].End();
 
 	ino::d3d::excute(cmds, _countof(pipe));
@@ -417,64 +425,66 @@ DLL_EXPORT void SetCurrentObject(UINT shape, point pos, point rot,point sc)
 {
 	namespace DX = DirectX;
 	obj.shapeID = shape;
-	obj.matBegin = GenModelMatrix(pos, rot, sc);
+	obj.plots[0].mat = GenModelMatrix(pos, rot, sc);
 }
 
-DLL_EXPORT void AddPlotObject(UINT shape, UINT objectID,point pos, point rot, point sc,UINT ti)
+DLL_EXPORT void AddObject(UINT shape, UINT objectID,point pos, point rot, point sc,UINT ti)
 {
 	DrawObject obj = {
 		.shapeID = shape,
-		.matBegin = GenModelMatrix(pos, rot, sc),
-		.matEnd = GenModelMatrix(pos, rot, sc),
-		.plotTimeBegin = ti / frameTime,
-		.plotTimeEnd = ti / frameTime
 	};
 
-	obj.posBegin = Point2XmVec(pos);
-	obj.rotBegin = Point2XmVec(rot);
-	obj.scaleBegin = Point2XmVec(sc);
-
-	obj.posEnd = Point2XmVec(pos);
-	obj.rotEnd = Point2XmVec(rot);
-	obj.scaleEnd = Point2XmVec(sc);
-
+	obj.plots[0].scale = DirectX::XMVectorSet(1, 1, 1, 1);
 	obj.cbo.Create();
-	
 	objPlots.push_back(obj);
 }
 
-DLL_EXPORT void SetPlotObject(
-	UINT objectID,UINT isBegin,
+DLL_EXPORT void SetObject(
+	UINT objectID,UINT index,
 	point pos, point rot, point sc, UINT ti)
 {
-	std::wcout << objectID << (isBegin ? L" BEGIN-" : L"END- ") << objPlots.size() << std::endl;
 	if (objectID < objPlots.size())
 	{
-		if (isBegin)
-		{
-			objPlots[objectID].matBegin = GenModelMatrix(pos, rot, sc);
-			objPlots[objectID].plotTimeBegin = ti / frameTime;
+		objPlots[objectID].plots[index].mat = GenModelMatrix(pos, rot, sc);
+		objPlots[objectID].plots[index].Time = ti / frameTime;
 
-			objPlots[objectID].posBegin = Point2XmVec(pos);
-			objPlots[objectID].rotBegin = Point2XmVec(rot);
-			objPlots[objectID].scaleBegin = Point2XmVec(sc);
-		}
-		else
-		{
-			objPlots[objectID].matEnd = GenModelMatrix(pos, rot, sc);
-			objPlots[objectID].plotTimeEnd = ti / frameTime;
+		objPlots[objectID].plots[index].pos = Point2XmVec(pos);
+		objPlots[objectID].plots[index].rot = Point2XmVec(rot);
+		objPlots[objectID].plots[index].scale = Point2XmVec(sc);
 
-			objPlots[objectID].posEnd = Point2XmVec(pos);
-			objPlots[objectID].rotEnd = Point2XmVec(rot);
-			objPlots[objectID].scaleEnd = Point2XmVec(sc);
-		}
+		objPlots[objectID].plotCount = std::max(index, objPlots[objectID].plotCount);
+		objPlots[objectID].plotTimeEnd = std::max(objPlots[objectID].plotTimeEnd,ti/frameTime);
 	}
 }
 
-DLL_EXPORT void DelPlotObject(UINT objectID)
+DLL_EXPORT void DelObject(UINT objectID)
 {
 	if ( objectID < objPlots.size() )
 		objPlots.erase(objPlots.begin()+objectID);
+}
+
+DLL_EXPORT void DelPlot(UINT objectID,UINT index)
+{
+	if (objPlots[objectID].plotCount > index)
+	{
+		for (int i = index; i < objPlots[objectID].plotCount - 1; ++i)
+			objPlots[objectID].plots[i] = objPlots[objectID].plots[i + 1];
+		objPlots[objectID].plotCount -= 1;
+
+		float t = 0.0f;
+		for (int i = 0; i < objPlots[objectID].plotCount; ++i)
+		{
+			t = std::max(objPlots[objectID].plotTimeEnd,t);
+		}
+		objPlots[objectID].plotTimeEnd = t;
+	}
+}
+
+DLL_EXPORT UINT PlotCount(UINT objectID)
+{
+	if (objPlots.size() <= objectID)
+		return 0;
+	return objPlots[objectID].plotCount;
 }
 
 DLL_EXPORT UINT GetPlotShape(UINT id)
@@ -484,30 +494,30 @@ DLL_EXPORT UINT GetPlotShape(UINT id)
 	return 0;
 }
 
-DLL_EXPORT point GetPlotPos(UINT id, UINT isBegin)
+DLL_EXPORT point GetPlotPos(UINT id, UINT index)
 {
 	if (id < objPlots.size())
-		return XMVec2Point( isBegin ? objPlots[id].posBegin : objPlots[id].posEnd );
+		return XMVec2Point( objPlots[id].plots[index].pos );
 	return point{};
 }
 
-DLL_EXPORT point GetPlotRot(UINT id,UINT isBegin)
+DLL_EXPORT point GetPlotRot(UINT id,UINT index)
 {
 	if (id < objPlots.size())
-		return XMVec2Point(isBegin ? objPlots[id].rotBegin : objPlots[id].rotEnd);
+		return XMVec2Point( objPlots[id].plots[index].rot );
 	return point{};
 }
 
-DLL_EXPORT point GetPlotScale(UINT id,UINT isBegin)
+DLL_EXPORT point GetPlotScale(UINT id,UINT index)
 {
 	if (id < objPlots.size())
-		return XMVec2Point(isBegin ? objPlots[id].scaleBegin : objPlots[id].scaleEnd);
+		return XMVec2Point(objPlots[id].plots[index].scale);
 	return point{};
 }
 
-DLL_EXPORT UINT GetPlotTime(UINT id,UINT isBegin)
+DLL_EXPORT UINT GetPlotTime(UINT id,UINT index)
 {
 	if (id < objPlots.size())
-		return (isBegin ? objPlots[id].plotTimeBegin : objPlots[id].plotTimeEnd) * frameTime;
+		return ( objPlots[id].plots[index].Time) * frameTime;
 	return 0;
 }

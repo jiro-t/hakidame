@@ -94,7 +94,8 @@ type MFrame (title : string,timeLength : int) as this =
         let objScaleUI = new Edit3DPosition("object_scale",this.Width - 280,220,this.Controls)
         let resetPlotBtn = new Button(Text = "reset",Left = this.Width - 65,Top = 140,Width = 45,Height = 20)
         let keyboardToObjChk = new CheckBox(Text = "keyObj",Left = this.Width - 160,Top = 142,Width = 105,Height = 20)
-        let objPlot = new PlotManager("obj_plot",this.Width - 200,260,this.Controls)
+        let objects = new PlotManager("obj_plot",this.Width - 200,260,this.Controls)
+        let objPlot_t = new PlotManager("obj_plot_t",this.Width - 200,285,this.Controls)
         let modelID = new PlotManager("model_id",this.Width - 200,310,this.Controls)
         let mutable camPos = vec(x = 0.f,y = 0.f,z = -1.f,w = 0.f)
         let mutable camTar = vec(x = 0.f,y = 0.f,z = 1.f,w = 0.f)
@@ -123,8 +124,8 @@ type MFrame (title : string,timeLength : int) as this =
                         ti.ToString() + "\n"
                     )
                 //object
-                File.AppendAllText(dlg.FileName,(objPlot.Count()/2).ToString()+"\n")
-                for i = 0 to objPlot.Count()/2 - 1 do 
+                File.AppendAllText(dlg.FileName,(objects.Count).ToString()+"\n")
+                for i = 0 to objects.Count() do 
                     for j = 0 to 1 do
                         let isBegin = System.Convert.ToInt32( j < 1 )
                         let p = GetPlotPos(i,isBegin)
@@ -150,10 +151,9 @@ type MFrame (title : string,timeLength : int) as this =
                 for i = 0 to camPlot.Count()-1 do 
                     DelPlotCamera(i)
                     camPlot.DelItem(i)
-                for i = 0 to objPlot.Select/2 - 1 do 
-                    DelPlotObject( objPlot.Select/2 ) 
-                    objPlot.DelItem(i+1)
-                    objPlot.DelItem(i)
+                for i = 0 to objects.Count()-1 do 
+                    DelObject(i) 
+                    objects.DelItem(i)
                 //create
                 let toFloat(x : string)= float32( System.Convert.ToDouble(x) )
                 let line = File.ReadAllLines(dlg.FileName)
@@ -175,10 +175,10 @@ type MFrame (title : string,timeLength : int) as this =
                     let shape = System.Convert.ToInt32(value.[9])
                     let ti = System.Convert.ToInt32(value.[10])
                     if i % 2 = 1 then
-                        SetPlotObject(i/2,0,p,r,s,ti)
+                        SetObject(i/2,0,p,r,s,ti)
                     else
-                        AddPlotObject(shape,-1,p,r,s,ti)
-                    objPlot.AddItem
+                        AddObject(shape,-1,p,r,s,ti)
+                    objects.AddItem
         //--LoadFile
 
         //Construct
@@ -286,34 +286,67 @@ type MFrame (title : string,timeLength : int) as this =
                 timeScroll.Value <- time;
                 timeCaption.Text <- time.ToString()
             )
-            objPlot.Add(fun _ -> 
-                objPlot.AddItemText "_be"
-                objPlot.AddItemText "_en"
-                AddPlotObject(
-                    modelID.Select, (if objPlot.Select > 0 then objPlot.Select/2 else -1) ,
+            objects.Add(fun _ -> 
+                if objPlot_t.Count() > 0 then do
+                    for i = 0 to objPlot_t.Count() do
+                        if objPlot_t.Select > 0 then do
+                            DelPlot(objects.Select,objPlot_t.Count())
+                            objPlot_t.DelItem(i)
+                else
+                    objPlot_t.AddItem
+                    objPlot_t.SetValue (objPlot_t.Count() - 1)
+                    SetObject(
+                        modelID.Select, objPlot_t.Count() ,
+                        objPosUI.xyz,objRotUI.xyz,objScaleUI.xyz,time) 
+                objects.AddItemText (":"+modelID.Select.ToString())
+                objects.SetValue (objects.Count() - 1)
+                AddObject(
+                    modelID.Select, objects.Select ,
                     objPosUI.xyz,objRotUI.xyz,objScaleUI.xyz,time) 
                 )
-            objPlot.Del(fun _ -> do
-                DelPlotObject( objPlot.Select/2 ) 
-                let index = objPlot.Select - (objPlot.Select%2)
-                objPlot.DelItem(index+1)
-                objPlot.DelItem(index)
+            objects.Del(fun _ -> do
+                DelObject( objects.Select ) 
+                objects.DelItem(objects.Select)
             )
-            objPlot.Set(fun _-> do
-                let isBegin = (objPlot.Select+1)%2
-                SetPlotObject(objPlot.Select/2,isBegin,objPosUI.xyz,objRotUI.xyz,objScaleUI.xyz,time)
+            let mutable beforeIndex = 0
+            objects.SelectedIndexChanged(fun _ -> do
+                if( beforeIndex >= 0 ) then do
+                    if PlotCount(objects.Select) > 0 then do
+                        for i = 0 to objPlot_t.Count() do
+                            DelPlot(beforeIndex,i)
+                            objPlot_t.DelItem(i)
+                        for i = 0 to PlotCount(objects.Select) do objPlot_t.AddItem;
+                else
+                    beforeIndex <- objects.Select
             )
-            objPlot.SelectedIndexChanged(fun _ -> do
-                let pos = GetPlotPos(objPlot.Select/2,(objPlot.Select+1)%2)
-                let rot = GetPlotRot(objPlot.Select/2,(objPlot.Select+1)%2)
-                let scale = GetPlotScale(objPlot.Select/2,(objPlot.Select+1)%2)
-                time <- GetPlotTime(objPlot.Select/2,(objPlot.Select+1)%2)
-                objPosUI.setValue(pos.x,pos.y,pos.z)
-                objRotUI.setValue(rot.x,rot.y,rot.z)
-                objScaleUI.setValue(scale.x,scale.y,scale.z)
-                timeScroll.Value <- time;
-                timeCaption.Text <- time.ToString()
+            //objPlots
+            objPlot_t.Add(fun _ -> do
+                    objPlot_t.AddItem
+                    objPlot_t.SetValue (objPlot_t.Count() - 1)
+                    SetObject(
+                        modelID.Select, objPlot_t.Count() ,
+                        objPosUI.xyz,objRotUI.xyz,objScaleUI.xyz,time) 
             )
+            objPlot_t.Del(fun _ -> if objPlot_t.Count() > 1 then  do
+                    DelPlot( objects.Select ,objPlot_t.Select ) 
+                    let index = objPlot_t.Select
+                    objPlot_t.DelItem(index)
+            )
+            objPlot_t.Set(fun _-> do
+                    SetObject(objects.Select,objPlot_t.Select,objPosUI.xyz,objRotUI.xyz,objScaleUI.xyz,time)
+            )
+            objPlot_t.SelectedIndexChanged(fun _ -> do
+                    let pos = GetPlotPos(objects.Select,objPlot_t.Select)
+                    let rot = GetPlotRot(objects.Select,objPlot_t.Select)
+                    let scale = GetPlotScale(objects.Select,objPlot_t.Select)
+                    time <- GetPlotTime(objects.Select,objPlot_t.Select)
+                    objPosUI.setValue(pos.x,pos.y,pos.z)
+                    objRotUI.setValue(rot.x,rot.y,rot.z)
+                    objScaleUI.setValue(scale.x,scale.y,scale.z)
+                    timeScroll.Value <- time;
+                    timeCaption.Text <- time.ToString()
+            )
+
             modelID.Add( fun _ -> do
                 modelID.AddItem
             )

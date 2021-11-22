@@ -33,17 +33,19 @@ DLL_EXPORT void AddPlotCamera(UINT id, point pos, point tar, point up, UINT t);
 DLL_EXPORT void DelPlotCamera(UINT id);
 
 DLL_EXPORT void SetCurrentObject(UINT shape, point pos, point rot,point sc);
-DLL_EXPORT void AddPlotObject(UINT shape,UINT objectID,
+DLL_EXPORT void AddObject(UINT shape,UINT objectID,
 	point pos, point rot, point sc,UINT ti);
-DLL_EXPORT void SetPlotObject(
+DLL_EXPORT void SetObject(
 	UINT objectID, UINT isBegin,
 	point pos, point rot, point sc, UINT ti);
-DLL_EXPORT void DelPlotObject(UINT objectID);
+DLL_EXPORT void DelObject(UINT objectID);
+DLL_EXPORT void DelPlot(UINT objectID, UINT index);
+DLL_EXPORT UINT PlotCount(UINT objectID);
 DLL_EXPORT UINT GetPlotShape(UINT id);
-DLL_EXPORT point GetPlotPos(UINT id, UINT isBegin);
-DLL_EXPORT point GetPlotRot(UINT id, UINT isBegin);
-DLL_EXPORT point GetPlotScale(UINT id, UINT isBegin);
-DLL_EXPORT UINT GetPlotTime(UINT id, UINT isBegin);
+DLL_EXPORT point GetPlotPos(UINT id, UINT index);
+DLL_EXPORT point GetPlotRot(UINT id, UINT index);
+DLL_EXPORT point GetPlotScale(UINT id, UINT index);
+DLL_EXPORT UINT GetPlotTime(UINT id, UINT index);
 
 //DLL_EXPORT BOOL PushCameraPlot(point3d pos, point3d target);
 //DLL_EXPORT UINT GetLastCameraID();

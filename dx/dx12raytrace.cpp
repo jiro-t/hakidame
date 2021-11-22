@@ -619,6 +619,9 @@ void DxrPipeline::Create()
 	descriptorHeapDesc.NodeMask = 0;
 	device->CreateDescriptorHeap(&descriptorHeapDesc, IID_PPV_ARGS(&descriptorHeap));
 	descriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+	//Buffer Object
+	sceneConstantBuffer.Create();
 }
 
 void DxrPipeline::CreateShaderTable(Tlas& as)
@@ -640,7 +643,7 @@ void DxrPipeline::CreateShaderTable(Tlas& as)
 		UINT numShaderRecords = 1;
 		UINT shaderRecordSize = shaderIdentifierSize + sizeof(sceneCB);
 		ShaderTable rayGenShaderTable(device.Get(), numShaderRecords, shaderRecordSize, L"RayGenShaderTable");
-		rayGenShaderTable.push_back(ShaderRecord(rayGenShaderIdentifier, shaderIdentifierSize, &sceneCB[currentBackBufferIndex], sizeof(sceneCB)));
+		rayGenShaderTable.push_back(ShaderRecord(rayGenShaderIdentifier, shaderIdentifierSize, &sceneCB, sizeof(sceneCB)));
 		rayGenShaderTableStride = rayGenShaderTable.GetShaderRecordSize();
 		resRayGenShaderTable = rayGenShaderTable.GetResource();
 	}
@@ -698,6 +701,7 @@ void DxrPipeline::CreateShaderTable(Tlas& as)
 void DxrPipeline::Dispatch(Tlas&as)
 {
 	dxrCommandList->SetComputeRootSignature(globalRootSignature.Get());
+	sceneConstantBuffer.SetToCompute(dxrCommandList.Get(),sceneCB,0);
 
 	dxrCommandList->SetDescriptorHeaps(1, dxrHeap.GetAddressOf());
 	dxrCommandList->SetComputeRootDescriptorTable(0, dxrHeap->GetGPUDescriptorHandleForHeapStart());

@@ -197,7 +197,8 @@ class DxrPipeline {
 	UINT missShaderTableStride;
 	UINT hitGroupShaderTableStride;
 
-	SceneConstant sceneCB[num_swap_buffers];
+	SceneConstant sceneCB;
+	cbo<SceneConstant>	sceneConstantBuffer;
 	//VertexMaterial materialCB;
 
 	::Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList4> dxrCommandList;
@@ -207,7 +208,7 @@ public:
 	}
 
 	void SetConstantBuffer(void* src, uint32_t size) {
-		memcpy(&sceneCB[currentBackBufferIndex], src, size);
+		memcpy(&sceneCB, src, size);
 	}
 	void Create();
 	void CreateShaderTable(Tlas& as);

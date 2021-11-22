@@ -86,6 +86,25 @@ public:
 
 		cmdList->SetGraphicsRootConstantBufferView(reg, buffer->GetGPUVirtualAddress());
 	}
+
+	void SetToCompute(ID3D12GraphicsCommandList4* cmdList, T& data, UINT reg)
+	{
+		if (pDataBegin == nullptr)
+		{
+			UINT size = d3d_cb_align(sizeof(T));
+			D3D12_CONSTANT_BUFFER_VIEW_DESC bufferDesc = {
+				.BufferLocation = buffer->GetGPUVirtualAddress(),
+				.SizeInBytes = size
+			};
+
+			device->CreateConstantBufferView(&bufferDesc, heap->GetCPUDescriptorHandleForHeapStart());
+
+			buffer->Map(0, nullptr, reinterpret_cast<void**>(&pDataBegin));
+		}
+		memcpy(pDataBegin, &data, sizeof(data));
+
+		cmdList->SetComputeRootConstantBufferView(reg, buffer->GetGPUVirtualAddress());
+	}
 };
 
 class texture {

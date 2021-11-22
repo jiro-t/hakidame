@@ -57,14 +57,20 @@ extern int GetCurrentCameraTime(int id)
 [<DllImport("ino_dll.Dll", EntryPoint="SetCurrentObject",CallingConvention = CallingConvention.Cdecl)>]
 extern void SetCurrentObject(int, vec, vec, vec)
 
-[<DllImport("ino_dll.Dll", EntryPoint="AddPlotObject",CallingConvention = CallingConvention.Cdecl)>]
-extern void AddPlotObject(int,int, vec, vec, vec,int)
+[<DllImport("ino_dll.Dll", EntryPoint="AddObject",CallingConvention = CallingConvention.Cdecl)>]
+extern void AddObject(int,int, vec, vec, vec,int)
 
-[<DllImport("ino_dll.Dll", EntryPoint="SetPlotObject",CallingConvention = CallingConvention.Cdecl)>]
-extern void SetPlotObject(int,int,vec,vec,vec,int);
+[<DllImport("ino_dll.Dll", EntryPoint="SetObject",CallingConvention = CallingConvention.Cdecl)>]
+extern void SetObject(int,int,vec,vec,vec,int);
 
-[<DllImport("ino_dll.Dll", EntryPoint="DelPlotObject",CallingConvention = CallingConvention.Cdecl)>]
-extern void DelPlotObject(int)
+[<DllImport("ino_dll.Dll", EntryPoint="DelObject",CallingConvention = CallingConvention.Cdecl)>]
+extern void DelObject(int)
+
+[<DllImport("ino_dll.Dll", EntryPoint="DelPlot",CallingConvention = CallingConvention.Cdecl)>]
+extern void DelPlot(int,int)
+
+[<DllImport("ino_dll.Dll", EntryPoint="PlotCount",CallingConvention = CallingConvention.Cdecl)>]
+extern int PlotCount(int)
 
 [<DllImport("ino_dll.Dll", EntryPoint="GetPlotShape",CallingConvention = CallingConvention.Cdecl)>]
 extern int GetPlotShape(int);
