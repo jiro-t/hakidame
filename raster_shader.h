@@ -127,3 +127,107 @@ float4 PSMain(PSInput input) : SV_TARGET\n\
     return col;\n\
 }\n\
 ";
+
+char post_shader[] = "\
+#define rootSig \"RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT),CBV(b0),DescriptorTable(SRV(t0)),DescriptorTable(SRV(t1)),StaticSampler(s0) \"\n \
+float time : register(b0);\n\
+Texture2D<float4> tex_ : register(t0);\
+Texture2D<float4> tex2_ : register(t1);\
+SamplerState samp_ : register(s0);\
+struct PSInput {\n\
+    float4	position : SV_POSITION;\n\
+    float4	uv : TEXCOORD0;\n\
+};\n\
+[RootSignature(rootSig)]\n\
+PSInput VSMain(float4 position : POSITION, float4 color : COLOR, float4 uv : TEXCOORD0) {\n\
+\n\
+    PSInput	result;\n\
+    result.position = float4(uv.x * 2.0 - 1.0, uv.y * 2.0 - 1.0, 0, 1);\n\
+    result.uv = float4(uv.x,1.0 - uv.y,0,0);\n\
+    return result;\n\
+}\n\
+[RootSignature(rootSig)]\n\
+float4 PSMain(PSInput input) : SV_TARGET\n\
+{\n\
+    float2 uv = input.uv;\n\
+    float4 col = (tex_.Sample(samp_, input.uv) + tex2_.Sample(samp_, input.uv))*0.5;\n\
+\n\
+    return col;\n\
+}\n\
+";
+
+HRESULT create_pipeline_tex_gen1(ino::d3d::pipeline& pipe)
+{
+    pipe.LoadShader(ino::d3d::ShaderTypes::VERTEX_SHADER, tex_gen_shader1, sizeof(tex_gen_shader1), L"VSMain");
+    pipe.LoadShader(ino::d3d::ShaderTypes::FRAGMENT_SHADER, tex_gen_shader1, sizeof(tex_gen_shader1), L"PSMain");
+
+    D3D12_INPUT_ELEMENT_DESC elementDescs[] = {
+        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+        { "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, sizeof(float) * 3, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0,sizeof(float) * 3 + sizeof(float) * 4, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+    };
+    pipe.Create(elementDescs, 3);
+
+    pipe.view = {
+        .Width = static_cast<FLOAT>(ino::d3d::screen_width),
+        .Height = static_cast<FLOAT>(ino::d3d::screen_height),
+    };
+    pipe.scissor = {
+        .right = ino::d3d::screen_width,
+        .bottom = ino::d3d::screen_height
+    };
+
+    return S_OK;
+}
+
+HRESULT create_pipeline_loading(ino::d3d::pipeline& pipe)
+{
+    pipe.LoadShader(ino::d3d::ShaderTypes::VERTEX_SHADER, loading_shader, sizeof(loading_shader), L"VSMain");
+    pipe.LoadShader(ino::d3d::ShaderTypes::FRAGMENT_SHADER, loading_shader, sizeof(loading_shader), L"PSMain");
+
+    D3D12_INPUT_ELEMENT_DESC elementDescs[] = {
+        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+        { "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, sizeof(float) * 3, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0,sizeof(float) * 3 + sizeof(float) * 4, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+    };
+    pipe.Create(elementDescs, 3);
+
+    pipe.view = {
+        .Width = static_cast<FLOAT>(ino::d3d::screen_width),
+        .Height = static_cast<FLOAT>(ino::d3d::screen_height),
+    };
+    pipe.scissor = {
+        .right = ino::d3d::screen_width,
+        .bottom = ino::d3d::screen_height
+    };
+
+    return S_OK;
+}
+
+HRESULT create_pipeline_postProcess(ino::d3d::pipeline& pipe)
+{
+    pipe.LoadShader(ino::d3d::ShaderTypes::VERTEX_SHADER, post_shader, sizeof(post_shader), "VSMain");
+    pipe.LoadShader(ino::d3d::ShaderTypes::FRAGMENT_SHADER, post_shader, sizeof(post_shader), "PSMain");
+
+    D3D12_INPUT_ELEMENT_DESC elementDescs[] = {
+        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+        { "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, sizeof(float) * 3, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0,sizeof(float) * 3 + sizeof(float) * 4, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+    };
+    D3D12_FILTER filter[] = { D3D12_FILTER::D3D12_FILTER_MIN_POINT_MAG_MIP_LINEAR };
+    D3D12_TEXTURE_ADDRESS_MODE warp[] = { D3D12_TEXTURE_ADDRESS_MODE::D3D12_TEXTURE_ADDRESS_MODE_CLAMP };
+    pipe.CreateSampler(1, filter, warp);
+
+    pipe.Create(elementDescs, 3);
+
+    pipe.view = {
+        .Width = static_cast<FLOAT>(ino::d3d::screen_width),
+        .Height = static_cast<FLOAT>(ino::d3d::screen_height),
+    };
+    pipe.scissor = {
+        .right = ino::d3d::screen_width,
+        .bottom = ino::d3d::screen_height
+    };
+
+    return S_OK;
+}

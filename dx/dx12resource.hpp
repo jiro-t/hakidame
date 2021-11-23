@@ -149,6 +149,7 @@ public:
 	void Draw(ID3D12GraphicsCommandList* cmdList) const;
 
 	D3D12_GPU_VIRTUAL_ADDRESS GetGPUVirtualAddress() { return buffer->GetGPUVirtualAddress(); }
+	::Microsoft::WRL::ComPtr<ID3D12Resource> GetResource() { return buffer; }
 };
 
 class vbo {
@@ -163,6 +164,7 @@ public:
 	void Draw(ID3D12GraphicsCommandList* cmdList,ibo const& index) const;
 
 	D3D12_GPU_VIRTUAL_ADDRESS GetGPUVirtualAddress() { return buffer->GetGPUVirtualAddress(); }
+	::Microsoft::WRL::ComPtr<ID3D12Resource> GetResource() { return buffer; }
 };
 
 struct ByteCode {

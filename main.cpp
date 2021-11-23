@@ -18,6 +18,7 @@ float local_time = 0.f;
 #include <vector>
 
 #include <chrono>
+#include "gfx/font.hpp"
 #include "gfx/obj_loader.hpp"
 
 #include "resource.h"
@@ -47,89 +48,89 @@ uint32_t tri_i[] =
 };
 float tri_v[] =
 {
-	0, -0.7f, 1,
-	-0.7f, 0,7, 1 ,
-	0.7f, 0,7, 1
+	0,-1,1,1, 1,0,0,1, 0,0,0,0,
+   -1, 1,0,1, 0,1,0,1, 0,0,0,0,
+	1, 1,0,1, 0,0,1,1, 0,0,0,0
 };
 
 namespace DX = DirectX;
 DX::XMVECTOR cornelBox[] = {
 	//floor
-	DX::XMVectorSet(552.8f, 0, 0, 1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
-	DX::XMVectorSet(0, 0, 0, 1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
-	DX::XMVectorSet(0, 0, 559.2f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
-	DX::XMVectorSet(549.6f, 0, 559.2f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(552.8f, 0, 0, 1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(0, 0, 0, 1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(0, 0, 559.2f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(549.6f, 0, 559.2f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 	//ceiling
-	DX::XMVectorSet(552.8f, 548.8f, 0, 1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
-	DX::XMVectorSet(0, 548.8f, 0, 1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
-	DX::XMVectorSet(0, 548.8f, 559.2f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
-	DX::XMVectorSet(549.6f, 548.8f, 559.2f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(552.8f, 548.8f, 0, 1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(0, 548.8f, 0, 1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(0, 548.8f, 559.2f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(549.6f, 548.8f, 559.2f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 	//back-wall
-	DX::XMVectorSet(549.6f, 0, 559.2f, 1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
-	DX::XMVectorSet(0, 0, 559.2f, 1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
-	DX::XMVectorSet(0, 548.8f, 559.2f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
-	DX::XMVectorSet(549.6f, 548.8f, 559.2f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(549.6f, 0, 559.2f, 1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(0, 0, 559.2f, 1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(0, 548.8f, 559.2f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(549.6f, 548.8f, 559.2f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 	//right-wall
-	DX::XMVectorSet(0, 0, 559.2f, 1),DX::XMVectorSet(0,1.0f,0,1.0f),
-	DX::XMVectorSet(0, 0, 0, 1),DX::XMVectorSet(0,1.0f,0,1.0f),
-	DX::XMVectorSet(0, 548.8f, 0,1),DX::XMVectorSet(0,1.0f,0,1.0f),
-	DX::XMVectorSet(0, 548.8f, 559.2f,1),DX::XMVectorSet(0,1.0f,0,1.0f),
+	DX::XMVectorSet(0, 0, 559.2f, 1),DX::XMVectorSet(0,1.0f,0,1.0f),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(0, 0, 0, 1),DX::XMVectorSet(0,1.0f,0,1.0f),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(0, 548.8f, 0,1),DX::XMVectorSet(0,1.0f,0,1.0f),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(0, 548.8f, 559.2f,1),DX::XMVectorSet(0,1.0f,0,1.0f),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 	//left-wall
-	DX::XMVectorSet(552.8f, 0, 0,1),DX::XMVectorSet(1.0f,0,0,1.0f),
-	DX::XMVectorSet(549.6f, 0, 559.2f,1),DX::XMVectorSet(1.0f,0,0,1.0f),
-	DX::XMVectorSet(556.0f, 548.8f, 559.2f,1),DX::XMVectorSet(1.0f,0,0,1.0f),
-	DX::XMVectorSet(556.0f, 548.8f, 0,1),DX::XMVectorSet(1.0f,0,0,1.0f),
+	DX::XMVectorSet(552.8f, 0, 0,1),DX::XMVectorSet(1.0f,0,0,1.0f),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(549.6f, 0, 559.2f,1),DX::XMVectorSet(1.0f,0,0,1.0f),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(556.0f, 548.8f, 559.2f,1),DX::XMVectorSet(1.0f,0,0,1.0f),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(556.0f, 548.8f, 0,1),DX::XMVectorSet(1.0f,0,0,1.0f),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 	//rectangle - 1-1
-	DX::XMVectorSet(130.0f, 165.0f,  65.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
-	DX::XMVectorSet(82.0f,  165.0f, 225.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
-	DX::XMVectorSet(240.0f, 165.0f, 272.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
-	DX::XMVectorSet(290.0f, 165.0f, 114.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(130.0f, 165.0f,  65.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(82.0f,  165.0f, 225.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(240.0f, 165.0f, 272.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(290.0f, 165.0f, 114.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 	//rectangle - 1-2
-	DX::XMVectorSet(290.0f,   0, 114.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
-	DX::XMVectorSet(290.0f, 165.0f, 114.0,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
-	DX::XMVectorSet(240.0f, 165.0f, 272.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
-	DX::XMVectorSet(240.0f, 0, 272.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(290.0f,   0, 114.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(290.0f, 165.0f, 114.0,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(240.0f, 165.0f, 272.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(240.0f, 0, 272.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 	//rectangle - 1-3
-	DX::XMVectorSet(130.0f, 0, 65.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
-	DX::XMVectorSet(130.0f, 165.0f, 65.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
-	DX::XMVectorSet(290.0f, 165.0f, 114.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
-	DX::XMVectorSet(290.0f, 0, 114.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(130.0f, 0, 65.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(130.0f, 165.0f, 65.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(290.0f, 165.0f, 114.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(290.0f, 0, 114.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 	//rectangle - 1-4
-	DX::XMVectorSet(82.0f, 0, 225.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
-	DX::XMVectorSet(82.0f, 165.0f, 225.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
-	DX::XMVectorSet(130.0f, 165.0f, 65.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
-	DX::XMVectorSet(130.0f,  0, 65.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(82.0f, 0, 225.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(82.0f, 165.0f, 225.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(130.0f, 165.0f, 65.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(130.0f,  0, 65.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 	//rectangle - 1-5
-	DX::XMVectorSet(240.0f, 0, 272.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
-	DX::XMVectorSet(240.0f, 165.0f, 272.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
-	DX::XMVectorSet(82.0f, 165.0f, 225.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
-	DX::XMVectorSet(82.0f, 0, 225.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(240.0f, 0, 272.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(240.0f, 165.0f, 272.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(82.0f, 165.0f, 225.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(82.0f, 0, 225.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 
 	//rectangle - 2-1
-	DX::XMVectorSet(423.0f, 330.0f, 247.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
-	DX::XMVectorSet(265.0f, 330.0f, 296.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
-	DX::XMVectorSet(314.0f, 330.0f, 456.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
-	DX::XMVectorSet(472.0f, 330.0f, 406.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(423.0f, 330.0f, 247.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(265.0f, 330.0f, 296.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(314.0f, 330.0f, 456.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(472.0f, 330.0f, 406.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 	//rectangle - 2-2
-	DX::XMVectorSet(423.0f, 0, 247.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
-	DX::XMVectorSet(423.0f, 330.0f, 247.0,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
-	DX::XMVectorSet(472.0f, 330.0f, 406.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
-	DX::XMVectorSet(472.0f, 0, 406.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(423.0f, 0, 247.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(423.0f, 330.0f, 247.0,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(472.0f, 330.0f, 406.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(472.0f, 0, 406.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 	//rectangle - 2-3
-	DX::XMVectorSet(472.0f, 0, 406.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
-	DX::XMVectorSet(472.0f, 330.0f, 406.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
-	DX::XMVectorSet(314.0f, 330.0f, 456.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
-	DX::XMVectorSet(314.0f, 0, 456.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(472.0f, 0, 406.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(472.0f, 330.0f, 406.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(314.0f, 330.0f, 456.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(314.0f, 0, 456.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 	//rectangle - 2-4
-	DX::XMVectorSet(314.0f, 0, 456.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
-	DX::XMVectorSet(314.0f, 330.0f, 456.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
-	DX::XMVectorSet(265.0f, 330.0f, 296.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
-	DX::XMVectorSet(265.0f, 0, 296.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(314.0f, 0, 456.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(314.0f, 330.0f, 456.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(265.0f, 330.0f, 296.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(265.0f, 0, 296.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 	//rectangle - 2-5
-	DX::XMVectorSet(265.0f, 0, 296.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
-	DX::XMVectorSet(265.0f, 330.0f, 296.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
-	DX::XMVectorSet(423.0f, 330.0f, 247.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
-	DX::XMVectorSet(423.0f, 0, 247.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(265.0f, 0, 296.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(265.0f, 330.0f, 296.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(423.0f, 330.0f, 247.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
+	DX::XMVectorSet(423.0f, 0, 247.0f,1),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),DX::XMVectorSet(1.0f,1.0f,1.0f,1.0f),
 };
 
 uint32_t g_indecies1[] = {
@@ -210,7 +211,7 @@ HRESULT create_pipeline(ino::d3d::pipeline& pipe)
 
 	D3D12_INPUT_ELEMENT_DESC elementDescs[] = {
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, sizeof(float)*4, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, sizeof(float) * 4, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 	};
 	pipe.Create(elementDescs, 2);
 	pipe.view = {
@@ -234,61 +235,13 @@ HRESULT create_pipeline_textured(ino::d3d::pipeline& pipe)
 
 	D3D12_INPUT_ELEMENT_DESC elementDescs[] = {
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, sizeof(float)*3, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0,sizeof(float)*3+sizeof(float)*4, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, sizeof(float) * 3, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0,sizeof(float) * 3 + sizeof(float) * 4, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 	};
 	D3D12_FILTER filter[] = { D3D12_FILTER::D3D12_FILTER_MIN_POINT_MAG_MIP_LINEAR };
 	D3D12_TEXTURE_ADDRESS_MODE warp[] = { D3D12_TEXTURE_ADDRESS_MODE::D3D12_TEXTURE_ADDRESS_MODE_CLAMP };
 	pipe.CreateSampler(1, filter, warp);
 
-	pipe.Create(elementDescs, 3);
-
-	pipe.view = {
-		.Width = static_cast<FLOAT>(ino::d3d::screen_width),
-		.Height = static_cast<FLOAT>(ino::d3d::screen_height),
-	};
-	pipe.scissor = {
-		.right = ino::d3d::screen_width,
-		.bottom = ino::d3d::screen_height
-	};
-
-	return S_OK;
-}
-
-HRESULT create_pipeline_tex_gen1(ino::d3d::pipeline& pipe)
-{
-	pipe.LoadShader(ino::d3d::ShaderTypes::VERTEX_SHADER, tex_gen_shader1, sizeof(tex_gen_shader1), L"VSMain");
-	pipe.LoadShader(ino::d3d::ShaderTypes::FRAGMENT_SHADER, tex_gen_shader1, sizeof(tex_gen_shader1), L"PSMain");
-
-	D3D12_INPUT_ELEMENT_DESC elementDescs[] = {
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, sizeof(float) * 3, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0,sizeof(float) * 3 + sizeof(float) * 4, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-	};
-	pipe.Create(elementDescs, 3);
-
-	pipe.view = {
-		.Width = static_cast<FLOAT>(ino::d3d::screen_width),
-		.Height = static_cast<FLOAT>(ino::d3d::screen_height),
-	};
-	pipe.scissor = {
-		.right = ino::d3d::screen_width,
-		.bottom = ino::d3d::screen_height
-	};
-
-	return S_OK;
-}
-
-HRESULT create_pipeline_loading(ino::d3d::pipeline& pipe)
-{
-	pipe.LoadShader(ino::d3d::ShaderTypes::VERTEX_SHADER, loading_shader, sizeof(loading_shader), L"VSMain");
-	pipe.LoadShader(ino::d3d::ShaderTypes::FRAGMENT_SHADER, loading_shader, sizeof(loading_shader), L"PSMain");
-
-	D3D12_INPUT_ELEMENT_DESC elementDescs[] = {
-		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, sizeof(float) * 3, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0,sizeof(float) * 3 + sizeof(float) * 4, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-	};
 	pipe.Create(elementDescs, 3);
 
 	pipe.view = {
@@ -404,6 +357,7 @@ membuf sbuf((char*)pvResData, size);\
 std::istream resStream = std::istream(&sbuf)\
 
 ino::d3d::renderTexture renderOffscreen[2];
+ino::d3d::renderTexture dxrOffscreen[2];
 
 HGLOBAL Music()
 {
@@ -438,13 +392,7 @@ int main() {
 	ino::d3d::cbo<DX::XMFLOAT4X4> mvpCBO[2];
 	ino::d3d::cbo<float> fCBO[2];
 
-	ino::d3d::pipeline pipe[2];
-	create_pipeline(pipe[0]);
-	create_pipeline_textured(pipe[1]);
-
 	ino::d3d::cbo<float> timeCbo;
-	ino::d3d::pipeline offscreenPipe;
-	create_pipeline_tex_gen1(offscreenPipe);
 
 	ino::d3d::pipeline loadingPipe;
 	create_pipeline_loading(loadingPipe);
@@ -457,11 +405,8 @@ int main() {
 	}
 
 	//resource
-	mvpCBO[0].Create();
-	mvpCBO[1].Create();
 	timeCbo.Create();
-	for (auto& val : fCBO)
-		val.Create();
+
 	ino::d3d::vbo* vbo = new ino::d3d::vbo();
 	vbo->Create(g_Vertices, 9 * sizeof(float), sizeof(g_Vertices));
 
@@ -484,24 +429,29 @@ int main() {
 		cmds.clear();
 	};
 
-	draw_Loading(0);
+	draw_Loading(0);//Offscreen Texture
 	renderOffscreen[0].Create(ino::d3d::screen_width, ino::d3d::screen_height, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
 	renderOffscreen[1].Create(ino::d3d::screen_width, ino::d3d::screen_height, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
+	dxrOffscreen[0].Create(ino::d3d::screen_width, ino::d3d::screen_height, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
+	dxrOffscreen[1].Create(ino::d3d::screen_width, ino::d3d::screen_height, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
 
+	draw_Loading(0.1);//Mesh Create
 	ino::d3d::vbo* vbo2 = new ino::d3d::vbo();
 	vbo2->Create(g_Vertices2, 9 * sizeof(float), sizeof(g_Vertices2));
 
+	std::vector<ino::d3d::StaticMesh> meshes;
+	meshes.push_back(ino::shape::CreateCharMesh(L'う', L"ＭＳ 明朝"));
 	ino::d3d::StaticMesh cornel_box;
 	ino::d3d::vbo* vboCornelBox = new ino::d3d::vbo();
 	ino::d3d::ibo* iboCornelBox = new ino::d3d::ibo();
-	vboCornelBox->Create(cornelBox, 8 * sizeof(float), sizeof(cornelBox));
+	vboCornelBox->Create(cornelBox, 12 * sizeof(float), sizeof(cornelBox));
 	iboCornelBox->Create(g_indecies1, sizeof(g_indecies1));
 	cornel_box.vbo = *vboCornelBox;
 	cornel_box.ibo = *iboCornelBox;
 
 	draw_Loading(0.2);
 	ino::d3d::StaticMesh tri;
-	tri.vbo.Create(tri_v, 3 * sizeof(float),sizeof(tri_v));
+	tri.vbo.Create(tri_v, 12 * sizeof(float),sizeof(tri_v));
 	tri.ibo.Create(tri_i, sizeof(tri_i));
 	ino::d3d::texture tex;
 	tex.Create(4, 4);
@@ -510,18 +460,41 @@ int main() {
 	std::chrono::high_resolution_clock::time_point time_o = c.now();
 	float rot = 0.0f;
 
-	draw_Loading(0.3);
+	draw_Loading(0.7);//DxrResources
 	//Init DXR
 	ino::d3d::begin();
 	ino::d3d::dxr::InitDXRDevice();
-	ino::d3d::dxr::Blas blases[2];
+	std::vector<ino::d3d::dxr::Blas> blases;
+	blases.push_back(ino::d3d::dxr::Blas());
+	blases.push_back(ino::d3d::dxr::Blas());
 	ino::d3d::dxr::Tlas tlas;
 	blases[0].Build(cornel_box);
 	blases[1].Build(tri);
+	for (auto& m : meshes)
+	{
+		blases.push_back(ino::d3d::dxr::Blas());
+		blases.back().Build(m);
+	}
 
 	ino::d3d::dxr::DxrPipeline dxrPipe;
 	dxrPipe.Create();
 	ino::d3d::end();
+
+	draw_Loading(0.9);//RasterPipeline
+	ino::d3d::pipeline pipe[2];
+	create_pipeline(pipe[0]);
+	create_pipeline_textured(pipe[1]);
+	ino::d3d::pipeline offscreenPipe;
+	create_pipeline_tex_gen1(offscreenPipe);
+	ino::d3d::pipeline postPipe;
+	create_pipeline_postProcess(postPipe);
+
+	draw_Loading(1.0);//ConstantBufferObjects
+	mvpCBO[0].Create();
+	mvpCBO[1].Create();
+	for (auto& val : fCBO)
+		val.Create();
+
 	Sleep(500);
 
 	draw_Loading(1);
@@ -530,6 +503,8 @@ int main() {
 	ShowCursor(false);
 	srand(0);
 	cmds.reserve(256);
+	int dxrOffscreenCount = 0;
+
 	do {
 		cmds.clear();
 		MSG msg;
@@ -541,10 +516,11 @@ int main() {
 
 		auto model = DX::XMMatrixIdentity();
 		rot += 0.01f;
-		auto view = DX::XMMatrixLookAtLH(DX::XMVectorSet(cos(rot) * 13, 3, sin(rot) * 13, 0), DX::XMVectorSet(0, 1.5, 0, 0), DX::XMVectorSet(0, 1, 0, 0));
+		DX::XMVECTOR camerapos = DX::XMVectorSet(cos(rot) * 13, 3, sin(rot) * 13, 0);
+		auto view = DX::XMMatrixLookAtLH(camerapos, DX::XMVectorSet(0, 1.5, 0, 0), DX::XMVectorSet(0, 1, 0, 0));
 		auto projection = DX::XMMatrixPerspectiveFovLH(DX::XMConvertToRadians(60), ino::d3d::screen_width / (float)ino::d3d::screen_height, 0.01f, 100.f);
-		auto invView = DX::XMMatrixInverse(nullptr, view);
-		auto invViewProj = DX::XMMatrixInverse(nullptr, projection);
+		//auto invView = DX::XMMatrixInverse(nullptr, view);
+		auto invViewProj = DX::XMMatrixInverse(nullptr, XMMatrixTranspose(model * view * projection));
 
 		DX::XMFLOAT4X4 Mat;
 		DX::XMStoreFloat4x4(&Mat, XMMatrixTranspose(model * view * projection));
@@ -554,8 +530,8 @@ int main() {
 		ino::d3d::begin();
 
 		ino::d3d::dxr::SceneConstant constants;
-		constants.viewport = { -1,-1,1,1 };
-		constants.cameraPos = DX::XMVectorSet(1, 0, 0, 1);
+		constants.cameraPos = camerapos;// DX::XMVectorSet(0, 0, -1, 1);
+		constants.invViewProj = invViewProj;
 		dxrPipe.SetConstantBuffer(&constants, sizeof(ino::d3d::dxr::SceneConstant));
 
 		static const FLOAT clearColor2[] = { 1.f, 1.f, 0.f, 1.0f };
@@ -594,17 +570,27 @@ int main() {
 		//Raytrace!
 		{
 			tlas.ClearInstance();
-			tlas.AddInstance(blases[0].Get(), DirectX::XMMatrixScaling(1, 1, 1));
-			tlas.AddInstance(blases[1].Get(), DirectX::XMMatrixScaling(1, 1, 1));
-			//as.AddInstance(0, DirectX::XMMatrixMultiply(DirectX::XMMatrixIdentity(), DirectX::XMMatrixScaling(0.1, 0.1, 0.1)));
+			tlas.AddInstance(&blases[0],DirectX::XMMatrixScaling(0.01f, 0.01f, 0.01f));
+			//tlas.AddInstance(&blases[0], DirectX::XMMatrixScaling(0.02f, 0.02f, 0.02f));
+			tlas.AddInstance(&blases[1]);
+			tlas.AddInstance(&blases[2], DirectX::XMMatrixTranslation(2,4,0));
 			tlas.Build();
 
 			cmds.push_back(dxrPipe.Begin().Get());
 			dxrPipe.CreateShaderTable(tlas);
 			dxrPipe.Dispatch(tlas);
-			dxrPipe.CopyToScreen();
+			dxrOffscreen[dxrOffscreenCount].RenderTarget(cmds.back());
+			dxrPipe.CopyToScreen(dxrOffscreen[dxrOffscreenCount]);
 			dxrPipe.End();
+			dxrOffscreenCount = (dxrOffscreenCount + 1) % 2;
 		}
+
+		cmds.push_back(postPipe.Begin());
+		timeCbo.Set(cmds.back(), local_time, 0);
+		dxrOffscreen[dxrOffscreenCount].Set(cmds.back(),1);
+		dxrOffscreen[dxrOffscreenCount].Set(cmds.back(),2);
+		vbo->Draw(cmds.back());
+		postPipe.End();
 
 		ino::d3d::excute(&cmds[0], cmds.size());
 		ino::d3d::wait();

@@ -189,7 +189,7 @@ ino::d3d::StaticMesh load_obj(std::istream& ifs)
 #endif
 	//GL_T2F_N3F_V3F
 	std::vector<float> gl_vert;
-	gl_vert.reserve(init_vert_length*3+init_vert_length*2+init_vert_length*3);
+	gl_vert.reserve(init_vert_length*4+init_vert_length*4+init_vert_length*4);
 	std::vector<uint32_t> triangulated_index;
 
 	//create triangulate index array

@@ -19,52 +19,56 @@ extern ::Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> dxrHeap;
 
 BOOL InitDXRDevice();
 
-struct VertexMaterial
-{
-	DirectX::XMVECTOR albedo;
-};
-
-struct Viewport
-{
-	float left;
-	float top;
-	float right;
-	float bottom;
+struct Vertex {
+	DirectX::XMVECTOR pos;
+	DirectX::XMVECTOR color;
+	DirectX::XMVECTOR texcoord;
 };
 
 struct SceneConstant
 {
-	Viewport viewport;
+	DirectX::XMVECTOR cameraPos;
+	DirectX::XMMATRIX invViewProj;
+};
 
-	DirectX::XMVECTOR cameraPos;
-/*	DirectX::XMMATRIX proj;
-	DirectX::XMVECTOR cameraPos;
-	DirectX::XMVECTOR lightPosition;
-	DirectX::XMVECTOR lightAmbientColor;
-	DirectX::XMVECTOR lightDiffuseColor;*/
+struct InstanceConstant
+{
+	DirectX::XMMATRIX modelMatrix;
+};
+
+struct HitArgs {
+	D3D12_GPU_DESCRIPTOR_HANDLE indexBufferGPUHandle;
+	D3D12_GPU_DESCRIPTOR_HANDLE vertexBufferGPUHandle;
+	D3D12_GPU_DESCRIPTOR_HANDLE constantBuffer;
 };
 
 class Blas {
 	::Microsoft::WRL::ComPtr<ID3D12Resource> bottomLevelAccelerationStructure;
 	::Microsoft::WRL::ComPtr<ID3D12Resource> scratchResource;
-	std::vector<D3D12_RAYTRACING_GEOMETRY_DESC>  geometryDescs;
-
+	
+	D3D12_RAYTRACING_GEOMETRY_DESC geometryDesc;
 	::Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList4> commandList;
 public:
 	void Build(StaticMesh& mesh);
 	inline ::Microsoft::WRL::ComPtr<ID3D12Resource> Get() noexcept { return bottomLevelAccelerationStructure; }
+
+	inline D3D12_GPU_VIRTUAL_ADDRESS& IndexBuffer() noexcept { return geometryDesc.Triangles.IndexBuffer; }
+	inline D3D12_GPU_VIRTUAL_ADDRESS_AND_STRIDE& VertexBuffer() noexcept { return geometryDesc.Triangles.VertexBuffer; }
 };
 
 class Tlas {
 	::Microsoft::WRL::ComPtr<ID3D12Resource> topLevelAccelerationStructure;
 	::Microsoft::WRL::ComPtr<ID3D12Resource> scratchResource;
 	::Microsoft::WRL::ComPtr<ID3D12Resource> instanceDescs;
-	std::vector< std::pair<::Microsoft::WRL::ComPtr<ID3D12Resource>, DirectX::XMMATRIX> >  instanceMat;
+	std::vector< std::pair<Blas*, DirectX::XMMATRIX> >  instanceMat;
 
 	::Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList4> commandList;
 public:
+	inline uint32_t GetBlasCount() noexcept { return instanceMat.size(); }
+	inline Blas* GetBlas(UINT id) noexcept { return instanceMat[id].first; }
+	inline DirectX::XMMATRIX GetMatrix(UINT id) noexcept { return instanceMat[id].second; }
 	void ClearInstance() noexcept;
-	void AddInstance(::Microsoft::WRL::ComPtr<ID3D12Resource> blas, DirectX::XMMATRIX matrix = DirectX::XMMatrixIdentity());
+	void AddInstance(Blas* blas, DirectX::XMMATRIX matrix = DirectX::XMMatrixIdentity());
 	void Build();
 	inline ::Microsoft::WRL::ComPtr<ID3D12Resource> Get() noexcept { return topLevelAccelerationStructure; }
 };
@@ -178,11 +182,6 @@ class DxrPipeline {
 	::Microsoft::WRL::ComPtr<ID3D12StateObject> rtpso = nullptr;
 	::Microsoft::WRL::ComPtr<ID3D12StateObjectProperties> rtpsoInfo = nullptr;
 
-	::Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> descriptorHeap = nullptr;
-	UINT descriptorSize = 0;
-
-	::Microsoft::WRL::ComPtr<ID3D12Resource> sceneConstants = nullptr;
-
 	CD3DX12_STATE_OBJECT_DESC pipelineDesc = { D3D12_STATE_OBJECT_TYPE_RAYTRACING_PIPELINE };
 
 	D3D12_RESOURCE_BARRIER barrier = {};
@@ -202,6 +201,8 @@ class DxrPipeline {
 	//VertexMaterial materialCB;
 
 	::Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList4> dxrCommandList;
+	std::vector<HitArgs> hitArgs;
+	std::vector< ::Microsoft::WRL::ComPtr<ID3D12Resource> > instanceConstants;
 public:
 	~DxrPipeline()
 	{
@@ -213,7 +214,7 @@ public:
 	void Create();
 	void CreateShaderTable(Tlas& as);
 	void Dispatch(Tlas& as);
-	void CopyToScreen();
+	void CopyToScreen(renderTexture& target);
 
 	::Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList4> Begin()
 	{
@@ -224,6 +225,8 @@ public:
 	{
 		dxrCommandList->Close();
 	}
+
+	::Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> GetRtvHeap();
 };
 
 }
