@@ -432,6 +432,7 @@ int main() {
 	draw_Loading(0);//Offscreen Texture
 	renderOffscreen[0].Create(ino::d3d::screen_width, ino::d3d::screen_height, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
 	renderOffscreen[1].Create(ino::d3d::screen_width, ino::d3d::screen_height, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
+	/*Edge-Avoiding A-Trous Wavelet Transform for fast Global Illumination Filtering*/
 	dxrOffscreen[0].Create(ino::d3d::screen_width, ino::d3d::screen_height, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
 	dxrOffscreen[1].Create(ino::d3d::screen_width, ino::d3d::screen_height, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
 

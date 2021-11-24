@@ -64,10 +64,9 @@ type PlotManager (text : string,x : int,y : int,control : System.Windows.Forms.C
         member this.Count() = cmb.Items.Count
         member this.SetValue(i) = do 
             cmb.SelectedIndex <- i
+        member this.SetText( index,text ) = do
+            cmb.Items.Item(index) <- text
     end
-
-let export owner = do
-    ()
 
 type MFrame (title : string,timeLength : int) as this = 
     class 
@@ -82,7 +81,6 @@ type MFrame (title : string,timeLength : int) as this =
         let timeEvent = new Timer()
         let saveBtn = new Button(Text = "save",Left = this.Width - 280,Top = 500,Width = 40,Height = 20)
         let loadBtn = new Button(Text = "load",Left = this.Width - 240,Top = 500,Width = 40,Height = 20)
-        let exportBtn = new Button(Text = "export",Left = this.Width - 190,Top = 500,Width = 45,Height = 20)
         let mutable time = 0
         let mutable timeBefore = System.DateTime.Now
         let timeCaption = new Label(Top = back.Top+5,Left = timeScroll.Left ,Width = 50)
@@ -113,31 +111,31 @@ type MFrame (title : string,timeLength : int) as this =
                 //camera
                 File.AppendAllText(dlg.FileName,camPlot.Count().ToString()+"\n")
                 for i = 0 to camPlot.Count()-1 do 
-                    let p = GetCurrentCameraPos(i)
-                    let t = GetCurrentCameraTar(i)
-                    let u = GetCurrentCameraUp(i)
-                    let ti = GetCurrentCameraTime(i)
+                    let p = GetCurrentCameraPos(camPlot.Count()-1-i)
+                    let t = GetCurrentCameraTar(camPlot.Count()-1-i)
+                    let u = GetCurrentCameraUp(camPlot.Count()-1-i)
+                    let ti = GetCurrentCameraTime(camPlot.Count()-1-i)
                     File.AppendAllText(dlg.FileName,
                         p.x.ToString() + "," + p.y.ToString() + "," + p.z.ToString() + "," +
                         t.x.ToString() + "," + t.y.ToString() + "," + t.z.ToString() + "," +
                         u.x.ToString() + "," + u.y.ToString() + "," + u.z.ToString() + "," +
-                        ti.ToString() + "\n"
+                        ti.ToString() + ",\n"
                     )
                 //object
-                File.AppendAllText(dlg.FileName,(objects.Count).ToString()+"\n")
+                File.AppendAllText(dlg.FileName,objects.Count().ToString()+"\n")
                 for i = 0 to objects.Count() do 
-                    for j = 0 to 1 do
-                        let isBegin = System.Convert.ToInt32( j < 1 )
-                        let p = GetPlotPos(i,isBegin)
-                        let r = GetPlotRot(i,isBegin)
-                        let s = GetPlotScale(i,isBegin)
-                        let ti = GetPlotTime(i,isBegin)
+                    for j = 0 to PlotCount(i)-1 do
+                        let p = GetPlotPos(i,j)
+                        let r = GetPlotRot(i,j)
+                        let s = GetPlotScale(i,j)
+                        let ti = GetPlotTime(i,j)
                         File.AppendAllText(dlg.FileName,
+                            i.ToString() + "," +
                             p.x.ToString() + "," + p.y.ToString() + "," + p.z.ToString() + "," +
                             r.x.ToString() + "," + r.y.ToString() + "," + r.z.ToString() + "," +
                             s.x.ToString() + "," + s.y.ToString() + "," + s.z.ToString() + "," +
                             GetPlotShape(i).ToString() + "," +
-                            ti.ToString() + "\n"
+                            ti.ToString() + ",\n"
                         )
         //--WriteFile
 
@@ -149,11 +147,13 @@ type MFrame (title : string,timeLength : int) as this =
             if dlg.ShowDialog() = DialogResult.OK then do
                 //cleanup
                 for i = 0 to camPlot.Count()-1 do 
-                    DelPlotCamera(i)
-                    camPlot.DelItem(i)
+                    DelPlotCamera(0)
+                    camPlot.DelItem(0)
                 for i = 0 to objects.Count()-1 do 
-                    DelObject(i) 
-                    objects.DelItem(i)
+                    DelObject(0) 
+                    objects.DelItem(0)
+                for i = 0 to objPlot_t.Count()-1 do 
+                    objPlot_t.DelItem(0)
                 //create
                 let toFloat(x : string)= float32( System.Convert.ToDouble(x) )
                 let line = File.ReadAllLines(dlg.FileName)
@@ -167,18 +167,21 @@ type MFrame (title : string,timeLength : int) as this =
                     AddPlotCamera(-1,p,t,u,ti)
                     camPlot.AddItem
                 let plotCnt = System.Convert.ToInt32((line.[camCnt+1]))
-                for i = 0 to plotCnt*2 - 1 do
-                    let value = (line.[i+camCnt+2]).Split(',')
-                    let p = vec(x=toFloat(value.[0]),y=toFloat(value.[1]),z=toFloat(value.[2]))
-                    let r = vec(x=toFloat(value.[3]),y=toFloat(value.[4]),z=toFloat(value.[5]))
-                    let s = vec(x=toFloat(value.[6]),y=toFloat(value.[7]),z=toFloat(value.[8]))
-                    let shape = System.Convert.ToInt32(value.[9])
-                    let ti = System.Convert.ToInt32(value.[10])
-                    if i % 2 = 1 then
-                        SetObject(i/2,0,p,r,s,ti)
-                    else
-                        AddObject(shape,-1,p,r,s,ti)
-                    objects.AddItem
+                let mutable cnt = 0;
+                for i = camCnt+2 to line.Length - 1  do
+                    let value = (line.[i]).Split(',')
+                    let id = System.Convert.ToInt32(value.[0])
+                    let p = vec(x=toFloat(value.[1]),y=toFloat(value.[2]),z=toFloat(value.[3]))
+                    let r = vec(x=toFloat(value.[4]),y=toFloat(value.[5]),z=toFloat(value.[6]))
+                    let s = vec(x=toFloat(value.[7]),y=toFloat(value.[8]),z=toFloat(value.[9]))
+                    let shape = System.Convert.ToInt32(value.[10])
+                    let ti = System.Convert.ToInt32(value.[11])
+                    if ExistObject(id) = false then do
+                        AddObject(shape)
+                        objects.AddItemText (":"+shape.ToString())
+                        cnt <- 0
+                    else cnt <- cnt + 1
+                    SetObject(id,cnt,p,r,s,ti)
         //--LoadFile
 
         //Construct
@@ -254,7 +257,7 @@ type MFrame (title : string,timeLength : int) as this =
                     )
                 this.Controls.Add( b )
             //SaveLoad
-            for b in [saveBtn;loadBtn;exportBtn] do this.Controls.Add(b)
+            for b in [saveBtn;loadBtn] do this.Controls.Add(b)
             //Key Event
             this.KeyPreview <- true
             this.KeyDown.Add( fun e -> do
@@ -286,45 +289,32 @@ type MFrame (title : string,timeLength : int) as this =
                 timeScroll.Value <- time;
                 timeCaption.Text <- time.ToString()
             )
-            objects.Add(fun _ -> 
-                if objPlot_t.Count() > 0 then do
-                    for i = 0 to objPlot_t.Count() do
-                        if objPlot_t.Select > 0 then do
-                            DelPlot(objects.Select,objPlot_t.Count())
-                            objPlot_t.DelItem(i)
-                else
-                    objPlot_t.AddItem
-                    objPlot_t.SetValue (objPlot_t.Count() - 1)
-                    SetObject(
-                        modelID.Select, objPlot_t.Count() ,
-                        objPosUI.xyz,objRotUI.xyz,objScaleUI.xyz,time) 
+            let mutable beforeIndex = -1
+            objects.Add(fun _ ->  
                 objects.AddItemText (":"+modelID.Select.ToString())
                 objects.SetValue (objects.Count() - 1)
-                AddObject(
-                    modelID.Select, objects.Select ,
-                    objPosUI.xyz,objRotUI.xyz,objScaleUI.xyz,time) 
-                )
+                AddObject(modelID.Select) 
+                for i = 0 to objPlot_t.Count() - 1 do
+                    objPlot_t.DelItem(0)
+                for i = 0 to PlotCount(objects.Count()-1)-1 do objPlot_t.AddItem;
+                beforeIndex <- objects.Count() - 1
+            )
             objects.Del(fun _ -> do
                 DelObject( objects.Select ) 
                 objects.DelItem(objects.Select)
             )
-            let mutable beforeIndex = 0
             objects.SelectedIndexChanged(fun _ -> do
-                if( beforeIndex >= 0 ) then do
-                    if PlotCount(objects.Select) > 0 then do
-                        for i = 0 to objPlot_t.Count() do
-                            DelPlot(beforeIndex,i)
-                            objPlot_t.DelItem(i)
-                        for i = 0 to PlotCount(objects.Select) do objPlot_t.AddItem;
-                else
-                    beforeIndex <- objects.Select
+                for i = 0 to objPlot_t.Count() - 1 do
+                    objPlot_t.DelItem(0)
+                for i = 0 to PlotCount(objects.Select)-1 do objPlot_t.AddItem;
+                beforeIndex <- objects.Select
             )
             //objPlots
             objPlot_t.Add(fun _ -> do
                     objPlot_t.AddItem
                     objPlot_t.SetValue (objPlot_t.Count() - 1)
                     SetObject(
-                        modelID.Select, objPlot_t.Count() ,
+                        objects.Select, objPlot_t.Count() ,
                         objPosUI.xyz,objRotUI.xyz,objScaleUI.xyz,time) 
             )
             objPlot_t.Del(fun _ -> if objPlot_t.Count() > 1 then  do
@@ -352,6 +342,11 @@ type MFrame (title : string,timeLength : int) as this =
             )
             modelID.SelectedIndexChanged(fun _ -> do
                 SetCurrentObject( modelID.Select,objPosUI.xyz,objRotUI.xyz,objScaleUI.xyz )
+            )
+            modelID.Set(fun _ -> do
+                if objects.Select >= 0 then 
+                    SetPlotShape(objects.Select,modelID.Select)
+                    objects.SetText(objects.Select,objects.Select.ToString() + ":" + modelID.Select.ToString())
             )
             // ----- TimerDriven --------
             if InitDxContext( renderTarget.Handle,renderTarget.Width,renderTarget.Height ) = false then MessageBox.Show("Error:InitDx12") |> ignore
@@ -385,7 +380,7 @@ type MFrame (title : string,timeLength : int) as this =
                     objRotUI.setValue(0.f,0.f,0.f)
                     objScaleUI.setValue(1.f,1.f,1.f)
             )
-            for i = 0 to 5 do modelID.AddItem
+            for i = 0 to MeshCount()-1 do modelID.AddItem
             modelID.SetValue 0
         //--end Construct
         override this.Finalize() = ()

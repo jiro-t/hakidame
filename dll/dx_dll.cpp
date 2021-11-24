@@ -116,6 +116,31 @@ float4 PSMain(PSInput input) : SV_TARGET\
 }\
 ";
 
+char selected_shader[] =
+"#define rootSig \"RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT),CBV(b0)\"\n \
+cbuffer cb1 : register(b0){\
+float4x4 mvp;\
+};\
+struct PSInput {\
+	float4	position : SV_POSITION;\
+	float4	color : COLOR;\
+};\
+[RootSignature(rootSig)]\
+PSInput VSMain(float4 position : POSITION,float4 normal : NORMAL,float4 color : COLOR)\
+{\
+	PSInput	result;\
+	result.position = mul(float4(position.xyz,1),mvp);\
+	float3 norm = mul(float4(normal.xyz,0),mvp).xyz;\
+	result.color = float4(color.xyz * dot(float3(0,0.5,0.5),norm),1);\
+	return result;\
+}\
+[RootSignature(rootSig)]\
+float4 PSMain(PSInput input) : SV_TARGET\
+{\
+	return input.color*float4(1,0.4,0.4,0.4);\
+}\
+";
+
 char tex_shader[] =
 "\
 #define rootSig \"RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT),CBV(b0),DescriptorTable(SRV(t0)),StaticSampler(s0) \"\n \
@@ -166,6 +191,31 @@ HRESULT create_pipeline(ino::d3d::pipeline& pipe)
 	return S_OK;
 }
 
+HRESULT create_pipeline_selected(ino::d3d::pipeline& pipe)
+{
+	pipe.LoadShader(ino::d3d::ShaderTypes::VERTEX_SHADER, selected_shader, sizeof(selected_shader), "VSMain");
+	pipe.LoadShader(ino::d3d::ShaderTypes::FRAGMENT_SHADER, selected_shader, sizeof(selected_shader), "PSMain");
+
+	D3D12_INPUT_ELEMENT_DESC elementDescs[] = {
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, sizeof(float) * 4, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, sizeof(float) * 8, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+	};
+	pipe.Create(elementDescs, 3);
+	pipe.view = {
+		.Width = static_cast<FLOAT>(ino::d3d::screen_width),
+		.Height = static_cast<FLOAT>(ino::d3d::screen_height),
+		.MinDepth = 0.f,
+		.MaxDepth = 1.f
+	};
+	pipe.scissor = {
+		.right = ino::d3d::screen_width,
+		.bottom = ino::d3d::screen_height
+	};
+
+	return S_OK;
+}
+
 HRESULT create_pipeline_textured(ino::d3d::pipeline& pipe)
 {
 	pipe.LoadShader(ino::d3d::ShaderTypes::VERTEX_SHADER, tex_shader, sizeof(tex_shader), "VSMain");
@@ -194,7 +244,7 @@ HRESULT create_pipeline_textured(ino::d3d::pipeline& pipe)
 	return S_OK;
 }
 
-static ino::d3d::pipeline pipe[2];
+static ino::d3d::pipeline pipe[3];
 static ino::d3d::cbo<DirectX::XMFLOAT4X4> mvpCBO;
 
 static ino::d3d::cbo<DirectX::XMFLOAT4X4> u_cbo;
@@ -209,6 +259,7 @@ DLL_EXPORT BOOL InitDxContext(HWND hwnd, UINT width, UINT height)
 	//setup pipeline
 	create_pipeline(pipe[0]);
 	create_pipeline_textured(pipe[1]);
+	create_pipeline_selected(pipe[2]);
 
 	camPlots.reserve(2048);
 	objPlots.reserve(2048);
@@ -224,12 +275,13 @@ DLL_EXPORT BOOL InitDxContext(HWND hwnd, UINT width, UINT height)
 	mesh.push_back(ino::shape::CreateCube() );
 	mesh.push_back(ino::shape::CreateQuad());
 	//mesh.push_back(ino::gfx::obj::load_obj(ifs) );
-	//std::ifstream ifs("resource/shop.model");
-	//mesh.push_back(ino::gfx::obj::load_obj(ifs));
 	mesh.push_back(ino::shape::CreateCharMesh(L'‚¤', L"‚l‚r –¾’©"));
 	mesh.push_back(ino::shape::CreateCharMesh(L'‚ñ', L"‚l‚r –¾’©"));
 	mesh.push_back(ino::shape::CreateCharMesh(L'‚¿', L"‚l‚r –¾’©"));
 	//mesh.push_back(ino::shape::CreateTestModel());));
+	std::ifstream ifs("resource/shop.model",std::ios::in);
+	if(ifs)
+		mesh.push_back(ino::gfx::obj::load_obj(ifs));
 
 	return ret;
 }
@@ -289,6 +341,9 @@ DLL_EXPORT BOOL DxContextFlush()
 	{
 		if (val.plotCount < 2)
 			continue;
+		if (t > val.plotTimeEnd)
+			continue;
+
 		int currentPlot = 0;
 		for (int i = 0; i < val.plotCount - 1; ++i)
 		{
@@ -297,17 +352,12 @@ DLL_EXPORT BOOL DxContextFlush()
 		}
 
 		const float w = val.plots[currentPlot +1].Time - val.plots[currentPlot].Time;
-		const float ab = std::min(1.f, (val.plotTimeEnd - t) / w);
+		const float ab = std::min(1.f, (val.plots[currentPlot+1].Time - t) / w);
 		model = val.plots[currentPlot].mat *(ab) +val.plots[currentPlot+1].mat *(1.f - ab);
-		DX::XMStoreFloat4x4(&Mat, XMMatrixTranspose(model * view * projection));
-		val.cbo.Set(cmds[0], Mat, 0);
+		DX::XMStoreFloat4x4(&Mat,XMMatrixTranspose(model * view * projection));
+		val.cbo.Set(cmds[0],Mat,0);
 		mesh[val.shapeID].Draw(cmds[0]);
 	}
-	model = obj.plots[0].mat;
-	DX::XMStoreFloat4x4(&Mat, XMMatrixTranspose(model * view * projection));
-	mvpCBO.Set(cmds[0], Mat, 0);
-	mesh[obj.shapeID].Draw(cmds[0]);
-
 	model = GenModelMatrix(point(-5, 10, 0, 0), point(0, 0, 0, 0), point(0.025, 0.025, 1, 1));
 	DX::XMStoreFloat4x4(&Mat, XMMatrixTranspose(model * view * projection));
 	u_cbo.Set(cmds[0], Mat, 0);
@@ -324,6 +374,13 @@ DLL_EXPORT BOOL DxContextFlush()
 	mesh[4].Draw(cmds[0]);
 	pipe[0].End();
 
+	cmds[2] = pipe[2].Begin();
+	model = obj.plots[0].mat;
+	DX::XMStoreFloat4x4(&Mat, XMMatrixTranspose(model * view * projection));
+	mvpCBO.Set(cmds[2], Mat, 0);
+	mesh[obj.shapeID].Draw(cmds[2]);
+	pipe[2].End();
+
 	//model = GenModelMatrix(point(0, 0, 0, 10), point(0, 0, 0, 0), point(1, 1, 1, 1));
 	//DX::XMStoreFloat4x4(&Mat, XMMatrixTranspose(model * view * projection));
 	cmds[1] = pipe[1].Begin();
@@ -336,6 +393,11 @@ DLL_EXPORT BOOL DxContextFlush()
 	ino::d3d::wait();
 	ino::d3d::end();
 	return TRUE;
+}
+
+DLL_EXPORT int MeshCount()
+{
+	return mesh.size();
 }
 
 DLL_EXPORT void SetTime(UINT t_)
@@ -428,7 +490,14 @@ DLL_EXPORT void SetCurrentObject(UINT shape, point pos, point rot,point sc)
 	obj.plots[0].mat = GenModelMatrix(pos, rot, sc);
 }
 
-DLL_EXPORT void AddObject(UINT shape, UINT objectID,point pos, point rot, point sc,UINT ti)
+DLL_EXPORT BOOL ExistObject(UINT id)
+{
+	if (id < objPlots.size())
+		return TRUE;
+	return FALSE;
+}
+
+DLL_EXPORT void AddObject(UINT shape)
 {
 	DrawObject obj = {
 		.shapeID = shape,
@@ -452,7 +521,7 @@ DLL_EXPORT void SetObject(
 		objPlots[objectID].plots[index].rot = Point2XmVec(rot);
 		objPlots[objectID].plots[index].scale = Point2XmVec(sc);
 
-		objPlots[objectID].plotCount = std::max(index, objPlots[objectID].plotCount);
+		objPlots[objectID].plotCount = std::max(index+1, objPlots[objectID].plotCount);
 		objPlots[objectID].plotTimeEnd = std::max(objPlots[objectID].plotTimeEnd,ti/frameTime);
 	}
 }
@@ -485,6 +554,12 @@ DLL_EXPORT UINT PlotCount(UINT objectID)
 	if (objPlots.size() <= objectID)
 		return 0;
 	return objPlots[objectID].plotCount;
+}
+
+DLL_EXPORT void SetPlotShape(UINT id,UINT shapeID)
+{
+	if (id < objPlots.size())
+		objPlots[id].shapeID = shapeID;
 }
 
 DLL_EXPORT UINT GetPlotShape(UINT id)

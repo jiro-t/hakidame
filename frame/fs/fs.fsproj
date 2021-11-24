@@ -30,6 +30,7 @@
     <EnableUnmanagedDebugging>true</EnableUnmanagedDebugging>
     <UseVSHostingProcess>false</UseVSHostingProcess>
     <StartAction>Project</StartAction>
+    <StartWorkingDirectory>C:\demo\frame\</StartWorkingDirectory>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>

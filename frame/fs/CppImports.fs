@@ -8,10 +8,12 @@ extern bool InitDxContext(nativeint hwnd, int width,int height)
 extern bool DxContextFlush()
 [<DllImport("ino_dll.Dll", EntryPoint="ReleaseDxContext",CallingConvention = CallingConvention.Cdecl)>]
 extern bool ReleaseDxContext()
+[<DllImport("ino_dll.Dll", EntryPoint="MeshCount",CallingConvention = CallingConvention.Cdecl)>]
+extern int MeshCount()
 [<DllImport("ino_dll.Dll", EntryPoint="SetTime",CallingConvention = CallingConvention.Cdecl)>]
 extern void SetTime(int)
 [<DllImport("ino_dll.Dll", EntryPoint="SetPlotMode",CallingConvention = CallingConvention.Cdecl)>]
-extern void SetPlotMode(int);
+extern void SetPlotMode(int)
 
 type vec = 
     struct
@@ -57,8 +59,11 @@ extern int GetCurrentCameraTime(int id)
 [<DllImport("ino_dll.Dll", EntryPoint="SetCurrentObject",CallingConvention = CallingConvention.Cdecl)>]
 extern void SetCurrentObject(int, vec, vec, vec)
 
+[<DllImport("ino_dll.Dll", EntryPoint="ExistObject",CallingConvention = CallingConvention.Cdecl)>]
+extern bool ExistObject(int)
+
 [<DllImport("ino_dll.Dll", EntryPoint="AddObject",CallingConvention = CallingConvention.Cdecl)>]
-extern void AddObject(int,int, vec, vec, vec,int)
+extern void AddObject(int)
 
 [<DllImport("ino_dll.Dll", EntryPoint="SetObject",CallingConvention = CallingConvention.Cdecl)>]
 extern void SetObject(int,int,vec,vec,vec,int);
@@ -71,6 +76,9 @@ extern void DelPlot(int,int)
 
 [<DllImport("ino_dll.Dll", EntryPoint="PlotCount",CallingConvention = CallingConvention.Cdecl)>]
 extern int PlotCount(int)
+
+[<DllImport("ino_dll.Dll", EntryPoint="SetPlotShape",CallingConvention = CallingConvention.Cdecl)>]
+extern void SetPlotShape(int,int);
 
 [<DllImport("ino_dll.Dll", EntryPoint="GetPlotShape",CallingConvention = CallingConvention.Cdecl)>]
 extern int GetPlotShape(int);

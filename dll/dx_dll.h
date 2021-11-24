@@ -21,6 +21,7 @@ DLL_EXPORT BOOL ReleaseDxContext();
 
 DLL_EXPORT BOOL DxContextFlush();
 
+DLL_EXPORT int MeshCount();
 DLL_EXPORT void SetTime(UINT t_);
 
 DLL_EXPORT void SetCurrentCamera(point p,point t,point up);
@@ -33,8 +34,7 @@ DLL_EXPORT void AddPlotCamera(UINT id, point pos, point tar, point up, UINT t);
 DLL_EXPORT void DelPlotCamera(UINT id);
 
 DLL_EXPORT void SetCurrentObject(UINT shape, point pos, point rot,point sc);
-DLL_EXPORT void AddObject(UINT shape,UINT objectID,
-	point pos, point rot, point sc,UINT ti);
+DLL_EXPORT void AddObject(UINT shape);
 DLL_EXPORT void SetObject(
 	UINT objectID, UINT isBegin,
 	point pos, point rot, point sc, UINT ti);
