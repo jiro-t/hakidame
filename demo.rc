@@ -55,10 +55,18 @@ IDR_WAVE1               WAVE                    "song.wav"
 
 /////////////////////////////////////////////////////////////////////////////
 //
-// OBJ
+// MODEL
 //
 
-IDR_OBJ1                MODEL                     "resource\\shop.model"
+IDR_MODEL1              MODEL                   "resource\\shop.model"
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTURE
+//
+
+IDR_TEXTURE1             TEXTURE                  "resource\\sushi_Albedo.tex"
 
 #endif    // “ú–{Œê (“ú–{) resources
 /////////////////////////////////////////////////////////////////////////////

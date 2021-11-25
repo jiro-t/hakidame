@@ -128,11 +128,166 @@ float4 PSMain(PSInput input) : SV_TARGET\n\
 }\n\
 ";
 
+/*Edge-Avoiding A-Trous Wavelet Transform for fast Global Illumination Filtering*/
+char denoise_hader[] = "\
+#define rootSig \"RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT),CBV(b0),DescriptorTable(SRV(t0)),DescriptorTable(SRV(t1)),DescriptorTable(SRV(t2)),StaticSampler(s0) \"\n\
+cbuffer cb : register(b0){\n\
+    float width;\n\
+    float height;\n\
+    float c_phi;\n\
+    float n_phi;\n\
+    float p_phi;\n\
+    int stepwidth;\n\
+};\n\
+Texture2D<float4> render_ : register(t0);\n\
+Texture2D<float4> normal_ : register(t1);\n\
+Texture2D<float4> world_ : register(t2);\n\
+SamplerState samp_ : register(s0);\n\
+struct PSInput {\n\
+    float4	position : SV_POSITION;\n\
+    float4	uv : TEXCOORD0;\n\
+};\n\
+[RootSignature(rootSig)]\n\
+PSInput VSMain(float4 position : POSITION, float4 color : COLOR, float4 uv : TEXCOORD0) {\n\
+    PSInput	result;\n\
+    result.position = float4(uv.x * 2.0 - 1.0, uv.y * 2.0 - 1.0, 0, 1);\n\
+    result.uv = float4(uv.x,1.0 - uv.y,0,0);\n\
+    return result;\n\
+}\n\
+const static float kernel[25] = {\n\
+    1.0 / 256.0, 1.0 / 64.0, 3.0 / 128.0, 1.0 / 64.0, 1.0 / 256.0,\n\
+    1.0 / 64.0, 1.0 / 16.0, 3.0 / 32.0, 1.0 / 16.0, 1.0 / 64.0,\n\
+    3.0 / 128.0, 3.0 / 32.0, 9.0 / 64.0, 3.0 / 32.0, 3.0 / 128.0,\n\
+    1.0 / 64.0, 1.0 / 16.0, 3.0 / 32.0, 1.0 / 16.0, 1.0 / 64.0,\n\
+    1.0 / 256.0, 1.0 / 64.0, 3.0 / 128.0, 1.0 / 64.0, 1.0 / 256.0 };\n\
+\n\
+const static int2 offset[25] = {\n\
+    int2(-2, -2), int2(-1, -2), int2(0, -2), int2(1, -2), int2(2, -2),\n\
+    int2(-2, -1), int2(-1, -1), int2(0, -2), int2(1, -1), int2(2, -1),\n\
+    int2(-2, 0), int2(-1, 0), int2(0, 0), int2(1, 0), int2(2, 0),\n\
+    int2(-2, 1), int2(-1, 1), int2(0, 1), int2(1, 1), int2(2, 1),\n\
+    int2(-2, 2), int2(-1, 2), int2(0, 2), int2(1, 2), int2(2, 2) };\n\
+\n\
+float4 PSMain(PSInput input) : SV_TARGET\n\
+{\n\
+    float3 sum = float3(0,0,0);\n\
+    float2 step = float2(1. / width, 1. / height);\n\
+\n\
+    float3 cval = render_.Sample(samp_, input.uv.xy).xyz;\n\
+    float3 nval = normal_.Sample(samp_, input.uv.xy).xyz;\n\
+    float3 pval = world_.Sample(samp_, input.uv.xy).xyz;\n\
+\n\
+    float cum_w = 0.0;\n\
+\n\
+    for (int i = 0; i < 25; i++) {\n\
+        float2 uv = input.uv.xy + offset[i] * step * stepwidth;\n\
+\n\
+        float3 ctmp = render_.Sample(samp_,uv).xyz;\n\
+        float3 t = cval - ctmp;\n\
+        float dist2 = dot(t,t);\n\
+        float c_w = min(exp(-(dist2) / c_phi),1.0);\n\
+\n\
+        float3 ntmp = normal_.Sample(samp_,uv).xyz;\n\
+        t = nval - ntmp;\n\
+        dist2 = max(dot(t,t) / (stepwidth * stepwidth),0.0);\n\
+        float n_w = min(exp(-(dist2) / n_phi), 1.0);\n\
+\n\
+        float3 ptmp = world_.Sample(samp_,uv).xyz;\n\
+        t = pval - ptmp;\n\
+        dist2 = dot(t,t);\n\
+        float p_w = min(exp(-(dist2) / p_phi),1.0);\n\
+\n\
+        float weight = c_w * n_w * p_w;\n\
+        sum += ctmp * weight * kernel[i];\n\
+        cum_w += weight * kernel[i];\n\
+    }\n\
+\n\
+    return float4(sum / cum_w,1);\n\
+}\n\
+";
+
+/*
+char denoise_hader[] = "\
+#define rootSig \"RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT),CBV(b0),DescriptorTable(SRV(t0)),DescriptorTable(SRV(t1)),DescriptorTable(SRV(t2)),StaticSampler(s0) \"\n\
+cbuffer cb : register(b0){\n\
+    float width;\n\
+    float height;\n\
+    float c_phi;\n\
+    float n_phi;\n\
+    float p_phi;\n\
+    int stepwidth;\n\
+};\n\
+Texture2D<float4> render_ : register(t0);\n\
+Texture2D<float4> normal_ : register(t1);\n\
+Texture2D<float4> world_ : register(t2);\n\
+SamplerState samp_ : register(s0);\n\
+struct PSInput {\n\
+    float4	position : SV_POSITION;\n\
+    float4	uv : TEXCOORD0;\n\
+};\n\
+[RootSignature(rootSig)]\n\
+PSInput VSMain(float4 position : POSITION, float4 color : COLOR, float4 uv : TEXCOORD0) {\n\
+    PSInput	result;\n\
+    result.position = float4(uv.x * 2.0 - 1.0, uv.y * 2.0 - 1.0, 0, 1);\n\
+    result.uv = float4(uv.x,1.0 - uv.y,0,0);\n\
+    return result;\n\
+}\n\
+const static float kernel[25] = {\n\
+    1.0 / 256.0, 1.0 / 64.0, 3.0 / 128.0, 1.0 / 64.0, 1.0 / 256.0,\n\
+    1.0 / 64.0, 1.0 / 16.0, 3.0 / 32.0, 1.0 / 16.0, 1.0 / 64.0,\n\
+    3.0 / 128.0, 3.0 / 32.0, 9.0 / 64.0, 3.0 / 32.0, 3.0 / 128.0,\n\
+    1.0 / 64.0, 1.0 / 16.0, 3.0 / 32.0, 1.0 / 16.0, 1.0 / 64.0,\n\
+    1.0 / 256.0, 1.0 / 64.0, 3.0 / 128.0, 1.0 / 64.0, 1.0 / 256.0 };\n\
+\n\
+const static int2 offset[25] = {\n\
+    int2(-2, -2), int2(-1, -2), int2(0, -2), int2(1, -2), int2(2, -2),\n\
+    int2(-2, -1), int2(-1, -1), int2(0, -2), int2(1, -1), int2(2, -1),\n\
+    int2(-2, 0), int2(-1, 0), int2(0, 0), int2(1, 0), int2(2, 0),\n\
+    int2(-2, 1), int2(-1, 1), int2(0, 1), int2(1, 1), int2(2, 1),\n\
+    int2(-2, 2), int2(-1, 2), int2(0, 2), int2(1, 2), int2(2, 2) };\n\
+\n\
+float4 PSMain(PSInput input) : SV_TARGET\n\
+{\n\
+    float3 sum = float4(0,0,0,0);\n\
+    float2 step = float2(1. / width, 1. / height);\n\
+\n\
+    float3 cval = render_.Sample(samp_, input.uv.xy).xyz;\n\
+    float3 nval = normal_.Sample(samp_, input.uv.xy).xyz;\n\
+    float3 pval = world_.Sample(samp_, input.uv.xy).xyz;\n\
+\n\
+    float cum_w = 0.0;\n\
+\n\
+    for (int i = 0; i < 25; i++) {\n\
+        float2 uv = input.uv.xy + offset[i] * step * stepwidth;\n\
+\n\
+        float4 ctmp = render_.Sample(samp_,uv);\n\
+        float4 t = cval - ctmp;\n\
+        float dist2 = dot(t,t);\n\
+        float c_w = min(exp(-(dist2) / c_phi),1.0);\n\
+\n\
+        float4 ntmp = normal_.Sample(samp_,uv);\n\
+        t = nval - ntmp;\n\
+        dist2 = max(dot(t,t) / (stepwidth * stepwidth),0.0);\n\
+        float n_w = min(exp(-(dist2) / n_phi), 1.0);\n\
+\n\
+        float4 ptmp = world_.Sample(samp_,uv);\n\
+        t = pval - ptmp;\n\
+        dist2 = dot(t,t);\n\
+        float p_w = min(exp(-(dist2) / p_phi),1.0);\n\
+\n\
+        float weight = c_w * n_w * p_w;\n\
+        sum += ctmp * weight * kernel[i];\n\
+        cum_w += weight * kernel[i];\n\
+    }\n\
+\n\
+    return float4(sum / cum_w,1);\n\
+}\n\
+";
+*/
 char post_shader[] = "\
-#define rootSig \"RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT),CBV(b0),DescriptorTable(SRV(t0)),DescriptorTable(SRV(t1)),StaticSampler(s0) \"\n \
-float time : register(b0);\n\
-Texture2D<float4> tex_ : register(t0);\
-Texture2D<float4> tex2_ : register(t1);\
+#define rootSig \"RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT),CBV(b0),DescriptorTable(SRV(t0)),StaticSampler(s0) \"\n \
+float time :  register(b0);\n\
+Texture2D<float4> render_ : register(t0);\
 SamplerState samp_ : register(s0);\
 struct PSInput {\n\
     float4	position : SV_POSITION;\n\
@@ -150,7 +305,7 @@ PSInput VSMain(float4 position : POSITION, float4 color : COLOR, float4 uv : TEX
 float4 PSMain(PSInput input) : SV_TARGET\n\
 {\n\
     float2 uv = input.uv;\n\
-    float4 col = (tex_.Sample(samp_, input.uv) + tex2_.Sample(samp_, input.uv))*0.5;\n\
+    float4 col = float4(render_.Sample(samp_, input.uv).xyz,1);\n\
 \n\
     return col;\n\
 }\n\
@@ -190,6 +345,43 @@ HRESULT create_pipeline_loading(ino::d3d::pipeline& pipe)
         { "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, sizeof(float) * 3, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
         { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0,sizeof(float) * 3 + sizeof(float) * 4, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
     };
+    pipe.Create(elementDescs, 3);
+
+    pipe.view = {
+        .Width = static_cast<FLOAT>(ino::d3d::screen_width),
+        .Height = static_cast<FLOAT>(ino::d3d::screen_height),
+    };
+    pipe.scissor = {
+        .right = ino::d3d::screen_width,
+        .bottom = ino::d3d::screen_height
+    };
+
+    return S_OK;
+}
+
+struct DenoiseCBO {
+    float width;
+    float height;
+    float c_phi;
+    float n_phi;
+    float p_phi;
+    uint32_t stepwidth;
+};
+
+HRESULT create_pipeline_denoise(ino::d3d::pipeline& pipe)
+{
+    pipe.LoadShader(ino::d3d::ShaderTypes::VERTEX_SHADER, denoise_hader, sizeof(denoise_hader), "VSMain");
+    pipe.LoadShader(ino::d3d::ShaderTypes::FRAGMENT_SHADER, denoise_hader, sizeof(denoise_hader), "PSMain");
+
+    D3D12_INPUT_ELEMENT_DESC elementDescs[] = {
+        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+        { "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, sizeof(float) * 3, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0,sizeof(float) * 3 + sizeof(float) * 4, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+    };
+    D3D12_FILTER filter[] = { D3D12_FILTER::D3D12_FILTER_MIN_POINT_MAG_MIP_LINEAR };
+    D3D12_TEXTURE_ADDRESS_MODE warp[] = { D3D12_TEXTURE_ADDRESS_MODE::D3D12_TEXTURE_ADDRESS_MODE_CLAMP };
+    pipe.CreateSampler(1, filter, warp);
+
     pipe.Create(elementDescs, 3);
 
     pipe.view = {

@@ -14,8 +14,8 @@ namespace ino::d3d::dxr
 {
 
 extern	::Microsoft::WRL::ComPtr<ID3D12Device5> dxrDevice;
-extern ::Microsoft::WRL::ComPtr<ID3D12Resource> dxrRenderTarget;
-extern ::Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> dxrHeap;
+extern ::Microsoft::WRL::ComPtr<ID3D12Resource> dxrRenderTarget[3];
+extern ::Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> dxrHeap[3];
 
 BOOL InitDXRDevice();
 
@@ -34,12 +34,16 @@ struct SceneConstant
 struct InstanceConstant
 {
 	DirectX::XMMATRIX modelMatrix;
+	float emit;
+	float kr;
 };
 
 struct HitArgs {
 	D3D12_GPU_DESCRIPTOR_HANDLE indexBufferGPUHandle;
 	D3D12_GPU_DESCRIPTOR_HANDLE vertexBufferGPUHandle;
 	D3D12_GPU_DESCRIPTOR_HANDLE constantBuffer;
+
+	D3D12_GPU_DESCRIPTOR_HANDLE albedoTexture;
 };
 
 class Blas {
@@ -60,15 +64,18 @@ class Tlas {
 	::Microsoft::WRL::ComPtr<ID3D12Resource> topLevelAccelerationStructure;
 	::Microsoft::WRL::ComPtr<ID3D12Resource> scratchResource;
 	::Microsoft::WRL::ComPtr<ID3D12Resource> instanceDescs;
-	std::vector< std::pair<Blas*, DirectX::XMMATRIX> >  instanceMat;
+	std::vector< std::pair<Blas*, InstanceConstant> >  instanceMat;
+	std::vector< texture* > instanceTex;
 
 	::Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList4> commandList;
 public:
 	inline uint32_t GetBlasCount() noexcept { return instanceMat.size(); }
 	inline Blas* GetBlas(UINT id) noexcept { return instanceMat[id].first; }
-	inline DirectX::XMMATRIX GetMatrix(UINT id) noexcept { return instanceMat[id].second; }
+	inline texture* GetAlbedo(UINT id) noexcept { return instanceTex[id]; }
+	inline InstanceConstant& GetConstant(UINT id) noexcept { return instanceMat[id].second; }
 	void ClearInstance() noexcept;
-	void AddInstance(Blas* blas, DirectX::XMMATRIX matrix = DirectX::XMMatrixIdentity());
+	void AddInstance(Blas* blas, InstanceConstant cb = { DirectX::XMMatrixIdentity(),0.f,0.3f} );
+	void AddInstance(Blas* blas, texture* albedo,InstanceConstant cb = { DirectX::XMMatrixIdentity(),0.f,0.3f });
 	void Build();
 	inline ::Microsoft::WRL::ComPtr<ID3D12Resource> Get() noexcept { return topLevelAccelerationStructure; }
 };
@@ -188,7 +195,7 @@ class DxrPipeline {
 
 	void* rayGenShaderIdentifier;
 	void* missShaderIdentifier;
-	void* hitGroupShaderIdentifier;
+	void* hitGroupShaderIdentifier[2];
 	::Microsoft::WRL::ComPtr<ID3D12Resource> resMissShaderTable;
 	::Microsoft::WRL::ComPtr<ID3D12Resource> resHitGroupShaderTable;
 	::Microsoft::WRL::ComPtr<ID3D12Resource> resRayGenShaderTable;
@@ -214,7 +221,7 @@ public:
 	void Create();
 	void CreateShaderTable(Tlas& as);
 	void Dispatch(Tlas& as);
-	void CopyToScreen(renderTexture& target);
+	void CopyToScreen(renderTexture& target,uint32_t i);
 
 	::Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList4> Begin()
 	{

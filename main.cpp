@@ -175,8 +175,8 @@ float4 PSMain(PSInput input) : SV_TARGET\
 }\
 ";
 
-char tex_shader[] =
-"#define rootSig \"RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT),CBV(b0),CBV(b1),DescriptorTable(SRV(t0)),StaticSampler(s0) \"\n \
+char tex_shader[] ="\
+#define rootSig \"RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT),CBV(b0),CBV(b1),DescriptorTable(SRV(t0)),StaticSampler(s0) \"\n\
 cbuffer cb1 : register(b0){\
 float s1;\
 };\
@@ -342,6 +342,33 @@ public:
 	}
 };
 
+ino::d3d::texture loadTexture(std::istream& istream)
+{
+	BITMAPFILEHEADER header;
+	BITMAPINFOHEADER info;
+	istream.read((char*)&header, sizeof(header));
+	istream.read((char*)&info, sizeof(info));
+
+	int width = info.biWidth;
+	int height = info.biHeight;
+	byte* buffer = new byte[width*height*4];
+	for (int y = height - 1; y >= 0; y--) {
+		byte pixel[3];
+		istream.read((char*)pixel,3);
+		for (int x = 0; x < width; x++) {
+			buffer[x * 4 + y * width * 4 + 0] = pixel[2];
+			buffer[x * 4 + y * width * 4 + 1] = pixel[1];
+			buffer[x * 4 + y * width * 4 + 2] = pixel[0];
+			buffer[x * 4 + y * width * 4 + 3] = 0xff;
+		}
+	}
+	ino::d3d::texture ret;
+	ret.Create(width,height);
+	ret.Map(buffer, width, height);
+	delete[] buffer;
+	return ret;
+}
+
 #define resToStream(idr_,type) \
 HRSRC resInfo = FindResource(0, MAKEINTRESOURCE(idr_),type);\
 HGLOBAL resData = LoadResource(0, resInfo);\
@@ -355,9 +382,6 @@ membuf(char* base, std::ptrdiff_t n) {\
 };\
 membuf sbuf((char*)pvResData, size);\
 std::istream resStream = std::istream(&sbuf)\
-
-ino::d3d::renderTexture renderOffscreen[2];
-ino::d3d::renderTexture dxrOffscreen[2];
 
 HGLOBAL Music()
 {
@@ -389,11 +413,7 @@ int main() {
 	//[[maybe_unused]] int a;
 
 	//setup pipeline
-	ino::d3d::cbo<DX::XMFLOAT4X4> mvpCBO[2];
-	ino::d3d::cbo<float> fCBO[2];
-
 	ino::d3d::cbo<float> timeCbo;
-
 	ino::d3d::pipeline loadingPipe;
 	create_pipeline_loading(loadingPipe);
 
@@ -430,12 +450,14 @@ int main() {
 	};
 
 	draw_Loading(0);//Offscreen Texture
-	renderOffscreen[0].Create(ino::d3d::screen_width, ino::d3d::screen_height, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
-	renderOffscreen[1].Create(ino::d3d::screen_width, ino::d3d::screen_height, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
-	/*Edge-Avoiding A-Trous Wavelet Transform for fast Global Illumination Filtering*/
-	dxrOffscreen[0].Create(ino::d3d::screen_width, ino::d3d::screen_height, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
-	dxrOffscreen[1].Create(ino::d3d::screen_width, ino::d3d::screen_height, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
-
+	ino::d3d::renderTexture renderOffscreen[2];
+	ino::d3d::renderTexture dxrOffscreen[3];
+	{
+		renderOffscreen[0].Create(ino::d3d::screen_width, ino::d3d::screen_height, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
+		renderOffscreen[1].Create(ino::d3d::screen_width, ino::d3d::screen_height, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
+		for (int i = 0; i < 3; ++i)
+			dxrOffscreen[i].Create(ino::d3d::screen_width, ino::d3d::screen_height, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
+	}
 	draw_Loading(0.1);//Mesh Create
 	ino::d3d::vbo* vbo2 = new ino::d3d::vbo();
 	vbo2->Create(g_Vertices2, 9 * sizeof(float), sizeof(g_Vertices2));
@@ -449,7 +471,10 @@ int main() {
 	iboCornelBox->Create(g_indecies1, sizeof(g_indecies1));
 	cornel_box.vbo = *vboCornelBox;
 	cornel_box.ibo = *iboCornelBox;
-
+	{
+		resToStream(IDR_MODEL1, L"MODEL");
+		meshes.push_back(ino::gfx::obj::load_obj(resStream));
+	}
 	draw_Loading(0.2);
 	ino::d3d::StaticMesh tri;
 	tri.vbo.Create(tri_v, 12 * sizeof(float),sizeof(tri_v));
@@ -460,6 +485,13 @@ int main() {
 	std::chrono::high_resolution_clock c;
 	std::chrono::high_resolution_clock::time_point time_o = c.now();
 	float rot = 0.0f;
+
+	//texture load
+	ino::d3d::texture meshTexture;
+	{
+		resToStream(IDR_TEXTURE1, L"TEXTURE");
+		meshTexture = loadTexture(resStream);
+	}
 
 	draw_Loading(0.7);//DxrResources
 	//Init DXR
@@ -489,12 +521,21 @@ int main() {
 	create_pipeline_tex_gen1(offscreenPipe);
 	ino::d3d::pipeline postPipe;
 	create_pipeline_postProcess(postPipe);
+	ino::d3d::pipeline denoisePipe[5];
+	for(int i = 0;i<5;++i)
+		create_pipeline_denoise(denoisePipe[i]);
 
 	draw_Loading(1.0);//ConstantBufferObjects
-	mvpCBO[0].Create();
-	mvpCBO[1].Create();
-	for (auto& val : fCBO)
-		val.Create();
+	ino::d3d::cbo<DX::XMFLOAT4X4> mvpCBO[2];
+	ino::d3d::cbo<float> fCBO[2];
+	ino::d3d::cbo<DenoiseCBO> denoiseCBO;
+	{
+		mvpCBO[0].Create();
+		mvpCBO[1].Create();
+		for (auto& val : fCBO)
+			val.Create();
+		denoiseCBO.Create();
+	}
 
 	Sleep(500);
 
@@ -548,7 +589,6 @@ int main() {
 		mvpCBO[1].Set(cmds.back(), Mat, 0);
 		vboCornelBox->Draw(cmds.back(), *iboCornelBox);
 		pipe[0].End();
-		//std::thread t1([&cmds, &pipe,&vboCornelBox, &m,&mvpCBO]() {
 
 		//cmds.push_back(pipe[0].Begin());
 		//mvpCBO[1].Set(cmds.back(), Mat,0);
@@ -571,25 +611,49 @@ int main() {
 		//Raytrace!
 		{
 			tlas.ClearInstance();
-			tlas.AddInstance(&blases[0],DirectX::XMMatrixScaling(0.01f, 0.01f, 0.01f));
+			tlas.AddInstance(&blases[0], { DirectX::XMMatrixScaling(0.01f, 0.01f, 0.01f),0,1.1 });
 			//tlas.AddInstance(&blases[0], DirectX::XMMatrixScaling(0.02f, 0.02f, 0.02f));
 			tlas.AddInstance(&blases[1]);
-			tlas.AddInstance(&blases[2], DirectX::XMMatrixTranslation(2,4,0));
+			tlas.AddInstance(&blases[2], { DirectX::XMMatrixScaling(2, 2, 2)*DirectX::XMMatrixTranslation(2,4,0),1.0,1.0 });
+			tlas.AddInstance(&blases[3], &meshTexture,{ DirectX::XMMatrixScaling(1, 1, 1),0.003,0.1 });
 			tlas.Build();
 
 			cmds.push_back(dxrPipe.Begin().Get());
 			dxrPipe.CreateShaderTable(tlas);
 			dxrPipe.Dispatch(tlas);
-			dxrOffscreen[dxrOffscreenCount].RenderTarget(cmds.back());
-			dxrPipe.CopyToScreen(dxrOffscreen[dxrOffscreenCount]);
+			for (int i = 0; i < 3; ++i)
+			{
+				dxrOffscreen[i].RenderTarget(cmds.back());
+				dxrPipe.CopyToScreen(dxrOffscreen[i], i);
+			}
 			dxrPipe.End();
-			dxrOffscreenCount = (dxrOffscreenCount + 1) % 2;
+		}
+
+		for (int i = 0; i < 5; ++i)//denoise scene
+		{
+			cmds.push_back(denoisePipe[i].Begin(renderOffscreen[i%2]));
+			denoisePipe[i].Clear(renderOffscreen[i%2], clearColor2);
+			DenoiseCBO cb = {};
+			cb.width = denoisePipe[i].view.Width;
+			cb.height = denoisePipe[i].view.Height;
+			cb.c_phi = powf(2.0f, i);
+			cb.n_phi = powf(2.0f, i);
+			cb.p_phi = 0.125f * (1+i);//powf(1.0f, i);
+			cb.stepwidth = i*2;
+			denoiseCBO.Set(cmds.back(), cb, 0);
+			if (i == 0)
+				dxrOffscreen[0].Set(cmds.back(), 1);
+			else
+				renderOffscreen[(i + 1) % 2].Set(cmds.back(), 1);
+			dxrOffscreen[1].Set(cmds.back(), 2);
+			dxrOffscreen[2].Set(cmds.back(), 3);
+			vbo->Draw(cmds.back());
+			denoisePipe[i].End();
 		}
 
 		cmds.push_back(postPipe.Begin());
 		timeCbo.Set(cmds.back(), local_time, 0);
-		dxrOffscreen[dxrOffscreenCount].Set(cmds.back(),1);
-		dxrOffscreen[dxrOffscreenCount].Set(cmds.back(),2);
+		renderOffscreen[1].Set(cmds.back(), 1);
 		vbo->Draw(cmds.back());
 		postPipe.End();
 
