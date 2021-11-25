@@ -81,6 +81,7 @@ type MFrame (title : string,timeLength : int) as this =
         let timeEvent = new Timer()
         let saveBtn = new Button(Text = "save",Left = this.Width - 280,Top = 500,Width = 40,Height = 20)
         let loadBtn = new Button(Text = "load",Left = this.Width - 240,Top = 500,Width = 40,Height = 20)
+        let exportBtn = new Button(Text = "export",Left = this.Width - 200,Top = 500,Width = 40,Height = 20)
         let mutable time = 0
         let mutable timeBefore = System.DateTime.Now
         let timeCaption = new Label(Top = back.Top+5,Left = timeScroll.Left ,Width = 50)
@@ -184,6 +185,70 @@ type MFrame (title : string,timeLength : int) as this =
                     SetObject(id,cnt,p,r,s,ti)
         //--LoadFile
 
+        //ExportFile
+        let exportFile() = do
+            let dlg = new System.Windows.Forms.SaveFileDialog()
+            dlg.Filter <- "txt files (*.txt)|*.txt"
+            dlg.FilterIndex <- 0
+            if dlg.ShowDialog() = DialogResult.OK then do
+                if File.Exists(dlg.FileName) then File.Delete(dlg.FileName)
+                else File.Create(dlg.FileName) |> ignore
+                File.AppendAllText(dlg.FileName,"struct PlotCamera{DirectX::XMVECTOR pos;DirectX::XMVECTOR target;DirectX::XMVECTOR up;float time;};\n")
+
+                //camera
+                File.AppendAllText(dlg.FileName,"PlotCamera cameraPlot[] = {\n")
+                for i = 0 to camPlot.Count()-1 do 
+                    let p = GetCurrentCameraPos(i)
+                    let t = GetCurrentCameraTar(i)
+                    let u = GetCurrentCameraUp(i)
+                    let ti = GetCurrentCameraTime(i)
+                    File.AppendAllText(dlg.FileName,"\t{")
+                    File.AppendAllText(dlg.FileName,"DirectX::XMVectorSet(")
+                    File.AppendAllText(dlg.FileName, p.x.ToString() + "," + p.y.ToString() + "," + p.z.ToString() + ",0.f")
+                    File.AppendAllText(dlg.FileName,"),")
+                    File.AppendAllText(dlg.FileName,"DirectX::XMVectorSet(")
+                    File.AppendAllText(dlg.FileName, t.x.ToString() + "," + t.y.ToString() + "," + t.z.ToString() + ",0.f")
+                    File.AppendAllText(dlg.FileName,"),")
+                    File.AppendAllText(dlg.FileName,"DirectX::XMVectorSet(")
+                    File.AppendAllText(dlg.FileName, u.x.ToString() + "," + u.y.ToString() + "," + u.z.ToString() + ",0.f")
+                    File.AppendAllText(dlg.FileName,"),")
+                    File.AppendAllText(dlg.FileName, (float(ti)/1000.0).ToString())
+                    File.AppendAllText(dlg.FileName,"},\n")
+                File.AppendAllText(dlg.FileName,"};\n")
+                //object
+                File.AppendAllText(dlg.FileName,"DrawObject drawObj[] = {"+"\n")
+                for i = 0 to objects.Count()-1 do 
+                    let mutable plotEnd = 0
+                    File.AppendAllText(dlg.FileName,"\t{\n")
+                    File.AppendAllText(dlg.FileName,"\t\t.shapeID = " + GetPlotShape(i).ToString() + ",\n")
+                    File.AppendAllText(dlg.FileName,"\t\t.plotCount = " + PlotCount(i).ToString() + ",\n")
+                    File.AppendAllText(dlg.FileName,"\t\t.plots = {\n")
+                    for j = 0 to PlotCount(i)-1 do
+                        let p = GetPlotPos(i,j)
+                        let r = GetPlotRot(i,j)
+                        let s = GetPlotScale(i,j)
+                        let ti = GetPlotTime(i,j)
+                        if plotEnd < ti then plotEnd <- ti
+                        File.AppendAllText(dlg.FileName,"\t\t\t{")
+                        File.AppendAllText(dlg.FileName,(float(ti)/1000.0).ToString() + ",")
+                        File.AppendAllText(dlg.FileName,"DirectX::XMVectorSet(")
+                        File.AppendAllText(dlg.FileName,p.x.ToString() + "," + p.y.ToString() + "," + p.z.ToString() + ",1.f")
+                        File.AppendAllText(dlg.FileName,"),")
+                        File.AppendAllText(dlg.FileName,"DirectX::XMVectorSet(")
+                        File.AppendAllText(dlg.FileName,r.x.ToString() + "," + r.y.ToString() + "," + r.z.ToString() + ",0.f")
+                        File.AppendAllText(dlg.FileName,"),")
+                        File.AppendAllText(dlg.FileName,"DirectX::XMVectorSet(")
+                        File.AppendAllText(dlg.FileName,s.x.ToString() + "," + s.y.ToString() + "," + s.z.ToString() + ",1.f")
+                        File.AppendAllText(dlg.FileName,"),")
+                        File.AppendAllText(dlg.FileName,"DirectX::XMMatrixIdentity()")
+                        File.AppendAllText(dlg.FileName,"},\n"
+                        )
+                    File.AppendAllText(dlg.FileName,"\t\t},\n")
+                    File.AppendAllText(dlg.FileName,"\t\t.plotTimeEnd = " + (float(plotEnd)/1000.0).ToString() + "\n")
+                    File.AppendAllText(dlg.FileName,"\t},\n")
+            File.AppendAllText(dlg.FileName,"};")
+        //--Export
+
         //Construct
         do
             camPosUI.setValue(0.f,0.f,0.f)
@@ -201,21 +266,23 @@ type MFrame (title : string,timeLength : int) as this =
             renderTarget.KeyDown.Add(fun e -> do
 
                 match e.KeyCode with
-                | Keys.Left ->  if e.Control then camRot <- camRot + vec(z = 0.1f)
-                | Keys.Right -> if e.Control then camRot <- camRot + vec(z = -0.1f)
-                | Keys.Up -> if e.Control then camPos <- camPos + camUp*0.11f
-                | Keys.Down -> if e.Control then camPos <- camPos - camUp*0.11f
                 | Keys.A -> if e.Control && keyboardToObjChk.Checked = false then camRot <- camRot + vec(y = 0.1f)
                 | Keys.D -> if e.Control && keyboardToObjChk.Checked = false then camRot <- camRot + vec(y = -0.1f)
-                | Keys.W -> if e.Control && keyboardToObjChk.Checked = false then do camRot <- camRot + vec(x = -0.1f)
-                | Keys.S -> if e.Control && keyboardToObjChk.Checked = false then do camRot <- camRot + vec(x = 0.1f)
+                | Keys.W -> if e.Control && keyboardToObjChk.Checked = false then camRot <- camRot + vec(x = -0.1f)
+                | Keys.S -> if e.Control && keyboardToObjChk.Checked = false then camRot <- camRot + vec(x = 0.1f)
                 | Keys.D1 ->  keyboardToObjChk.Checked <- not keyboardToObjChk.Checked
+                | Keys.D2 -> camRot <- vec(x = 0.f,z = 0.f)
+                | Keys.D3 -> camPos <- vec(x = 0.f,y = 0.f,z = 0.f)
                 | _ -> ()
 
                 camTar <- rotY( rotX( rotZ ( vec(z = -1.f),float camRot.z ),float camRot.x ),float camRot.y )
                 camUp <- rotY( rotX( rotZ ( vec(y = 1.f),float camRot.z ),float camRot.x ),float camRot.y )
 
                 match e.KeyCode with
+                | Keys.E -> if not e.Control && keyboardToObjChk.Checked = false then camRot <- camRot + vec(z = 0.1f)
+                | Keys.Q -> if not e.Control && keyboardToObjChk.Checked = false then camRot <- camRot + vec(z = -0.1f)
+                | Keys.R -> if not e.Control && keyboardToObjChk.Checked = false then camPos <- camPos + camUp*0.11f
+                | Keys.F -> if not e.Control && keyboardToObjChk.Checked = false then camPos <- camPos - camUp*0.11f
                 | Keys.A -> if not e.Control && keyboardToObjChk.Checked = false then camPos <- camPos + cross(camTar,camUp)*0.11f
                 | Keys.D -> if not e.Control && keyboardToObjChk.Checked = false then camPos <- camPos - cross(camTar,camUp)*0.11f
                 | Keys.W -> if not e.Control && keyboardToObjChk.Checked = false then camPos <- camPos + camTar*0.11f
@@ -257,7 +324,7 @@ type MFrame (title : string,timeLength : int) as this =
                     )
                 this.Controls.Add( b )
             //SaveLoad
-            for b in [saveBtn;loadBtn] do this.Controls.Add(b)
+            for b in [saveBtn;loadBtn;exportBtn] do this.Controls.Add(b)
             //Key Event
             this.KeyPreview <- true
             this.KeyDown.Add( fun e -> do
@@ -374,6 +441,7 @@ type MFrame (title : string,timeLength : int) as this =
             renderTarget.Select()
             saveBtn.Click.Add ( fun _ -> do writeFile() )
             loadBtn.Click.Add ( fun _ -> do loadFile() )
+            exportBtn.Click.Add (fun _ -> do exportFile() )
             resetPlotBtn.Click.Add(fun _ -> 
                 do 
                     objPosUI.setValue(0.f,0.f,0.f)

@@ -52,12 +52,11 @@ struct Plot {
 
 struct DrawObject {
 	UINT shapeID = 0;
+	UINT plotCount = 0;
+	Plot plots[64] = {};
 
 	UINT currentPlot = 0;
 	float plotTimeEnd = 0;
-	
-	UINT plotCount = 0;
-	Plot plots[64] = {};
 	ino::d3d::cbo<DirectX::XMFLOAT4X4> cbo;
 };
 
@@ -443,7 +442,9 @@ DLL_EXPORT void AddPlotCamera(UINT id, point pos, point tar, point up,UINT t)
 		.plotTime = t/frameTime
 	};
 
-	if( id > camPlots.size() )
+	if (id > camPlots.size() && camPlots.size() != 0 )
+		camPlots.insert(camPlots.begin(),c);
+	else if( id > camPlots.size() )
 		camPlots.push_back(c);
 	else
 		camPlots.insert(camPlots.begin()+id+1,c);
