@@ -178,6 +178,9 @@
   <ItemGroup>
     <Media Include="song.wav" />
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="resource\sushi_Albedo.bmp" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

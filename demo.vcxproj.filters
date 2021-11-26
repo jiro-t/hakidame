@@ -100,4 +100,9 @@
       <Filter>リソース ファイル</Filter>
     </Media>
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="resource\sushi_Albedo.bmp">
+      <Filter>リソース ファイル</Filter>
+    </Image>
+  </ItemGroup>
 </Project>
