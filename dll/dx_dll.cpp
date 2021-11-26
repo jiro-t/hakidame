@@ -278,6 +278,8 @@ DLL_EXPORT BOOL InitDxContext(HWND hwnd, UINT width, UINT height)
 	mesh.push_back(ino::shape::CreateCharMesh(L'‚ñ', L"‚l‚r –¾’©"));
 	mesh.push_back(ino::shape::CreateCharMesh(L'‚¿', L"‚l‚r –¾’©"));
 	//mesh.push_back(ino::shape::CreateTestModel());));
+
+	mesh.push_back(ino::shape::CreateSphere(DirectX::XMVectorSet(1,1,1,1), DirectX::XMVectorSet(1,0,0,1)));
 	std::ifstream ifs("resource/shop.model",std::ios::in);
 	if(ifs)
 		mesh.push_back(ino::gfx::obj::load_obj(ifs));
