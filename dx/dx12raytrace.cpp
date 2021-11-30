@@ -10,12 +10,14 @@ struct SceneConstantBuffer\n\
 {\n\
 	float4 cameraPos;\n\
 	float4x4 invViewProj;\n\
+	float time;\n\
 };\n\
 struct InstanceConstantBuffer\n\
 {\n\
 	float4x4 modelMatrix; \n\
 	float emit;\n\
 	float kr;\n\
+	int materialID;\n\
 };\n\
 \
 RWTexture2D<float4> RenderTarget : register(u0);\n\
@@ -27,14 +29,14 @@ ConstantBuffer<SceneConstantBuffer> sceneCB : register(b0);\n\
 ByteAddressBuffer Indices : register(t1, space0);\n\
 StructuredBuffer<Vertex> Vertices : register(t2, space0); \n\
 ConstantBuffer<InstanceConstantBuffer> instanceCB : register(b1);\n\
-Texture2D<float4> albedo : register(t3);\n\
+Texture2D<float4> albedo[] : register(t3,space0);\n\
 SamplerState                    LinearSampler : register(s0); \
 \n\
 static const int SAMPLE_NUM = 8;\n\
 \n\
 float rand(float2 texCoord, int Seed)\n\
 {\n\
-	return frac(sin(dot(texCoord.xy, float2(12.9898, 78.233)) + Seed) * 43758.5453); \n\
+	return frac(sin(dot(texCoord.xy+float2(sceneCB.time,sceneCB.time), float2(12.9898, 78.233)) + Seed) * 43758.5453); \n\
 }\n\
 typedef BuiltInTriangleIntersectionAttributes inoAttributes;\n\
 struct RayPayload\n\
@@ -86,7 +88,7 @@ float4 HitAttribute(float4 vertexAttribute[3], BuiltInTriangleIntersectionAttrib
 [shader(\"closesthit\")]\n\
 void inoClosestHitShader(inout RayPayload payload, in inoAttributes attr)\n\
 {\n\
-	if(payload.depth > 4)\n\
+	if(payload.depth > 3)\n\
 		return;\n\
 	uint indexSizeInBytes = 4;\n\
 	uint indicesPerTriangle = 3;\n\
@@ -116,14 +118,16 @@ void inoClosestHitShader(inout RayPayload payload, in inoAttributes attr)\n\
 	float3 newPos = mul(instanceCB.modelMatrix,HitAttribute(vertexPosition,attr)).xyz;\n\
 	for(int i = 0;i < SAMPLE_NUM;++i)\n\
 	{\n\
-		float3 newDir = normalize(float3(rand(attr.barycentrics, 0+i)*2.0-1.0, rand(attr.barycentrics, 1+i)*2.0-1.0, rand(attr.barycentrics, 2+i)*2.0-1.0) + norm*1.101); \n\
+		float theta = (rand(newPos.xy, 0+i)*2.0-1.0)*3.14159263;\n\
+		float phi = rand(newPos.xy, SAMPLE_NUM + i)*3.14159263; \n\
+		float3 newDir = normalize(float3(cos(theta)*cos(phi),cos(theta)*sin(phi),sin(theta))*0.3 + norm); \n\
 		float p = 1 / (2 * 3.14159264);\n\
 		float cos_theta = dot(abs(newDir),abs(norm));\n\
 \n\
 		payload.rayDir = newDir; \n\
 		payload.rayOrig = newPos + newDir*0.001; \n\
 		payload = shootRay(payload); \n\
-		color += emit + cos_theta*abs(vColor*instanceCB.kr)*payload.color / p; \n\
+		color += emit + (cos_theta*instanceCB.kr*vColor/(3.14159264))*payload.color / p; \n\
 	}\n\
 	payload.color = color;\n\
 	payload.normal = norm;\n\
@@ -132,7 +136,7 @@ void inoClosestHitShader(inout RayPayload payload, in inoAttributes attr)\n\
 [shader(\"closesthit\")]\n\
 void inoClosestHitShaderWithTexture(inout RayPayload payload, in inoAttributes attr)\n\
 {\n\
-	if(payload.depth > 4)\n\
+	if(payload.depth > 3)\n\
 		return;\n\
 	uint indexSizeInBytes = 4;\n\
 	uint indicesPerTriangle = 3;\n\
@@ -150,24 +154,32 @@ void inoClosestHitShaderWithTexture(inout RayPayload payload, in inoAttributes a
 		Vertices[indices[1]].color,\n\
 		Vertices[indices[2]].color\n\
 	};\n\
+	float4 vertexTexcoord[3] = {\n\
+		Vertices[indices[0]].texcoord,\n\
+		Vertices[indices[1]].texcoord,\n\
+		Vertices[indices[2]].texcoord\n\
+	};\n\
 \n\
 	float3 norm = normalize(mul(instanceCB.modelMatrix,HitAttribute(vertexNormal,attr))); \n\
 \n\
 	float4 color = float4(0,0,0,0);\n\
-	float4 vColor = float4(1,1,1,1);\n\
+	float2 uv = HitAttribute(vertexTexcoord,attr).xy;\n\
+	float4 vColor = float4(albedo[instanceCB.materialID].SampleLevel(LinearSampler, uv,0.0f).xyz,1);\n\
 	float4 emit = vColor*instanceCB.emit;\n\
 	payload.depth += 1;\n\
 	float3 newPos = mul(instanceCB.modelMatrix,HitAttribute(vertexPosition,attr)).xyz;\n\
 	for(int i = 0;i < SAMPLE_NUM;++i)\n\
 	{\n\
-		float3 newDir = normalize(float3(rand(attr.barycentrics, 0+i)*2.0-1.0, rand(attr.barycentrics, 1+i)*2.0-1.0, rand(attr.barycentrics, 2+i)*2.0-1.0) + norm*1.101); \n\
+		float theta = (rand(newPos.xy, 0+i)*2.0-1.0)*3.14159263;\n\
+		float phi = rand(newPos.xy, SAMPLE_NUM + i)*3.14159263; \n\
+		float3 newDir = normalize(float3(cos(theta)*cos(phi),cos(theta)*sin(phi),sin(theta))*0.3 + norm); \n\
 		float p = 1 / (2 * 3.14159264);\n\
 		float cos_theta = dot(abs(newDir),abs(norm));\n\
 \n\
 		payload.rayDir = newDir; \n\
 		payload.rayOrig = newPos + newDir*0.001; \n\
 		payload = shootRay(payload); \n\
-		color += emit + cos_theta*abs(vColor*instanceCB.kr)*payload.color / p; \n\
+		color += emit + cos_theta*(cos_theta*instanceCB.kr*vColor/(3.14159264))*payload.color / p; \n\
 	}\n\
 	payload.color = color;\n\
 	payload.normal = norm;\n\
@@ -330,7 +342,7 @@ void Tlas::Build()
 	D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS topLevelInputs = {};
 	topLevelInputs.DescsLayout = D3D12_ELEMENTS_LAYOUT_ARRAY;
 	topLevelInputs.Flags = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_TRACE;
-	topLevelInputs.NumDescs = 1;
+	topLevelInputs.NumDescs = 1024;
 	topLevelInputs.Type = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL;
 
 	D3D12_RAYTRACING_ACCELERATION_STRUCTURE_PREBUILD_INFO topLevelPrebuildInfo = {};
@@ -353,8 +365,10 @@ void Tlas::Build()
 
 		instanceDesc.push_back(desc);
 	}
-	scratchResource = CreateResource(topLevelPrebuildInfo.ScratchDataSizeInBytes,D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
-	topLevelAccelerationStructure = CreateResource(topLevelPrebuildInfo.ResultDataMaxSizeInBytes, D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
+	if(!scratchResource)
+		scratchResource = CreateResource(topLevelPrebuildInfo.ScratchDataSizeInBytes,D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
+	if(!topLevelAccelerationStructure)
+		topLevelAccelerationStructure = CreateResource(topLevelPrebuildInfo.ResultDataMaxSizeInBytes, D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE, D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
 	instanceDescs = CreateUploadResource(sizeof(D3D12_RAYTRACING_INSTANCE_DESC) * instanceDesc.size(), &instanceDesc[0]);
 
 	D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC topLevelBuildDesc = {};
@@ -420,7 +434,7 @@ void DxrPipeline::Create()
 
 	// Global Root Signature
 	{
-		static D3D12_DESCRIPTOR_RANGE ranges[3] = {};
+		static D3D12_DESCRIPTOR_RANGE ranges[4] = {};
 		ranges[0].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;// 1 output texture
 		ranges[0].NumDescriptors = 1;
 		ranges[0].BaseShaderRegister = 0;
@@ -436,8 +450,13 @@ void DxrPipeline::Create()
 		ranges[2].BaseShaderRegister = 2;
 		ranges[2].RegisterSpace = 0;
 		ranges[2].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+		ranges[3].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+		ranges[3].NumDescriptors = 1;
+		ranges[3].BaseShaderRegister = 3;
+		ranges[3].RegisterSpace = 0;
+		ranges[3].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 
-		D3D12_ROOT_PARAMETER rootParameters[5] = {};
+		D3D12_ROOT_PARAMETER rootParameters[6] = {};
 		rootParameters[0/*OutputViewSlot*/].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
 		rootParameters[0].DescriptorTable.NumDescriptorRanges = 1;
 		rootParameters[0].DescriptorTable.pDescriptorRanges = &ranges[0];
@@ -461,6 +480,11 @@ void DxrPipeline::Create()
 		rootParameters[4].Constants.RegisterSpace = 0;
 		rootParameters[4].Constants.ShaderRegister = 0;
 		rootParameters[4].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+
+		rootParameters[5/*Texture*/].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+		rootParameters[5].DescriptorTable.NumDescriptorRanges = 1;
+		rootParameters[5].DescriptorTable.pDescriptorRanges = &ranges[3];
+		rootParameters[5].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
 
 		D3D12_STATIC_SAMPLER_DESC sampler = {};
 		sampler.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
@@ -506,7 +530,7 @@ void DxrPipeline::Create()
 		ranges[0].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
 
 
-		D3D12_ROOT_PARAMETER rootParameters[4];
+		D3D12_ROOT_PARAMETER rootParameters[3];
 		rootParameters[0/*IndexBuffer*/].ParameterType = D3D12_ROOT_PARAMETER_TYPE_SRV;
 		rootParameters[0].Descriptor.ShaderRegister = 1;
 		rootParameters[0].Descriptor.RegisterSpace = 0;
@@ -522,11 +546,6 @@ void DxrPipeline::Create()
 		rootParameters[2].Constants.ShaderRegister = 1;
 		rootParameters[2].Constants.RegisterSpace = 0;
 		rootParameters[2].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
-
-		rootParameters[3/*Texture*/].ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-		rootParameters[3].DescriptorTable.NumDescriptorRanges = 1;
-		rootParameters[3].DescriptorTable.pDescriptorRanges = &ranges[0];
-		rootParameters[3].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
 
 		D3D12_ROOT_SIGNATURE_DESC desc = {};
 		desc.NumParameters = _countof(rootParameters);
@@ -601,10 +620,13 @@ void DxrPipeline::Create()
 
 	//Buffer Object
 	sceneConstantBuffer.Create();
+
+	device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence));
 }
 
 void DxrPipeline::CreateShaderTable(Tlas& as)
 {
+	Sleep(24);
 	//Create ShaderTable
 	UINT shaderIdentifierSize;
 	{
@@ -655,8 +677,9 @@ void DxrPipeline::CreateShaderTable(Tlas& as)
 			memcpy(&cb.constantBuffer, &cbAddr, sizeof(instanceConstants.back()->GetGPUVirtualAddress()));
 			if (as.GetAlbedo(i) != nullptr)
 			{
-				auto texAddr = as.GetAlbedo(i)->GetHeap()->GetGPUDescriptorHandleForHeapStart();
-				memcpy(&cb.albedoTexture, &texAddr, sizeof(texAddr));
+				instanceConstants.push_back(as.GetAlbedo(i)->GetHandle());
+	//			auto texAddr = as.GetAlbedo(i)->GetHeap()->GetGPUDescriptorHandleForHeapStart();
+				memcpy(&cb.albedoTexture, &cbAddr, sizeof(instanceConstants.back()->GetGPUVirtualAddress()) );
 				hitGroupShaderTable.push_back(ShaderRecord(hitGroupShaderIdentifier[1], shaderIdentifierSize, &cb, sizeof(cb)));
 			}
 			else
@@ -680,6 +703,45 @@ void DxrPipeline::Dispatch(Tlas&as)
 	}
 	dxrCommandList->SetComputeRootShaderResourceView(3, as.Get()->GetGPUVirtualAddress());
 	sceneConstantBuffer.SetToCompute(dxrCommandList.Get(), sceneCB, 4);
+
+	std::vector<ID3D12DescriptorHeap*> texHeaps;
+	for (int i = 0; i < as.GetBlasCount(); ++i)
+	{
+		if (as.GetAlbedo(i) == nullptr)
+			continue;
+		texHeaps.push_back( as.GetAlbedo(i)->GetHeap().Get() );
+	}
+
+	if (texHeaps.size())
+	{
+		D3D12_DESCRIPTOR_HEAP_DESC descriptor_heap_desc = {
+			.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
+			.NumDescriptors = (uint32_t)texHeaps.size(),
+			.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE,
+		};
+		device->CreateDescriptorHeap(&descriptor_heap_desc, IID_PPV_ARGS(&albedoHeap));
+
+		CD3DX12_CPU_DESCRIPTOR_HANDLE handle(albedoHeap->GetCPUDescriptorHandleForHeapStart());
+		int offsetSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+		for (int i = 0; i < as.GetBlasCount(); ++i)
+		{
+			if (as.GetAlbedo(i) == nullptr)
+				continue;
+			D3D12_SHADER_RESOURCE_VIEW_DESC resourct_view_desc{};
+			resourct_view_desc.Format = as.GetAlbedo(i)->GetHandle()->GetDesc().Format;
+			resourct_view_desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+			resourct_view_desc.Texture2D.MipLevels = 1;
+			resourct_view_desc.Texture2D.MostDetailedMip = 0;
+			resourct_view_desc.Texture2D.PlaneSlice = 0;
+			resourct_view_desc.Texture2D.ResourceMinLODClamp = 0.0F;
+			resourct_view_desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+
+			device->CreateShaderResourceView(as.GetAlbedo(i)->GetHandle().Get(), &resourct_view_desc, handle);
+			handle.ptr += offsetSize;
+		}
+		dxrCommandList->SetDescriptorHeaps(1, albedoHeap.GetAddressOf());
+		dxrCommandList->SetComputeRootDescriptorTable(5, albedoHeap->GetGPUDescriptorHandleForHeapStart());
+	}
 
 	D3D12_DISPATCH_RAYS_DESC dispatchDesc = {};
 	dispatchDesc.RayGenerationShaderRecord.StartAddress = resRayGenShaderTable->GetGPUVirtualAddress();

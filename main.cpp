@@ -19,6 +19,7 @@ float local_time = 0.f;
 
 #include <chrono>
 #include "gfx/font.hpp"
+#include "gfx/shapes.hpp"
 #include "gfx/obj_loader.hpp"
 
 #include "resource.h"
@@ -31,26 +32,6 @@ static float g_Vertices[6][9] = {
 	{ 0.55f, 0.55f, 0,/**/ 1.0f, 1.0f, 1.0f,1.0f,/**/1.f,1.f }, // 3
 	{ 0.55f, 0.f, 0,/**/ 1.0f, 1.0f, 1.0f,1.0f,/**/1.f,0.f }, // 4
 	{ 0.30f, 0.f, 0,/**/ 1.0f, 1.0f, 1.0f,1.0f,/**/0.f,0.f } // 1
-};
-
-static float g_Vertices2[6][9] = {
-	{ 0.0f, 0.f, 0.0f,/**/ 1.0f, 0.0f, 0.0f,1.0f,/**/0.f,0.f }, // 1
-	{ 0.f, 1.25f, 0.0f,/**/ 0.0f, 1.0f, 0.0f,1.0f,/**/0.f,1.f }, // 2
-	{ 1.25f, 1.25f, 0.0f,/**/ 0.0f, 0.0f, 1.0f,1.0f,/**/1.f,1.f }, // 3
-	{ 1.25f, 1.25f, 0.0f,/**/ 0.0f, 0.0f, 1.0f,1.0f,/**/1.f,1.f }, // 3
-	{ 1.25f, 0.f, 0.0f,/**/ 1.0f, 0.0f, 1.0f,1.0f,/**/1.f,0.f }, // 4
-	{ 0.0f, 0.f, 0.0f,/**/ 1.0f, 0.0f, 0.0f,1.0f,/**/0.f,0.f } // 1
-};
-
-uint32_t tri_i[] =
-{
-	0, 1, 2
-};
-float tri_v[] =
-{
-	0,-1,1,1, 1,0,0,1, 0,0,0,0,
-   -1, 1,0,1, 0,1,0,1, 0,0,0,0,
-	1, 1,0,1, 0,0,1,1, 0,0,0,0
 };
 
 namespace DX = DirectX;
@@ -164,14 +145,14 @@ struct PSInput {\
 PSInput VSMain(float4 position : POSITION,float4 color : COLOR)\
 {\
 	PSInput	result;\
-	result.position = mul(float4(position.xyz*0.01f,1),mvp);\
+	result.position = mul(float4(position.xyz,1),mvp);\
 	result.color = color;\
 	return result;\
 }\
 [RootSignature(rootSig)]\
 float4 PSMain(PSInput input) : SV_TARGET\
 {\
-	return input.color;\
+	return float4(input.color.xyz,1);\
 }\
 ";
 
@@ -256,92 +237,6 @@ HRESULT create_pipeline_textured(ino::d3d::pipeline& pipe)
 	return S_OK;
 }
 
-static BYTE texData[] = {
-	0xff,0xff,0xff,0xff, 0xff,0xff,0xff,0xff,	0xff,0x9f,0xff,0xff, 0xff,0xff,0xff,0xff,
-	0xff,0xff,0xff,0xff, 0xff,0xff,0xff,0x4f,	0xff,0x8f,0xff,0xff, 0xff,0xff,0xff,0xff,
-	0xff,0xff,0xff,0xff, 0xff,0xff,0xff,0x3f,	0xff,0xff,0xff,0xff, 0xff,0xff,0xff,0xff,
-	0xff,0xff,0xff,0xff, 0xff,0xff,0xff,0xff,	0xff,0xff,0xff,0xff, 0xff,0xff,0xff,0xff,
-};
-
-class WaveSound {
-	int fs=0; //サンプリング周波数
-	int bits=0; //量子化bit数
-	int L=0; //データ長
-
-	std::vector<double> data;
-
-	HWAVEOUT handle;
-	WAVEHDR  header;
-	WAVEFORMATEX formatter;
-public:
-	WaveSound()
-	{
-		MMRESULT result = waveOutOpen(&handle, WAVE_MAPPER, &formatter, 0, 0, CALLBACK_NULL);
-	}
-	~WaveSound()
-	{
-		waveOutReset(handle);
-		waveOutUnprepareHeader(handle, &header, sizeof(WAVEHDR));
-		waveOutClose(handle);
-	}
-
-	void Load(std::istream& input)
-	{
-		char header_ID[4];
-		long header_size;
-		char header_type[4];
-		char fmt_ID[4];
-		long fmt_size;
-		short fmt_format;
-		short fmt_channel;
-		long fmt_samples_per_sec;
-		long fmt_bytes_per_sec;
-		short fmt_block_size;
-		short fmt_bits_per_sample;
-		char data_ID[4];
-		long data_size;
-		short data_data;
-
-		//wavデータ読み込み
-		input.read((char*)&header_ID[0], 4);
-		input.read((char*)&header_size, 4);
-		input.read((char*)&header_type[0], 4);
-		input.read((char*)&fmt_ID[0], 4);
-		input.read((char*)&fmt_size, 4);
-		input.read((char*)&fmt_format, 2);
-		input.read((char*)&fmt_channel, 2);
-		input.read((char*)&fmt_samples_per_sec, 4);
-		input.read((char*)&fmt_bytes_per_sec, 4);
-		input.read((char*)&fmt_block_size, 2);
-		input.read((char*)&fmt_bits_per_sample, 2);
-		input.read((char*)&data_ID[0], 4);
-		input.read((char*)&data_size, 4);
-
-		//パラメータ
-		fs = fmt_samples_per_sec;
-		bits = fmt_bits_per_sample;
-		L = data_size / 2;
-
-		//音声データ
-		data.resize(L * sizeof(double));
-		for (int n = 0; n < L; n++) {
-			input.read((char*)&data_data, 2);
-
-			data[n] = (double)data_data;
-		}
-	}
-
-	void Play()
-	{
-		header.lpData = (LPSTR)&data[0];
-		header.dwBufferLength = L;
-		header.dwFlags = 0;
-
-		waveOutPrepareHeader(handle, &header, sizeof(WAVEHDR));
-		waveOutWrite(handle, &header, sizeof(WAVEHDR));
-	}
-};
-
 ino::d3d::texture loadTexture(std::istream& istream)
 {
 	BITMAPFILEHEADER header;
@@ -352,19 +247,37 @@ ino::d3d::texture loadTexture(std::istream& istream)
 	int width = info.biWidth;
 	int height = info.biHeight;
 	byte* buffer = new byte[width*height*4];
+	byte pixel[3];
 	for (int y = height - 1; y >= 0; y--) {
-		byte pixel[3];
-		istream.read((char*)pixel,3);
 		for (int x = 0; x < width; x++) {
-			buffer[x * 4 + y * width * 4 + 0] = pixel[2];
+			istream.read((char*)pixel, 3);
+			buffer[x * 4 + y * width * 4 + 0] = pixel[0];
 			buffer[x * 4 + y * width * 4 + 1] = pixel[1];
-			buffer[x * 4 + y * width * 4 + 2] = pixel[0];
+			buffer[x * 4 + y * width * 4 + 2] = pixel[2];
 			buffer[x * 4 + y * width * 4 + 3] = 0xff;
 		}
 	}
 	ino::d3d::texture ret;
 	ret.Create(width,height);
 	ret.Map(buffer, width, height);
+	delete[] buffer;
+	return ret;
+}
+
+ino::d3d::texture createGradationTexture()
+{
+	byte* buffer = new byte[16*16*4];
+	for(int i = 0;i < 16;++i)
+		for (int j = 0; j < 16-1; ++j)
+		{
+			buffer[i * 4 + j * 16 * 4 + 0] = j*255/16;
+			buffer[i * 4 + j * 16 * 4 + 1] = j*255/16;
+			buffer[i * 4 + j * 16 * 4 + 2] = j*255/16 - j*125/16;
+			buffer[i * 4 + j * 16 * 4 + 3] = 0xff;
+		}
+	ino::d3d::texture ret;
+	ret.Create(16, 16);
+	ret.Map(buffer, 16, 16);
 	delete[] buffer;
 	return ret;
 }
@@ -395,6 +308,76 @@ HGLOBAL Music()
 	return resData;
 }
 
+DirectX::XMMATRIX GenModelMatrix(const DirectX::XMVECTOR& pos, const DirectX::XMVECTOR& rot, const DirectX::XMVECTOR& sc)
+{
+	namespace DX = DirectX;
+	const DX::XMMATRIX translate = DX::XMMatrixTranslation(DX::XMVectorGetX(pos), DX::XMVectorGetY(pos), DX::XMVectorGetZ(pos));
+	const DX::XMMATRIX rotX = DX::XMMatrixRotationAxis(DX::XMVectorSet(1, 0, 0, 0), DX::XMVectorGetX(rot));
+	const DX::XMMATRIX rotY = DX::XMMatrixRotationAxis(DX::XMVectorSet(0, 1, 0, 0), DX::XMVectorGetY(rot));
+	const DX::XMMATRIX rotZ = DX::XMMatrixRotationAxis(DX::XMVectorSet(0, 0, 1, 0), DX::XMVectorGetZ(rot));
+	const DX::XMMATRIX scale = DX::XMMatrixScaling(DX::XMVectorGetX(sc), DX::XMVectorGetY(sc), DX::XMVectorGetZ(sc));
+	return
+		DX::XMMatrixMultiply(
+			DX::XMMatrixMultiply(
+				DX::XMMatrixMultiply(
+					DX::XMMatrixMultiply(rotY, rotX),
+					rotZ
+				),
+				scale
+			),
+			translate
+		);
+}
+
+static const int mesh_lower_case = 4;
+static const int mesh_upper_case = mesh_lower_case + 26;
+static const int mesh_num_case = mesh_upper_case + 26;
+
+void drawText(std::vector<ino::d3d::StaticMesh>& meshes,ino::d3d::cbo<DX::XMFLOAT4X4> cbo[], ID3D12GraphicsCommandList* cmd,std::wstring const & str,DirectX::XMVECTOR pos,float scale,DirectX::XMMATRIX const& view, DirectX::XMMATRIX const& proj)
+{
+	namespace DX = DirectX;
+	DirectX::XMFLOAT4X4 Mat;
+	for (int i = 0; i < str.size(); ++i)
+	{
+		wchar_t c = str[i];
+		if (c == L' ')
+		{
+			pos = DX::XMVectorAdd(pos,DX::XMVectorSet(scale+0.2,0,0,0));
+			continue;
+		}
+		auto model = GenModelMatrix(pos,DX::XMVectorSet(0,0,0,0),DX::XMVectorSet(scale, scale, scale, 0));
+		DX::XMStoreFloat4x4(&Mat, XMMatrixTranspose(model * view * proj));
+		cbo[i].Set(cmd, Mat, 0);
+		if(c >= L'a' && c <= L'z')
+			meshes[mesh_lower_case + c - L'a' ].Draw(cmd);
+		else if (c >= L'A' && c <= L'Z')
+			meshes[mesh_upper_case + c - L'A'].Draw(cmd);
+		else if (c >= L'0' && c <= L'9')
+			meshes[mesh_num_case + c - L'0'].Draw(cmd);
+		pos = DX::XMVectorAdd(pos, DX::XMVectorSet(scale + 0.2, 0, 0, 0));
+	}
+}
+
+struct Plot {
+	float Time;
+
+	DirectX::XMVECTOR pos = DirectX::XMVectorSet(0, 0, 0, 0);
+	DirectX::XMVECTOR rot = DirectX::XMVectorSet(0, 0, 0, 0);
+	DirectX::XMVECTOR scale = DirectX::XMVectorSet(0, 0, 0, 0);
+	DirectX::XMMATRIX mat = DirectX::XMMatrixIdentity();
+};
+
+struct DrawObject {
+	UINT shapeID = 0;
+	UINT plotCount = 0;
+	Plot plots[64] = {};
+
+	UINT currentPlot = 0;
+	float plotTimeEnd = 0;
+	ino::d3d::cbo<DirectX::XMFLOAT4X4> cbo;
+};
+#include "export.txt"
+
 #ifndef _DEBUG
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow) {
 #else
@@ -420,7 +403,7 @@ int main() {
 	BOOL useDXR = FALSE;
 	if (!ino::d3d::CheckDXRSupport(ino::d3d::device))
 	{
-		MessageBox(0, L"this demo is using DXR!", L"", MB_OK);
+		MessageBox(0, L"CheckDXRSupport = false", L"", MB_OK);
 		return 0;
 	}
 
@@ -450,20 +433,18 @@ int main() {
 	};
 
 	draw_Loading(0);//Offscreen Texture
-	ino::d3d::renderTexture renderOffscreen[2];
+	ino::d3d::renderTexture renderOffscreen[3];
 	ino::d3d::renderTexture dxrOffscreen[3];
 	{
-		renderOffscreen[0].Create(ino::d3d::screen_width, ino::d3d::screen_height, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
-		renderOffscreen[1].Create(ino::d3d::screen_width, ino::d3d::screen_height, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
+		for (int i = 0; i < 3; ++i)
+			renderOffscreen[i].Create(ino::d3d::screen_width, ino::d3d::screen_height, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
 		for (int i = 0; i < 3; ++i)
 			dxrOffscreen[i].Create(ino::d3d::screen_width, ino::d3d::screen_height, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET);
 	}
 	draw_Loading(0.1);//Mesh Create
-	ino::d3d::vbo* vbo2 = new ino::d3d::vbo();
-	vbo2->Create(g_Vertices2, 9 * sizeof(float), sizeof(g_Vertices2));
-
+	
 	std::vector<ino::d3d::StaticMesh> meshes;
-	meshes.push_back(ino::shape::CreateCharMesh(L'う', L"ＭＳ 明朝"));
+	
 	ino::d3d::StaticMesh cornel_box;
 	ino::d3d::vbo* vboCornelBox = new ino::d3d::vbo();
 	ino::d3d::ibo* iboCornelBox = new ino::d3d::ibo();
@@ -471,17 +452,22 @@ int main() {
 	iboCornelBox->Create(g_indecies1, sizeof(g_indecies1));
 	cornel_box.vbo = *vboCornelBox;
 	cornel_box.ibo = *iboCornelBox;
+
+	meshes.push_back(ino::shape::CreateQuad());
 	{
 		resToStream(IDR_MODEL1, L"MODEL");
 		meshes.push_back(ino::gfx::obj::load_obj(resStream));
 	}
+	meshes.push_back(ino::shape::CreateCube());
+	meshes.push_back(ino::shape::CreateSphere(DirectX::XMVectorSet(1, 1, 1, 1), DirectX::XMVectorSet(1, 0, 0, 1)));
+	for(wchar_t w = L'a';w <= L'z';++w)
+		meshes.push_back(ino::shape::CreateCharMesh(w, L"Ariel"));
+	for(wchar_t w = L'A'; w <= L'Z'; ++w)
+		meshes.push_back(ino::shape::CreateCharMesh(w, L"Ariel"));
+	for (wchar_t w = L'0'; w <= L'9'; ++w)
+		meshes.push_back(ino::shape::CreateCharMesh(w, L"Ariel"));
 	draw_Loading(0.2);
-	ino::d3d::StaticMesh tri;
-	tri.vbo.Create(tri_v, 12 * sizeof(float),sizeof(tri_v));
-	tri.ibo.Create(tri_i, sizeof(tri_i));
-	ino::d3d::texture tex;
-	tex.Create(4, 4);
-	tex.Map(texData, 4, 4, 4);
+
 	std::chrono::high_resolution_clock c;
 	std::chrono::high_resolution_clock::time_point time_o = c.now();
 	float rot = 0.0f;
@@ -492,6 +478,7 @@ int main() {
 		resToStream(IDR_TEXTURE1, L"TEXTURE");
 		meshTexture = loadTexture(resStream);
 	}
+	ino::d3d::texture gradTex = createGradationTexture();
 
 	draw_Loading(0.7);//DxrResources
 	//Init DXR
@@ -499,10 +486,9 @@ int main() {
 	ino::d3d::dxr::InitDXRDevice();
 	std::vector<ino::d3d::dxr::Blas> blases;
 	blases.push_back(ino::d3d::dxr::Blas());
-	blases.push_back(ino::d3d::dxr::Blas());
 	ino::d3d::dxr::Tlas tlas;
 	blases[0].Build(cornel_box);
-	blases[1].Build(tri);
+	static const int mesh_start = 1;
 	for (auto& m : meshes)
 	{
 		blases.push_back(ino::d3d::dxr::Blas());
@@ -517,8 +503,12 @@ int main() {
 	ino::d3d::pipeline pipe[2];
 	create_pipeline(pipe[0]);
 	create_pipeline_textured(pipe[1]);
-	ino::d3d::pipeline offscreenPipe;
-	create_pipeline_tex_gen1(offscreenPipe);
+	ino::d3d::pipeline offscreenPipe[2];
+	ino::d3d::pipeline offscreenTextPipe[2];
+	create_pipeline_tex_gen1(offscreenPipe[0]);
+	create_pipeline(offscreenTextPipe[0]);
+	create_pipeline_tex_gen2(offscreenPipe[1]);
+	create_pipeline(offscreenTextPipe[1]);
 	ino::d3d::pipeline postPipe;
 	create_pipeline_postProcess(postPipe);
 	ino::d3d::pipeline denoisePipe[5];
@@ -526,12 +516,12 @@ int main() {
 		create_pipeline_denoise(denoisePipe[i]);
 
 	draw_Loading(1.0);//ConstantBufferObjects
-	ino::d3d::cbo<DX::XMFLOAT4X4> mvpCBO[2];
+	ino::d3d::cbo<DX::XMFLOAT4X4> mvpCBO[256];
 	ino::d3d::cbo<float> fCBO[2];
 	ino::d3d::cbo<DenoiseCBO> denoiseCBO;
 	{
-		mvpCBO[0].Create();
-		mvpCBO[1].Create();
+		for(auto &cbo : mvpCBO)
+			cbo.Create();
 		for (auto& val : fCBO)
 			val.Create();
 		denoiseCBO.Create();
@@ -547,6 +537,8 @@ int main() {
 	cmds.reserve(256);
 	int dxrOffscreenCount = 0;
 
+	PlotCamera cam;
+	int camPlotsIndex = 0;
 	do {
 		cmds.clear();
 		MSG msg;
@@ -557,9 +549,26 @@ int main() {
 		}
 
 		auto model = DX::XMMatrixIdentity();
-		rot += 0.01f;
-		DX::XMVECTOR camerapos = DX::XMVectorSet(cos(rot) * 13, 3, sin(rot) * 13, 0);
-		auto view = DX::XMMatrixLookAtLH(camerapos, DX::XMVectorSet(0, 1.5, 0, 0), DX::XMVectorSet(0, 1, 0, 0));
+		rot = local_time * 0.3f;
+		if (camPlotsIndex < _countof(cameraPlot) - 1 && local_time > cameraPlot[camPlotsIndex + 1].time)
+			camPlotsIndex += 1;
+
+		if (cameraPlot[_countof(cameraPlot) - 1].time >= local_time)
+		{
+			PlotCamera c1 = cameraPlot[camPlotsIndex];
+			PlotCamera c2 = cameraPlot[camPlotsIndex + 1];
+
+			const float w = c2.time - c1.time;
+			const float ab = std::min(1.f, (c2.time - local_time) / w);
+			cam.pos = DX::XMVectorAdd(DX::XMVectorScale(c1.pos, ab), DX::XMVectorScale(c2.pos, 1.f - ab));
+			cam.target = DX::XMVectorAdd(DX::XMVectorScale(DX::XMVectorAdd(c1.pos, c1.target), ab), DX::XMVectorScale(DX::XMVectorAdd(c2.pos, c2.target), 1.f - ab));
+			cam.up = DX::XMVectorAdd(DX::XMVectorScale(c1.up, ab), DX::XMVectorScale(c2.up, 1.f - ab));
+		}
+		else
+		{
+			cam = cameraPlot[_countof(cameraPlot) - 1];
+		}
+		auto view = DX::XMMatrixLookAtLH(cam.pos, cam.target, cam.up);
 		auto projection = DX::XMMatrixPerspectiveFovLH(DX::XMConvertToRadians(60), ino::d3d::screen_width / (float)ino::d3d::screen_height, 0.01f, 100.f);
 		//auto invView = DX::XMMatrixInverse(nullptr, view);
 		auto invViewProj = DX::XMMatrixInverse(nullptr, XMMatrixTranspose(model * view * projection));
@@ -571,31 +580,140 @@ int main() {
 		time_o = c.now();
 		ino::d3d::begin();
 
+		//create tlas
+		{
+			tlas.ClearInstance();
+			tlas.AddInstance(&blases[mesh_start], &renderOffscreen[1], {
+					GenModelMatrix(DX::XMVectorSet(-8.3,6.43,-1.35,1),DX::XMVectorSet(0,3.141592 / 2.0,0,1),DX::XMVectorSet(1,1.95,3.4,0)),
+					1.5f, 1.f , tlas.GetBlasCount()
+				}
+			);
+			tlas.AddInstance(&blases[mesh_start], &renderOffscreen[0], {
+					GenModelMatrix(DX::XMVectorSet(-8.3,6.43,-9.15,1),DX::XMVectorSet(0,3.141592 / 2.0,0,1),DX::XMVectorSet(1,1.95,3.4,0)),
+					1.5f, 1.f , tlas.GetBlasCount()
+				}
+			);
+			tlas.AddInstance(&blases[mesh_start], &renderOffscreen[2], {
+					GenModelMatrix(DX::XMVectorSet(-8.3,6.43,-17.55,1),DX::XMVectorSet(0,3.141592 / 2.0,0,1),DX::XMVectorSet(1,1.95,3.4,0)),
+					1.5f, 1.f , tlas.GetBlasCount()
+				}
+			);
+			tlas.AddInstance(&blases[mesh_start], &renderOffscreen[2], {
+					GenModelMatrix(DX::XMVectorSet(8.3,6.43,-1.35,1),DX::XMVectorSet(0,-3.141592 / 2.0,0,1),DX::XMVectorSet(1,1.95,3.4,0)),
+					1.5f, 1.f , tlas.GetBlasCount()
+				}
+			);
+			tlas.AddInstance(&blases[mesh_start], &renderOffscreen[0], {
+					GenModelMatrix(DX::XMVectorSet(8.3,6.43,-9.15,1),DX::XMVectorSet(0,-3.141592 / 2.0,0,1),DX::XMVectorSet(1,1.95,3.4,0)),
+					1.5f, 1.f , tlas.GetBlasCount()
+				}
+			);
+			tlas.AddInstance(&blases[mesh_start], &renderOffscreen[1], {
+					GenModelMatrix(DX::XMVectorSet(8.3,6.43,-17.55,1),DX::XMVectorSet(0,-3.141592 / 2.0,0,1),DX::XMVectorSet(1,1.95,3.4,0)),
+					1.5f, 1.f , tlas.GetBlasCount()
+				}
+			);
+			tlas.AddInstance(&blases[mesh_start], &renderOffscreen[1], {
+					GenModelMatrix(DX::XMVectorSet(3.8,6.43,7.25,1),DX::XMVectorSet(0,3.141592,0,1),DX::XMVectorSet(3.4,1.95,1,0)),
+					1.5f, 1.f , tlas.GetBlasCount()
+				}
+			);
+			tlas.AddInstance(&blases[mesh_start], &renderOffscreen[0], {
+					GenModelMatrix(DX::XMVectorSet(-3.8,6.43,7.25,1),DX::XMVectorSet(0,3.141592,0,1),DX::XMVectorSet(3.4,1.95,1,0)),
+					1.5f, 1.f , tlas.GetBlasCount()
+				}
+			);
+			tlas.AddInstance(&blases[mesh_start + 1], &meshTexture, { DirectX::XMMatrixScaling(1, 1, 1),0,0.2,tlas.GetBlasCount() });
+			tlas.AddInstance(&blases[mesh_start + 2], { DirectX::XMMatrixScaling(6, 5, 12) * DirectX::XMMatrixTranslation(0,16,1),3.0,0.1 });
+			if (local_time > 86.f)
+			{
+				auto mat = GenModelMatrix(DX::XMVectorSet(-9+(local_time - 86.f),4.5+abs(sin(local_time-86.f)),8.7,0), DX::XMVectorSet(0,local_time,0,0), DX::XMVectorSet(0.5,0.5,0.5,1));
+				tlas.AddInstance(&blases[mesh_start + 3], { mat,0,1 });
+			}
+
+			for (auto& val : drawObj)
+			{
+				if (val.plotCount < 2)
+					continue;
+				if (local_time > val.plotTimeEnd)
+					continue;
+				if (val.plots[0].Time > local_time)
+					continue;
+
+				int currentPlot = 0;
+				for (int i = 0; i < val.plotCount - 1; ++i)
+				{
+					if (val.plots[i].Time <= local_time && val.plots[i + 1].Time >= local_time)
+						currentPlot = i;
+				}
+				val.plots[currentPlot].mat = GenModelMatrix(val.plots[currentPlot].pos, val.plots[currentPlot].rot, DX::XMVectorSet(1,1,1,1));
+				val.plots[currentPlot+1].mat = GenModelMatrix(val.plots[currentPlot + 1].pos, val.plots[currentPlot + 1].rot, DX::XMVectorSet(1, 1, 1, 1));
+
+				const float w = val.plots[currentPlot + 1].Time - val.plots[currentPlot].Time;
+				const float ab = std::min(1.f, (val.plots[currentPlot + 1].Time - local_time) / w);
+				model = val.plots[currentPlot].mat * (ab)+val.plots[currentPlot + 1].mat * (1.f - ab);
+				tlas.AddInstance(&blases[val.shapeID - 1],&gradTex,{ model,0,1 });
+			}
+			tlas.Build();
+		}
+
 		ino::d3d::dxr::SceneConstant constants;
-		constants.cameraPos = camerapos;// DX::XMVectorSet(0, 0, -1, 1);
+		constants.cameraPos = cam.pos;// DX::XMVectorSet(0, 0, -1, 1);
 		constants.invViewProj = invViewProj;
+		constants.time = local_time;
 		dxrPipe.SetConstantBuffer(&constants, sizeof(ino::d3d::dxr::SceneConstant));
 
 		static const FLOAT clearColor2[] = { 1.f, 1.f, 0.f, 1.0f };
 		//offscreen
-		cmds.push_back(offscreenPipe.Begin(renderOffscreen[0]));
-		offscreenPipe.Clear(renderOffscreen[0],clearColor2);
-		timeCbo.Set(cmds.back(), local_time, 0);
-		vbo->Draw(cmds.back());
-		offscreenPipe.End();
+		for (int i = 0; i < 2; ++i)
+		{
+			cmds.push_back(offscreenPipe[i].Begin(renderOffscreen[i]));
+			offscreenPipe[i].Clear(renderOffscreen[i], clearColor2);
+			timeCbo.Set(cmds.back(), local_time, 0);
+			vbo->Draw(cmds.back());
+			offscreenPipe[i].End();
+		}
 
-		cmds.push_back(pipe[0].Begin(renderOffscreen[1]));
-		pipe[0].Clear(renderOffscreen[1], clearColor2);
-		mvpCBO[1].Set(cmds.back(), Mat, 0);
+		//DrawText
+		{
+			float fade = std::min(1.f,std::max(0.f,local_time*0.5f - 2.5f));
+			float scale = 0.8 * fade;
+			cmds.push_back(offscreenTextPipe[0].Begin(renderOffscreen[0]));
+			offscreenTextPipe[0].ClearDepth(renderOffscreen[0]);
+			auto view2 = DX::XMMatrixLookAtLH(DX::XMVectorSet(0, 0,-1, 0), DX::XMVectorSet(0, 0, 0, 0), DX::XMVectorSet(0, 1, 0, 0));
+			drawText(meshes, mvpCBO + 2, cmds.back(), L"PATH", DX::XMVectorSet(-1.1, 1, 5, 0), scale, view2, projection);
+			drawText(meshes, mvpCBO + 6, cmds.back(), L"Tonight", DX::XMVectorSet(-1.5, -0.4f, 5, 0), scale*0.5f, view2, projection);
+
+			offscreenTextPipe[0].End();
+		}
+
+		{
+			float t = local_time*4;
+			t -= 60.f * (((int)t)/60);
+			float scroll = -t + 20.f;
+			cmds.push_back(offscreenTextPipe[1].Begin(renderOffscreen[1]));
+			offscreenTextPipe[1].ClearDepth(renderOffscreen[1]);
+			auto view2 = DX::XMMatrixLookAtLH(DX::XMVectorSet(0, 0, -1, 0), DX::XMVectorSet(0, 0, 0, 0), DX::XMVectorSet(0, 1, 0, 0));
+			drawText(meshes, mvpCBO + 13, cmds.back(), L"Wellcome back TokyoDemoFest", DX::XMVectorSet(scroll, -1, 5, 0), 1.f, view2, projection);
+
+			offscreenTextPipe[1].End();
+		}
+
+		cmds.push_back(pipe[0].Begin(renderOffscreen[2]));
+		pipe[0].Clear(renderOffscreen[2], clearColor2);
+		auto view2 = DX::XMMatrixLookAtLH(DX::XMVectorSet(cos(rot) * 16, 8, sin(rot) * 16, 0), DX::XMVectorSet(0, 1.5, 0, 0), DX::XMVectorSet(0, 1, 0, 0));
+		model = GenModelMatrix(DX::XMVectorSet(0,0, 0, 0), DX::XMVectorSet(0, 0, 0, 0), DX::XMVectorSet(0.01f, 0.01f, 0.01f, 0));
+		DX::XMStoreFloat4x4(&Mat, XMMatrixTranspose(model* view2* projection));
+		mvpCBO[0].Set(cmds.back(), Mat, 0);
 		vboCornelBox->Draw(cmds.back(), *iboCornelBox);
+		{
+			float t = local_time * 4;
+			t -= 60.f * (((int)t) / 60);
+			float scroll = -t + 20.f;
+			auto view3 = DX::XMMatrixLookAtLH(DX::XMVectorSet(0, 0, -1, 0), DX::XMVectorSet(0, 0, 0, 0), DX::XMVectorSet(0, 1, 0, 0));
+			drawText(meshes, mvpCBO + 40, cmds.back(), L"next is greeting time", DX::XMVectorSet(scroll, 2.5, 5, 0), 0.5f+abs(sin(local_time*4)*0.3), view3, projection);
+		}
 		pipe[0].End();
-
-		//cmds.push_back(pipe[0].Begin());
-		//mvpCBO[1].Set(cmds.back(), Mat,0);
-		//pipe[0].Clear(clearColor);
-		////DrawPrimitive;
-		//vboCornelBox->Draw(cmds.back(),*iboCornelBox);
-		//pipe[0].End(); 
 
 		cmds.push_back(pipe[1].Begin());
 		pipe[1].Clear(clearColor);
@@ -603,21 +721,12 @@ int main() {
 		fCBO[1].Set(cmds.back(),cosf(local_time),1);
 		renderOffscreen[0].Set(cmds.back(),2);
 		//DrawPrimitive;
-		vbo2->Draw(cmds.back());
-		renderOffscreen[1].Set(cmds.back(), 2);
+		renderOffscreen[1].Set(cmds.back(),2);
 		vbo->Draw(cmds.back());
 		pipe[1].End();
 
 		//Raytrace!
 		{
-			tlas.ClearInstance();
-			tlas.AddInstance(&blases[0], { DirectX::XMMatrixScaling(0.01f, 0.01f, 0.01f),0,1.1 });
-			//tlas.AddInstance(&blases[0], DirectX::XMMatrixScaling(0.02f, 0.02f, 0.02f));
-			tlas.AddInstance(&blases[1]);
-			tlas.AddInstance(&blases[2], { DirectX::XMMatrixScaling(2, 2, 2)*DirectX::XMMatrixTranslation(2,4,0),1.0,1.0 });
-			tlas.AddInstance(&blases[3], &meshTexture,{ DirectX::XMMatrixScaling(1, 1, 1),0.003,0.1 });
-			tlas.Build();
-
 			cmds.push_back(dxrPipe.Begin().Get());
 			dxrPipe.CreateShaderTable(tlas);
 			dxrPipe.Dispatch(tlas);
@@ -636,9 +745,9 @@ int main() {
 			DenoiseCBO cb = {};
 			cb.width = denoisePipe[i].view.Width;
 			cb.height = denoisePipe[i].view.Height;
-			cb.c_phi = powf(2.0f, i);
-			cb.n_phi = powf(2.0f, i);
-			cb.p_phi = 0.125f * (1+i);//powf(1.0f, i);
+			cb.c_phi = 0.0225f * pow(2,i);
+			cb.n_phi = 0.0225f * pow(2,i);
+			cb.p_phi = 0.0225f * pow(2,i);
 			cb.stepwidth = i*2;
 			denoiseCBO.Set(cmds.back(), cb, 0);
 			if (i == 0)
@@ -659,13 +768,16 @@ int main() {
 
 		ino::d3d::excute(&cmds[0], cmds.size());
 		ino::d3d::wait();
-		Sleep(16);
+		Sleep(4);
 		ino::d3d::end();
-	} while (!GetAsyncKeyState(VK_ESCAPE));//&& local_time < 144.83f);
+		//dxrPipe.ClearShaderTable();
+#ifdef _DEBUG
+		std::cout << local_time << std::endl;
+#endif
+	} while (!GetAsyncKeyState(VK_ESCAPE) && local_time < 102.5f);//&& local_time < 144.83f);
 	
 	Sleep(500);
 	delete vbo;
-	delete vbo2;
 	delete vboCornelBox;
 	delete iboCornelBox;
 

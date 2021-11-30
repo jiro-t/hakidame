@@ -91,6 +91,7 @@ public:
 	ID3D12GraphicsCommandList* Begin(renderTexture renderTarget);
 	ID3D12GraphicsCommandList* Begin();
 	void Clear(renderTexture renderTarget,FLOAT const clearColor[]);
+	void ClearDepth(renderTexture renderTarget);
 	void Clear(FLOAT const clearColor[]);
 	void End();
 };

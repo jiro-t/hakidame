@@ -12,7 +12,7 @@ d3d::StaticMesh CreateCharMesh(wchar_t c, LPCWSTR font)
 {
 	namespace DX = DirectX;
 
-	const int fontsize = 128;
+	const int fontsize = 64;
 	LOGFONT lf = { fontsize, 0, 0, 0, 0, 0, 0, 0, SHIFTJIS_CHARSET, OUT_TT_ONLY_PRECIS, CLIP_DEFAULT_PRECIS, PROOF_QUALITY, FIXED_PITCH | FF_MODERN, L"ＭＳ 明朝" };
 	HFONT hFont;
 	hFont = CreateFontIndirect(&lf);
@@ -48,20 +48,24 @@ d3d::StaticMesh CreateCharMesh(wchar_t c, LPCWSTR font)
 	for (y = offset_y+1; y + 1 < offset_y + h; y++)
 		for (x = offset_x+1; x + 1 < offset_x + GM.gmBlackBoxX; x++) {
 			auto getAlpha = [&ptr, &offset_x, &offset_y, w, Level](int x, int y) {return (255 * ptr[x - offset_x + w * (y - offset_y)]) / (Level - 1); };
+			auto tx00 = DX::XMVectorSet((x)/(float)w, (y)/(float)h, 0, 1);
+			auto tx10 = DX::XMVectorSet((x+1) / (float)w, (y) / (float)h, 0, 1);
+			auto tx01 = DX::XMVectorSet((x) / (float)w, (y+1) / (float)h, 0, 1);
+			auto tx11 = DX::XMVectorSet((x+1) / (float)w, (y+1) / (float)h, 0, 1);
 			alpha = getAlpha(x, y);
 			if (alpha > 0)
 			{
-				vert.push_back(DX::XMVectorSet(x, -y, 0, 1));vert.push_back(DX::XMVectorSet(0, 0, 1, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
-				vert.push_back(DX::XMVectorSet(x, -y - 1, 0, 1));vert.push_back(DX::XMVectorSet(0, 0, 1, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
-				vert.push_back(DX::XMVectorSet(x + 1, -y - 1, 0, 1));vert.push_back(DX::XMVectorSet(0, 0, 1, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
-				vert.push_back(DX::XMVectorSet(x + 1, -y, 0, 1));vert.push_back(DX::XMVectorSet(0, 0, 1, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
+				vert.push_back(DX::XMVectorSet(x, -y, 0, 1));vert.push_back(DX::XMVectorSet(0, 0, 1, 0)); vert.push_back(tx00);
+				vert.push_back(DX::XMVectorSet(x, -y - 1, 0, 1));vert.push_back(DX::XMVectorSet(0, 0, 1, 0)); vert.push_back(tx01);
+				vert.push_back(DX::XMVectorSet(x + 1, -y - 1, 0, 1));vert.push_back(DX::XMVectorSet(0, 0, 1, 0)); vert.push_back(tx11);
+				vert.push_back(DX::XMVectorSet(x + 1, -y, 0, 1));vert.push_back(DX::XMVectorSet(0, 0, 1, 0)); vert.push_back(tx10);
 				id.push_back(i); id.push_back(i + 1); id.push_back(i + 2); id.push_back(i + 2); id.push_back(i + 3); id.push_back(i);
 				i += 4;
 
-				vert.push_back(DX::XMVectorSet(x, -y, 1, 1));vert.push_back(DX::XMVectorSet(0, 0, -1, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
-				vert.push_back(DX::XMVectorSet(x, -y - 1, 1, 1));vert.push_back(DX::XMVectorSet(0, 0, -1, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
-				vert.push_back(DX::XMVectorSet(x + 1, -y - 1, 1, 1));vert.push_back(DX::XMVectorSet(0, 0, -1, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
-				vert.push_back(DX::XMVectorSet(x + 1, -y, 1, 1));vert.push_back(DX::XMVectorSet(0, 0, -1, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
+				vert.push_back(DX::XMVectorSet(x, -y, 1, 1));vert.push_back(DX::XMVectorSet(0, 0, -1, 0)); vert.push_back(tx00);
+				vert.push_back(DX::XMVectorSet(x, -y - 1, 1, 1));vert.push_back(DX::XMVectorSet(0, 0, -1, 0)); vert.push_back(tx01);
+				vert.push_back(DX::XMVectorSet(x + 1, -y - 1, 1, 1));vert.push_back(DX::XMVectorSet(0, 0, -1, 0)); vert.push_back(tx11);
+				vert.push_back(DX::XMVectorSet(x + 1, -y, 1, 1));vert.push_back(DX::XMVectorSet(0, 0, -1, 0)); vert.push_back(tx10);
 				id.push_back(i); id.push_back(i + 1); id.push_back(i + 2); id.push_back(i + 2); id.push_back(i + 3); id.push_back(i);
 				i += 4;
 			}
@@ -74,20 +78,20 @@ d3d::StaticMesh CreateCharMesh(wchar_t c, LPCWSTR font)
 				//■■□
 				if ( getAlpha(x-1,y) > 0 && getAlpha(x - 1, y + 1) > 0 && getAlpha(x,y+1) > 0)
 				{
-					vert.push_back(DX::XMVectorSet(x, -y, 0, 1)); vert.push_back(DX::XMVectorSet(0.5f, -0.5f, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
-					vert.push_back(DX::XMVectorSet(x + 1, -y-1, 0, 1)); vert.push_back(DX::XMVectorSet(0.5f, -0.5f, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
-					vert.push_back(DX::XMVectorSet(x + 1, -y-1, 1, 1)); vert.push_back(DX::XMVectorSet(0.5f, -0.5f, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
-					vert.push_back(DX::XMVectorSet(x, -y, 1, 1)); vert.push_back(DX::XMVectorSet(0.5f, -0.5f, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
+					vert.push_back(DX::XMVectorSet(x, -y, 0, 1)); vert.push_back(DX::XMVectorSet(0.5f, -0.5f, 0, 0)); vert.push_back(tx00);
+					vert.push_back(DX::XMVectorSet(x + 1, -y-1, 0, 1)); vert.push_back(DX::XMVectorSet(0.5f, -0.5f, 0, 0)); vert.push_back(tx11);
+					vert.push_back(DX::XMVectorSet(x + 1, -y-1, 1, 1)); vert.push_back(DX::XMVectorSet(0.5f, -0.5f, 0, 0)); vert.push_back(tx11);
+					vert.push_back(DX::XMVectorSet(x, -y, 1, 1)); vert.push_back(DX::XMVectorSet(0.5f, -0.5f, 0, 0)); vert.push_back(tx00);
 					id.push_back(i); id.push_back(i + 1); id.push_back(i + 2); id.push_back(i + 2); id.push_back(i + 3); id.push_back(i);
 					i += 4;
-					vert.push_back(DX::XMVectorSet(x, -y, 0, 1)); vert.push_back(DX::XMVectorSet(0,0,1,0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
-					vert.push_back(DX::XMVectorSet(x + 1, -y - 1, 0, 1)); vert.push_back(DX::XMVectorSet(0, 0, 1, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
-					vert.push_back(DX::XMVectorSet(x, -y - 1, 0, 1)); vert.push_back(DX::XMVectorSet(0, 0, 1, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
+					vert.push_back(DX::XMVectorSet(x, -y, 0, 1)); vert.push_back(DX::XMVectorSet(0,0,1,0)); vert.push_back(tx00);
+					vert.push_back(DX::XMVectorSet(x + 1, -y - 1, 0, 1)); vert.push_back(DX::XMVectorSet(0, 0, 1, 0)); vert.push_back(tx11);
+					vert.push_back(DX::XMVectorSet(x, -y - 1, 0, 1)); vert.push_back(DX::XMVectorSet(0, 0, 1, 0)); vert.push_back(tx01);
 					id.push_back(i); id.push_back(i + 1); id.push_back(i + 2);
 					i += 3;
-					vert.push_back(DX::XMVectorSet(x, -y, 1, 1)); vert.push_back(DX::XMVectorSet(0,0,-1, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
-					vert.push_back(DX::XMVectorSet(x + 1, -y - 1, 1, 1)); vert.push_back(DX::XMVectorSet(0,0,-1, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
-					vert.push_back(DX::XMVectorSet(x, -y - 1, 1, 1)); vert.push_back(DX::XMVectorSet(0,0,-1, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
+					vert.push_back(DX::XMVectorSet(x, -y, 1, 1)); vert.push_back(DX::XMVectorSet(0,0,-1, 0)); vert.push_back(tx00);
+					vert.push_back(DX::XMVectorSet(x + 1, -y - 1, 1, 1)); vert.push_back(DX::XMVectorSet(0,0,-1, 0)); vert.push_back(tx11);
+					vert.push_back(DX::XMVectorSet(x, -y - 1, 1, 1)); vert.push_back(DX::XMVectorSet(0,0,-1, 0)); vert.push_back(tx01);
 					id.push_back(i); id.push_back(i + 1); id.push_back(i + 2);
 					i += 3;
 
@@ -98,20 +102,20 @@ d3d::StaticMesh CreateCharMesh(wchar_t c, LPCWSTR font)
 				//□■■
 				if (getAlpha(x + 1, y) > 0 && getAlpha(x + 1, y + 1) > 0 && getAlpha(x, y + 1) > 0)
 				{
-					vert.push_back(DX::XMVectorSet(x+1, -y, 0, 1)); vert.push_back(DX::XMVectorSet(-0.5f, -0.5f, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
-					vert.push_back(DX::XMVectorSet(x+1, -y, 1, 1)); vert.push_back(DX::XMVectorSet(-0.5f, -0.5f, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
-					vert.push_back(DX::XMVectorSet(x, -y - 1, 1, 1)); vert.push_back(DX::XMVectorSet(-0.5f, -0.5f, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
-					vert.push_back(DX::XMVectorSet(x, -y - 1, 0, 1)); vert.push_back(DX::XMVectorSet(-0.5f, -0.5f, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
+					vert.push_back(DX::XMVectorSet(x+1, -y, 0, 1)); vert.push_back(DX::XMVectorSet(-0.5f, -0.5f, 0, 0)); vert.push_back(tx10);
+					vert.push_back(DX::XMVectorSet(x+1, -y, 1, 1)); vert.push_back(DX::XMVectorSet(-0.5f, -0.5f, 0, 0)); vert.push_back(tx10);
+					vert.push_back(DX::XMVectorSet(x, -y - 1, 1, 1)); vert.push_back(DX::XMVectorSet(-0.5f, -0.5f, 0, 0)); vert.push_back(tx01);
+					vert.push_back(DX::XMVectorSet(x, -y - 1, 0, 1)); vert.push_back(DX::XMVectorSet(-0.5f, -0.5f, 0, 0)); vert.push_back(tx01);
 					id.push_back(i); id.push_back(i + 1); id.push_back(i + 2); id.push_back(i + 2); id.push_back(i + 3); id.push_back(i);
 					i += 4;
-					vert.push_back(DX::XMVectorSet(x, -y-1, 0, 1)); vert.push_back(DX::XMVectorSet(0,0, 1, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
-					vert.push_back(DX::XMVectorSet(x + 1, -y - 1, 0, 1)); vert.push_back(DX::XMVectorSet(0,0, 1, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
-					vert.push_back(DX::XMVectorSet(x + 1, -y, 0, 1)); vert.push_back(DX::XMVectorSet(0,0, 1, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
+					vert.push_back(DX::XMVectorSet(x, -y-1, 0, 1)); vert.push_back(DX::XMVectorSet(0,0, 1, 0)); vert.push_back(tx01);
+					vert.push_back(DX::XMVectorSet(x + 1, -y - 1, 0, 1)); vert.push_back(DX::XMVectorSet(0,0, 1, 0)); vert.push_back(tx11);
+					vert.push_back(DX::XMVectorSet(x + 1, -y, 0, 1)); vert.push_back(DX::XMVectorSet(0,0, 1, 0)); vert.push_back(tx10);
 					id.push_back(i); id.push_back(i + 1); id.push_back(i + 2);
 					i += 3;
-					vert.push_back(DX::XMVectorSet(x, -y-1, 1, 1)); vert.push_back(DX::XMVectorSet(0, 0, -1, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
-					vert.push_back(DX::XMVectorSet(x+1,-y-1, 1, 1)); vert.push_back(DX::XMVectorSet(0, 0, -1, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
-					vert.push_back(DX::XMVectorSet(x+1,-y, 1, 1)); vert.push_back(DX::XMVectorSet(0, 0, -1, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
+					vert.push_back(DX::XMVectorSet(x, -y-1, 1, 1)); vert.push_back(DX::XMVectorSet(0, 0, -1, 0)); vert.push_back(tx01);
+					vert.push_back(DX::XMVectorSet(x+1,-y-1, 1, 1)); vert.push_back(DX::XMVectorSet(0, 0, -1, 0)); vert.push_back(tx11);
+					vert.push_back(DX::XMVectorSet(x+1,-y, 1, 1)); vert.push_back(DX::XMVectorSet(0, 0, -1, 0)); vert.push_back(tx10);
 					id.push_back(i); id.push_back(i + 1); id.push_back(i + 2);
 					i += 3;
 
@@ -123,20 +127,20 @@ d3d::StaticMesh CreateCharMesh(wchar_t c, LPCWSTR font)
 				//□□□
 				if (getAlpha(x - 1, y) > 0 && getAlpha(x - 1, y - 1) > 0 && getAlpha(x, y - 1) > 0)
 				{
-					vert.push_back(DX::XMVectorSet(x, -y - 1, 0, 1)); vert.push_back(DX::XMVectorSet(0.5f, 0.5f, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
-					vert.push_back(DX::XMVectorSet(x, -y - 1, 1, 1)); vert.push_back(DX::XMVectorSet(0.5f, 0.5f, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
-					vert.push_back(DX::XMVectorSet(x + 1, -y, 1, 1)); vert.push_back(DX::XMVectorSet(0.5f, 0.5f, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
-					vert.push_back(DX::XMVectorSet(x + 1, -y, 0, 1)); vert.push_back(DX::XMVectorSet(0.5f, 0.5f, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
+					vert.push_back(DX::XMVectorSet(x, -y - 1, 0, 1)); vert.push_back(DX::XMVectorSet(0.5f, 0.5f, 0, 0)); vert.push_back(tx01);
+					vert.push_back(DX::XMVectorSet(x, -y - 1, 1, 1)); vert.push_back(DX::XMVectorSet(0.5f, 0.5f, 0, 0)); vert.push_back(tx01);
+					vert.push_back(DX::XMVectorSet(x + 1, -y, 1, 1)); vert.push_back(DX::XMVectorSet(0.5f, 0.5f, 0, 0)); vert.push_back(tx10);
+					vert.push_back(DX::XMVectorSet(x + 1, -y, 0, 1)); vert.push_back(DX::XMVectorSet(0.5f, 0.5f, 0, 0)); vert.push_back(tx10);
 					id.push_back(i); id.push_back(i + 1); id.push_back(i + 2); id.push_back(i + 2); id.push_back(i + 3); id.push_back(i);
 					i += 4;
-					vert.push_back(DX::XMVectorSet(x, -y - 1, 0, 1)); vert.push_back(DX::XMVectorSet(0,0, 1, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
-					vert.push_back(DX::XMVectorSet(x + 1, -y, 0, 1)); vert.push_back(DX::XMVectorSet(0,0, 1, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
-					vert.push_back(DX::XMVectorSet(x, -y, 0, 1)); vert.push_back(DX::XMVectorSet(0,0, 1, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
+					vert.push_back(DX::XMVectorSet(x, -y - 1, 0, 1)); vert.push_back(DX::XMVectorSet(0,0, 1, 0)); vert.push_back(tx01);
+					vert.push_back(DX::XMVectorSet(x + 1, -y, 0, 1)); vert.push_back(DX::XMVectorSet(0,0, 1, 0)); vert.push_back(tx10);
+					vert.push_back(DX::XMVectorSet(x, -y, 0, 1)); vert.push_back(DX::XMVectorSet(0,0, 1, 0)); vert.push_back(tx00);
 					id.push_back(i); id.push_back(i + 1); id.push_back(i + 2);
 					i += 3;
-					vert.push_back(DX::XMVectorSet(x, -y - 1, 1, 1)); vert.push_back(DX::XMVectorSet(0, 0, -1, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
-					vert.push_back(DX::XMVectorSet(x + 1, -y, 1, 1)); vert.push_back(DX::XMVectorSet(0, 0, -1, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
-					vert.push_back(DX::XMVectorSet(x, -y, 1, 1)); vert.push_back(DX::XMVectorSet(0, 0, -1, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
+					vert.push_back(DX::XMVectorSet(x, -y - 1, 1, 1)); vert.push_back(DX::XMVectorSet(0, 0, -1, 0)); vert.push_back(tx01);
+					vert.push_back(DX::XMVectorSet(x + 1, -y, 1, 1)); vert.push_back(DX::XMVectorSet(0, 0, -1, 0)); vert.push_back(tx10);
+					vert.push_back(DX::XMVectorSet(x, -y, 1, 1)); vert.push_back(DX::XMVectorSet(0, 0, -1, 0)); vert.push_back(tx00);
 					id.push_back(i); id.push_back(i + 1); id.push_back(i + 2);
 					i += 3;
 
@@ -148,20 +152,20 @@ d3d::StaticMesh CreateCharMesh(wchar_t c, LPCWSTR font)
 				//□□□
 				if (getAlpha(x + 1, y) > 0 && getAlpha(x + 1, y - 1) > 0 && getAlpha(x, y - 1) > 0)
 				{
-					vert.push_back(DX::XMVectorSet(x, -y, 0, 1)); vert.push_back(DX::XMVectorSet(-0.5f, 0.5f, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
-					vert.push_back(DX::XMVectorSet(x, -y, 1, 1)); vert.push_back(DX::XMVectorSet(-0.5f, 0.5f, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
-					vert.push_back(DX::XMVectorSet(x+1, -y-1, 1, 1)); vert.push_back(DX::XMVectorSet(-0.5f, 0.5f, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
-					vert.push_back(DX::XMVectorSet(x+1, -y-1, 0, 1)); vert.push_back(DX::XMVectorSet(-0.5f, 0.5f, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
+					vert.push_back(DX::XMVectorSet(x, -y, 0, 1)); vert.push_back(DX::XMVectorSet(-0.5f, 0.5f, 0, 0)); vert.push_back(tx00);
+					vert.push_back(DX::XMVectorSet(x, -y, 1, 1)); vert.push_back(DX::XMVectorSet(-0.5f, 0.5f, 0, 0)); vert.push_back(tx00);
+					vert.push_back(DX::XMVectorSet(x+1, -y-1, 1, 1)); vert.push_back(DX::XMVectorSet(-0.5f, 0.5f, 0, 0)); vert.push_back(tx11);
+					vert.push_back(DX::XMVectorSet(x+1, -y-1, 0, 1)); vert.push_back(DX::XMVectorSet(-0.5f, 0.5f, 0, 0)); vert.push_back(tx11);
 					id.push_back(i); id.push_back(i + 1); id.push_back(i + 2); id.push_back(i + 2); id.push_back(i + 3); id.push_back(i);
 					i += 4;
-					vert.push_back(DX::XMVectorSet(x, -y, 0, 1)); vert.push_back(DX::XMVectorSet(0,0, 1, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
-					vert.push_back(DX::XMVectorSet(x+1, -y-1, 0, 1)); vert.push_back(DX::XMVectorSet(0,0, 1, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
-					vert.push_back(DX::XMVectorSet(x+1, -y, 0, 1)); vert.push_back(DX::XMVectorSet(0,0, 1, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
+					vert.push_back(DX::XMVectorSet(x, -y, 0, 1)); vert.push_back(DX::XMVectorSet(0,0, 1, 0)); vert.push_back(tx00);
+					vert.push_back(DX::XMVectorSet(x+1, -y-1, 0, 1)); vert.push_back(DX::XMVectorSet(0,0, 1, 0)); vert.push_back(tx11);
+					vert.push_back(DX::XMVectorSet(x+1, -y, 0, 1)); vert.push_back(DX::XMVectorSet(0,0, 1, 0)); vert.push_back(tx10);
 					id.push_back(i); id.push_back(i + 1); id.push_back(i + 2);
 					i += 3;
-					vert.push_back(DX::XMVectorSet(x, -y, 1, 1)); vert.push_back(DX::XMVectorSet(0, 0, -1, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
-					vert.push_back(DX::XMVectorSet(x+1, -y-1, 1, 1)); vert.push_back(DX::XMVectorSet(0, 0, -1, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
-					vert.push_back(DX::XMVectorSet(x+1, -y, 1, 1)); vert.push_back(DX::XMVectorSet(0, 0, -1, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
+					vert.push_back(DX::XMVectorSet(x, -y, 1, 1)); vert.push_back(DX::XMVectorSet(0, 0, -1, 0)); vert.push_back(tx00);
+					vert.push_back(DX::XMVectorSet(x+1, -y-1, 1, 1)); vert.push_back(DX::XMVectorSet(0, 0, -1, 0)); vert.push_back(tx11);
+					vert.push_back(DX::XMVectorSet(x+1, -y, 1, 1)); vert.push_back(DX::XMVectorSet(0, 0, -1, 0)); vert.push_back(tx10);
 					id.push_back(i); id.push_back(i + 1); id.push_back(i + 2);
 					i += 3;
 
@@ -175,10 +179,10 @@ d3d::StaticMesh CreateCharMesh(wchar_t c, LPCWSTR font)
 					//□□□
 					if (getAlpha(x, y - 1) > 0)
 					{
-						vert.push_back(DX::XMVectorSet(x, -y, 0, 1)); vert.push_back(DX::XMVectorSet(0, 1, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
-						vert.push_back(DX::XMVectorSet(x+1, -y, 0, 1)); vert.push_back(DX::XMVectorSet(0, 1, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
-						vert.push_back(DX::XMVectorSet(x+1, -y, 1, 1)); vert.push_back(DX::XMVectorSet(0, 1, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
-						vert.push_back(DX::XMVectorSet(x, -y, 1, 1)); vert.push_back(DX::XMVectorSet(0, 1, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
+						vert.push_back(DX::XMVectorSet(x, -y, 0, 1)); vert.push_back(DX::XMVectorSet(0, 1, 0, 0)); vert.push_back(tx00);
+						vert.push_back(DX::XMVectorSet(x+1, -y, 0, 1)); vert.push_back(DX::XMVectorSet(0, 1, 0, 0)); vert.push_back(tx10);
+						vert.push_back(DX::XMVectorSet(x+1, -y, 1, 1)); vert.push_back(DX::XMVectorSet(0, 1, 0, 0)); vert.push_back(tx10);
+						vert.push_back(DX::XMVectorSet(x, -y, 1, 1)); vert.push_back(DX::XMVectorSet(0, 1, 0, 0)); vert.push_back(tx00);
 						id.push_back(i); id.push_back(i + 1); id.push_back(i + 2); id.push_back(i + 2); id.push_back(i + 3); id.push_back(i);
 						i += 4;
 					}
@@ -188,10 +192,10 @@ d3d::StaticMesh CreateCharMesh(wchar_t c, LPCWSTR font)
 					//□□□
 					if (getAlpha(x - 1, y) > 0)
 					{
-						vert.push_back(DX::XMVectorSet(x, -y, 0, 1)); vert.push_back(DX::XMVectorSet(1, 0, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
-						vert.push_back(DX::XMVectorSet(x, -y-1, 0, 1)); vert.push_back(DX::XMVectorSet(1, 0, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
-						vert.push_back(DX::XMVectorSet(x, -y-1, 1, 1)); vert.push_back(DX::XMVectorSet(1, 0, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
-						vert.push_back(DX::XMVectorSet(x, -y, 1, 1)); vert.push_back(DX::XMVectorSet(1, 0, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
+						vert.push_back(DX::XMVectorSet(x, -y, 0, 1)); vert.push_back(DX::XMVectorSet(1, 0, 0, 0)); vert.push_back(tx00);
+						vert.push_back(DX::XMVectorSet(x, -y-1, 0, 1)); vert.push_back(DX::XMVectorSet(1, 0, 0, 0)); vert.push_back(tx01);
+						vert.push_back(DX::XMVectorSet(x, -y-1, 1, 1)); vert.push_back(DX::XMVectorSet(1, 0, 0, 0)); vert.push_back(tx01);
+						vert.push_back(DX::XMVectorSet(x, -y, 1, 1)); vert.push_back(DX::XMVectorSet(1, 0, 0, 0)); vert.push_back(tx00);
 						id.push_back(i); id.push_back(i + 1); id.push_back(i + 2); id.push_back(i + 2); id.push_back(i + 3); id.push_back(i);
 						i += 4;
 					}
@@ -201,10 +205,10 @@ d3d::StaticMesh CreateCharMesh(wchar_t c, LPCWSTR font)
 					//□■□
 					if ( getAlpha(x, y+1) > 0)
 					{
-						vert.push_back(DX::XMVectorSet(x, -y-1, 0, 1)); vert.push_back(DX::XMVectorSet(0, -1, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
-						vert.push_back(DX::XMVectorSet(x+1, -y-1, 0, 1)); vert.push_back(DX::XMVectorSet(0, -1, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
-						vert.push_back(DX::XMVectorSet(x+1, -y-1, 1, 1)); vert.push_back(DX::XMVectorSet(0, -1, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
-						vert.push_back(DX::XMVectorSet(x, -y-1, 1, 1)); vert.push_back(DX::XMVectorSet(0, -1, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
+						vert.push_back(DX::XMVectorSet(x, -y-1, 0, 1)); vert.push_back(DX::XMVectorSet(0, -1, 0, 0)); vert.push_back(tx01);
+						vert.push_back(DX::XMVectorSet(x+1, -y-1, 0, 1)); vert.push_back(DX::XMVectorSet(0, -1, 0, 0)); vert.push_back(tx11);
+						vert.push_back(DX::XMVectorSet(x+1, -y-1, 1, 1)); vert.push_back(DX::XMVectorSet(0, -1, 0, 0)); vert.push_back(tx11);
+						vert.push_back(DX::XMVectorSet(x, -y-1, 1, 1)); vert.push_back(DX::XMVectorSet(0, -1, 0, 0)); vert.push_back(tx01);
 						id.push_back(i); id.push_back(i + 1); id.push_back(i + 2); id.push_back(i + 2); id.push_back(i + 3); id.push_back(i);
 						i += 4;
 					}
@@ -214,10 +218,10 @@ d3d::StaticMesh CreateCharMesh(wchar_t c, LPCWSTR font)
 					//□□□
 					if (getAlpha(x + 1, y) > 0)
 					{
-						vert.push_back(DX::XMVectorSet(x+1, -y, 0, 1)); vert.push_back(DX::XMVectorSet(-1, 0, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
-						vert.push_back(DX::XMVectorSet(x+1, -y-1, 0, 1)); vert.push_back(DX::XMVectorSet(-1, 0, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
-						vert.push_back(DX::XMVectorSet(x+1, -y-1, 1, 1)); vert.push_back(DX::XMVectorSet(-1, 0, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
-						vert.push_back(DX::XMVectorSet(x+1, -y, 1, 1)); vert.push_back(DX::XMVectorSet(-1, 0, 0, 0)); vert.push_back(DX::XMVectorSet(1, 1, 1, 1));
+						vert.push_back(DX::XMVectorSet(x+1, -y, 0, 1)); vert.push_back(DX::XMVectorSet(-1, 0, 0, 0)); vert.push_back(tx10);
+						vert.push_back(DX::XMVectorSet(x+1, -y-1, 0, 1)); vert.push_back(DX::XMVectorSet(-1, 0, 0, 0)); vert.push_back(tx11);
+						vert.push_back(DX::XMVectorSet(x+1, -y-1, 1, 1)); vert.push_back(DX::XMVectorSet(-1, 0, 0, 0)); vert.push_back(tx11);
+						vert.push_back(DX::XMVectorSet(x+1, -y, 1, 1)); vert.push_back(DX::XMVectorSet(-1, 0, 0, 0)); vert.push_back(tx10);
 						id.push_back(i); id.push_back(i + 1); id.push_back(i + 2); id.push_back(i + 2); id.push_back(i + 3); id.push_back(i);
 						i += 4;
 					}
@@ -227,7 +231,7 @@ d3d::StaticMesh CreateCharMesh(wchar_t c, LPCWSTR font)
 
 	for (int i = 0; i < vert.size(); i += 3)
 	{
-		vert[i] = DX::XMVectorMultiply(vert[i], DX::XMVectorSet(0.02f, 0.02f, 0.02f, 1));
+		vert[i] = DX::XMVectorMultiply(vert[i], DX::XMVectorSet(0.04f, 0.04f, 0.04f, 1));
 		vert[i] = DX::XMVectorAdd(vert[i], DX::XMVectorSet(-1.0f, 1.0f, -0.02f, 1));
 	}
 
