@@ -451,6 +451,12 @@ void pipeline::Clear(renderTexture target,FLOAT const clearColor[])
 	commandList->ClearDepthStencilView(scvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 }
 
+void pipeline::ClearDepth(renderTexture target)
+{
+	D3D12_CPU_DESCRIPTOR_HANDLE scvHandle = D3D12_CPU_DESCRIPTOR_HANDLE(target.GetDsvHandle());
+	commandList->ClearDepthStencilView(scvHandle, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+}
+
 void pipeline::End()
 {
 	if (commandList == nullptr)

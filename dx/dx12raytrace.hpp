@@ -29,6 +29,7 @@ struct SceneConstant
 {
 	DirectX::XMVECTOR cameraPos;
 	DirectX::XMMATRIX invViewProj;
+	float time;
 };
 
 struct InstanceConstant
@@ -36,6 +37,7 @@ struct InstanceConstant
 	DirectX::XMMATRIX modelMatrix;
 	float emit;
 	float kr;
+	uint32_t materialID;
 };
 
 struct HitArgs {
@@ -210,6 +212,9 @@ class DxrPipeline {
 	::Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList4> dxrCommandList;
 	std::vector<HitArgs> hitArgs;
 	std::vector< ::Microsoft::WRL::ComPtr<ID3D12Resource> > instanceConstants;
+
+	::Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> albedoHeap;
+	::Microsoft::WRL::ComPtr<ID3D12Fence> fence;
 public:
 	~DxrPipeline()
 	{
@@ -226,6 +231,7 @@ public:
 	::Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList4> Begin()
 	{
 		device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, commandAllocators[currentBackBufferIndex].Get(), nullptr, IID_PPV_ARGS(&dxrCommandList));
+		dxrCommandList->SetComputeRootSignature(globalRootSignature.Get());
 		return dxrCommandList;
 	}
 	void End()

@@ -130,8 +130,7 @@ void texture::Create(UINT width, UINT height,DXGI_FORMAT format,D3D12_RESOURCE_F
 	resourct_view_desc.Texture2D.ResourceMinLODClamp = 0.0F;
 	resourct_view_desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 
-	handle_srv = heap->GetCPUDescriptorHandleForHeapStart();
-	device->CreateShaderResourceView(buffer.Get(), &resourct_view_desc, handle_srv);
+	device->CreateShaderResourceView(buffer.Get(), &resourct_view_desc, heap->GetCPUDescriptorHandleForHeapStart());
 }
 
 void texture::Map(void* src, UINT width, UINT height, UINT num_channel)
@@ -174,7 +173,7 @@ void renderTexture::Create(UINT width, UINT height, D3D12_RESOURCE_FLAGS flag)
 	};
 	device->CreateCommittedResource(&heapProp, D3D12_HEAP_FLAG_NONE, &resourceDesc,
 		D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE ,
-		nullptr, IID_PPV_ARGS(&buffer));
+		nullptr, IID_PPV_ARGS(&GetHandle()));
 	device->CreateDescriptorHeap(&descriptor_heap_desc, IID_PPV_ARGS(&renderTargetHeap));
 
 	resourceDesc.Format = DXGI_FORMAT_D32_FLOAT;
@@ -189,7 +188,7 @@ void renderTexture::Create(UINT width, UINT height, D3D12_RESOURCE_FLAGS flag)
 		&clearValue, IID_PPV_ARGS(&depthBuffer));
 	device->CreateDescriptorHeap(&descriptor_heap_desc, IID_PPV_ARGS(&depthHeap));
 #ifdef _DEBUG
-	buffer->SetName(L"offscreen buffer");
+	GetHandle()->SetName(L"offscreen buffer");
 #endif
 
 	rtvHandle = renderTargetHeap->GetCPUDescriptorHandleForHeapStart();
@@ -197,7 +196,7 @@ void renderTexture::Create(UINT width, UINT height, D3D12_RESOURCE_FLAGS flag)
 	D3D12_RENDER_TARGET_VIEW_DESC rtvDesc = {};
 	rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
 	rtvDesc.Format = rtvFormat;
-	device->CreateRenderTargetView(buffer.Get(), &rtvDesc, rtvHandle);
+	device->CreateRenderTargetView(GetHandle().Get(), &rtvDesc, rtvHandle);
 
 	D3D12_DEPTH_STENCIL_VIEW_DESC depthDesc = {};
 	depthDesc.Format = DXGI_FORMAT_D32_FLOAT;
@@ -214,7 +213,7 @@ void renderTexture::Create(UINT width, UINT height, D3D12_RESOURCE_FLAGS flag)
 	descriptor_heap_desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 	descriptor_heap_desc.NumDescriptors = 1;
 	descriptor_heap_desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-	device->CreateDescriptorHeap(&descriptor_heap_desc, IID_PPV_ARGS(&afterHeap));
+	device->CreateDescriptorHeap(&descriptor_heap_desc, IID_PPV_ARGS(&GetHeap()));
 
 	D3D12_SHADER_RESOURCE_VIEW_DESC resourct_view_desc{};
 	resourct_view_desc.Format = rtvFormat;
@@ -224,14 +223,14 @@ void renderTexture::Create(UINT width, UINT height, D3D12_RESOURCE_FLAGS flag)
 	resourct_view_desc.Texture2D.PlaneSlice = 0;
 	resourct_view_desc.Texture2D.ResourceMinLODClamp = 0.0F;
 	resourct_view_desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-	device->CreateShaderResourceView(buffer.Get(), &resourct_view_desc, afterHeap->GetCPUDescriptorHandleForHeapStart());
+	device->CreateShaderResourceView(GetHandle().Get(), &resourct_view_desc, GetHeap()->GetCPUDescriptorHandleForHeapStart());
 }
 
 void renderTexture::Set(ID3D12GraphicsCommandList* cmdList, UINT reg_id)
 {
-	ID3D12DescriptorHeap* heaps[] = { afterHeap.Get() };
+	ID3D12DescriptorHeap* heaps[] = { GetHeap().Get() };
 	cmdList->SetDescriptorHeaps(_countof(heaps), heaps);
-	cmdList->SetGraphicsRootDescriptorTable(reg_id, afterHeap->GetGPUDescriptorHandleForHeapStart());
+	cmdList->SetGraphicsRootDescriptorTable(reg_id, GetHeap()->GetGPUDescriptorHandleForHeapStart());
 }
 
 void renderTexture::RenderTarget(ID3D12GraphicsCommandList* cmdList)

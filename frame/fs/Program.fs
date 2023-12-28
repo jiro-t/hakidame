@@ -504,7 +504,7 @@ let main argv =
     let title = "t  o    o   l"
     System.Console.WriteLine("t  o    o   l") 
     // Create Window
-    let MainForm = new MFrame(title,360000)
+    let MainForm = new MFrame(title,105000)
     let mutable return_code = 0
     try
         System.Windows.Forms.Application.Run(MainForm)

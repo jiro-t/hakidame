@@ -52,10 +52,9 @@ PSInput VSMain(float4 position : POSITION,float4 color : COLOR,float4 texcoord :
 float4 PSMain(PSInput input) : SV_TARGET\n\
 {\n\
     float2 uv = input.texcoord.xy;\n\
-    uv.y = 1.0 - uv.y;\n\
     float4 col = float4(0.8, 0, 0.6, 1.0);\n\
 \
-    float top = min(0.0 + time * 0.1, 0.8);\n\
+    float top = min(0.0 + max(0.0,time-9.0) * 0.1, 0.8);\n\
     float bottom = 1.0 - top;\n\
 \
     float4 gcol = float4(0.6, 1.1, 0, 5);\n\
@@ -88,6 +87,74 @@ float4 PSMain(PSInput input) : SV_TARGET\n\
         }\n\
     }\n\
     return col;\n\
+}\n\
+";
+
+char tex_gen_shader2[] = "\
+#define rootSig \"RootFlags(ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT),CBV(b0)\"\n \
+#define N 12.0\n\
+float time : register(b0);\n\
+struct PSInput {\n\
+    float4	position : SV_POSITION;\n\
+    float4 texcoord : TEXCOORD;\n\
+};\n\
+float3 cir(float2 uv, float2 c, float r, float3 col, float3 bg)\n\
+{\n\
+    if (length(c - uv) < r)\n\
+        return col;\n\
+    return bg;\n\
+}\n\
+\n\
+float3 metaball(float2 uv, float3 bg)\n\
+{\n\
+    float2 p1 = float2(0.6 + sin(time * 2.0) * 0.7, 0.5 + cos(time * 2.0) * 0.4);\n\
+    float2 p2 = float2(1.3 - sin(time * 1.2) * 0.7, 0.2 - cos(time * 1.2) * 0.6);\n\
+    float2 p3 = float2(1.0, 0.5 + cos(time * 2.0) * 0.1);\n\
+\n\
+    float3 col = bg;\n\
+\n\
+    float pot1 = pow(0.3 / length(p1 - uv), 1.0);\n\
+    float pot2 = pow(0.3 / length(p2 - uv), 1.0);\n\
+    float pot3 = pow(0.3 / length(p3 - uv), 1.0);\n\
+\n\
+    float pot4 = pow(1.0 / (pot1 + pot2 + pot3), 2.0);\n\
+    float val = 0.02 / (pot4 * pot4) + 0.2;\n\
+    if (pot4 < 0.3)\n\
+        col = float3(val, val, val);\n\
+\n\
+    return col;\n\
+}\n\
+\n\
+[RootSignature(rootSig)]\n\
+PSInput VSMain(float4 position : POSITION, float4 color : COLOR, float4 texcoord : TEXCOORD)\n\
+{\n\
+    PSInput	result;\n\
+    result.position = float4(texcoord.x * 2.0 - 1.0, texcoord.y * 2.0 - 1.0, 0, 1);\n\
+    result.texcoord = texcoord;\n\
+    return result;\n\
+}\n\
+\n\
+[RootSignature(rootSig)]\n\
+float4 PSMain(PSInput input) : SV_TARGET\n\
+{\n\
+    float2 uv = input.texcoord.xy;\n\
+    float3 col = float3(0,0,0);\n\
+\n\
+    float z = 100.0;\n\
+    for (float i = 0.0; i < N; i += 1.0)\n\
+    {\n\
+        float t = fmod(time * 0.5 - i / N,1.0) * 2.0;\n\
+        float2 p = float2(0.87,0.5) + float2(cos(2.0 * 3.14 * i / N),sin(2.0 * 3.14 * i / N)) * 0.2;\n\
+        if (z > t && length(p - uv) < t)\n\
+        {\n\
+            float3 c = float3(fmod(i,N) / N,fmod(N - i,N) / N,fmod(N + N / 2.0 - i,N) / N);\n\
+            col = cir(uv,p,t,c * t,col);\n\
+            z = t;\n\
+        }\n\
+    }\n\
+\n\
+    col = metaball(uv,col);\n\
+    return float4(col,1.0);\n\
 }\n\
 ";
 
@@ -305,7 +372,9 @@ PSInput VSMain(float4 position : POSITION, float4 color : COLOR, float4 uv : TEX
 float4 PSMain(PSInput input) : SV_TARGET\n\
 {\n\
     float2 uv = input.uv;\n\
-    float4 col = float4(render_.Sample(samp_, input.uv).xyz,1);\n\
+    float fade = max(0.0,min(1.0,102.5f - time));\n\
+    fade = min(fade,min(1.0,max(0.0,time*0.25 - 1)));\n\
+    float4 col = float4(render_.Sample(samp_, input.uv).xyz*fade,1);\n\
 \n\
     return col;\n\
 }\n\
@@ -315,6 +384,30 @@ HRESULT create_pipeline_tex_gen1(ino::d3d::pipeline& pipe)
 {
     pipe.LoadShader(ino::d3d::ShaderTypes::VERTEX_SHADER, tex_gen_shader1, sizeof(tex_gen_shader1), L"VSMain");
     pipe.LoadShader(ino::d3d::ShaderTypes::FRAGMENT_SHADER, tex_gen_shader1, sizeof(tex_gen_shader1), L"PSMain");
+
+    D3D12_INPUT_ELEMENT_DESC elementDescs[] = {
+        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+        { "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, sizeof(float) * 3, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0,sizeof(float) * 3 + sizeof(float) * 4, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+    };
+    pipe.Create(elementDescs, 3);
+
+    pipe.view = {
+        .Width = static_cast<FLOAT>(ino::d3d::screen_width),
+        .Height = static_cast<FLOAT>(ino::d3d::screen_height),
+    };
+    pipe.scissor = {
+        .right = ino::d3d::screen_width,
+        .bottom = ino::d3d::screen_height
+    };
+
+    return S_OK;
+}
+
+HRESULT create_pipeline_tex_gen2(ino::d3d::pipeline& pipe)
+{
+    pipe.LoadShader(ino::d3d::ShaderTypes::VERTEX_SHADER, tex_gen_shader2, sizeof(tex_gen_shader2), L"VSMain");
+    pipe.LoadShader(ino::d3d::ShaderTypes::FRAGMENT_SHADER, tex_gen_shader2, sizeof(tex_gen_shader2), L"PSMain");
 
     D3D12_INPUT_ELEMENT_DESC elementDescs[] = {
         { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
@@ -370,8 +463,8 @@ struct DenoiseCBO {
 
 HRESULT create_pipeline_denoise(ino::d3d::pipeline& pipe)
 {
-    pipe.LoadShader(ino::d3d::ShaderTypes::VERTEX_SHADER, denoise_hader, sizeof(denoise_hader), "VSMain");
-    pipe.LoadShader(ino::d3d::ShaderTypes::FRAGMENT_SHADER, denoise_hader, sizeof(denoise_hader), "PSMain");
+    pipe.LoadShader(ino::d3d::ShaderTypes::VERTEX_SHADER, denoise_hader, sizeof(denoise_hader), L"VSMain");
+    pipe.LoadShader(ino::d3d::ShaderTypes::FRAGMENT_SHADER, denoise_hader, sizeof(denoise_hader), L"PSMain");
 
     D3D12_INPUT_ELEMENT_DESC elementDescs[] = {
         { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
@@ -398,8 +491,8 @@ HRESULT create_pipeline_denoise(ino::d3d::pipeline& pipe)
 
 HRESULT create_pipeline_postProcess(ino::d3d::pipeline& pipe)
 {
-    pipe.LoadShader(ino::d3d::ShaderTypes::VERTEX_SHADER, post_shader, sizeof(post_shader), "VSMain");
-    pipe.LoadShader(ino::d3d::ShaderTypes::FRAGMENT_SHADER, post_shader, sizeof(post_shader), "PSMain");
+    pipe.LoadShader(ino::d3d::ShaderTypes::VERTEX_SHADER, post_shader, sizeof(post_shader), L"VSMain");
+    pipe.LoadShader(ino::d3d::ShaderTypes::FRAGMENT_SHADER, post_shader, sizeof(post_shader), L"PSMain");
 
     D3D12_INPUT_ELEMENT_DESC elementDescs[] = {
         { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },

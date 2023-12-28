@@ -280,16 +280,19 @@ DLL_EXPORT BOOL InitDxContext(HWND hwnd, UINT width, UINT height)
 	//load default shape
 	mesh.push_back(ino::shape::CreateCube() );
 	mesh.push_back(ino::shape::CreateQuad());
-	//mesh.push_back(ino::gfx::obj::load_obj(ifs) );
-	mesh.push_back(ino::shape::CreateCharMesh(L'‚¤', L"‚l‚r –¾’©"));
-	mesh.push_back(ino::shape::CreateCharMesh(L'‚ñ', L"‚l‚r –¾’©"));
-	mesh.push_back(ino::shape::CreateCharMesh(L'‚¿', L"‚l‚r –¾’©"));
-	//mesh.push_back(ino::shape::CreateTestModel());));
-
-	mesh.push_back(ino::shape::CreateSphere(DirectX::XMVectorSet(1,1,1,1), DirectX::XMVectorSet(1,0,0,1)));
-	std::ifstream ifs("resource/shop.model",std::ios::in);
-	if(ifs)
+	mesh.push_back(ino::shape::CreateSphere(DirectX::XMVectorSet(1, 1, 1, 1), DirectX::XMVectorSet(1, 0, 0, 1)));
+	std::ifstream ifs("resource/shop.model", std::ios::in);
+	if (ifs)
 		mesh.push_back(ino::gfx::obj::load_obj(ifs));
+	static const int mesh_lower_case = 3;
+	for (wchar_t w = L'a'; w <= L'z'; ++w)
+		mesh.push_back(ino::shape::CreateCharMesh(w, L"Ariel"));
+	static const int mesh_upper_case = 3 + 26;
+	for (wchar_t w = L'A'; w <= L'Z'; ++w)
+		mesh.push_back(ino::shape::CreateCharMesh(w, L"Ariel"));
+	static const int mesh_num_case = 3 + 26 + 26;
+	for (wchar_t w = L'0'; w <= L'9'; ++w)
+		mesh.push_back(ino::shape::CreateCharMesh(w, L"Ariel"));
 
 	return ret;
 }
@@ -323,9 +326,9 @@ DLL_EXPORT BOOL DxContextFlush()
 			Camera c2 = camPlots[camPlotsIndex + 1];
 
 			const float w = c2.plotTime - c1.plotTime;
-			const float ab = std::min(1.f,(c2.plotTime - t) / w);
+			const float ab = std::min(1.f, (c2.plotTime - t) / w);
 			cam.pos = DX::XMVectorAdd(DX::XMVectorScale(c1.pos, ab), DX::XMVectorScale(c2.pos, 1.f - ab));
-			cam.target = DX::XMVectorAdd(DX::XMVectorScale(c1.target, ab), DX::XMVectorScale(c2.target, 1.f - ab));
+			cam.target = DX::XMVectorAdd(DX::XMVectorScale(DX::XMVectorAdd(c1.pos,c1.target), ab), DX::XMVectorScale(DX::XMVectorAdd(c2.pos, c2.target), 1.f - ab));
 			cam.up = DX::XMVectorAdd(DX::XMVectorScale(c1.up, ab), DX::XMVectorScale(c2.up, 1.f - ab));
 		}
 	}
@@ -366,20 +369,20 @@ DLL_EXPORT BOOL DxContextFlush()
 		val.cbo.Set(cmds[0],Mat,0);
 		mesh[val.shapeID].Draw(cmds[0]);
 	}
-	model = GenModelMatrix(point(-5, 10, 0, 0), point(0, 0, 0, 0), point(0.025, 0.025, 1, 1));
-	DX::XMStoreFloat4x4(&Mat, XMMatrixTranspose(model * view * projection));
-	u_cbo.Set(cmds[0], Mat, 0);
-	mesh[2].Draw(cmds[0]);
+	//model = GenModelMatrix(point(-5, 10, 0, 0), point(0, 0, 0, 0), point(0.025, 0.025, 1, 1));
+	//DX::XMStoreFloat4x4(&Mat, XMMatrixTranspose(model * view * projection));
+	//u_cbo.Set(cmds[0], Mat, 0);
+	//mesh[2].Draw(cmds[0]);
 
-	model = GenModelMatrix(point(0, 10, 0, 0), point(0, 0, 0, 0), point(0.025, 0.025, 1, 1));
-	DX::XMStoreFloat4x4(&Mat, XMMatrixTranspose(model * view * projection));
-	n_cbo.Set(cmds[0], Mat, 0);
-	mesh[3].Draw(cmds[0]);
+	//model = GenModelMatrix(point(0, 10, 0, 0), point(0, 0, 0, 0), point(0.025, 0.025, 1, 1));
+	//DX::XMStoreFloat4x4(&Mat, XMMatrixTranspose(model * view * projection));
+	//n_cbo.Set(cmds[0], Mat, 0);
+	//mesh[3].Draw(cmds[0]);
 
-	model = GenModelMatrix(point(5,10,0,0), point(0,0,0,0), point(0.025,0.025,1,1));
-	DX::XMStoreFloat4x4(&Mat, XMMatrixTranspose(model * view * projection));
-	ti_cbo.Set(cmds[0], Mat, 0);
-	mesh[4].Draw(cmds[0]);
+	//model = GenModelMatrix(point(5,10,0,0), point(0,0,0,0), point(0.025,0.025,1,1));
+	//DX::XMStoreFloat4x4(&Mat, XMMatrixTranspose(model * view * projection));
+	//ti_cbo.Set(cmds[0], Mat, 0);
+	//mesh[4].Draw(cmds[0]);
 	pipe[0].End();
 
 	cmds[2] = pipe[2].Begin();

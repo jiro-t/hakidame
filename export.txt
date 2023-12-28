@@ -1,0 +1,909 @@
+struct PlotCamera{DirectX::XMVECTOR pos;DirectX::XMVECTOR target;DirectX::XMVECTOR up;float time;};
+PlotCamera cameraPlot[] = {
+	{DirectX::XMVectorSet(11.74265,6.45,-9.35581,0.f),DirectX::XMVectorSet(-0.9995736,0,0.02919978,0.f),DirectX::XMVectorSet(0,1,0,0.f),0},
+	{DirectX::XMVectorSet(11.74265,6.45,-9.35581,0.f),DirectX::XMVectorSet(-0.9995736,0,0.02919978,0.f),DirectX::XMVectorSet(0,1,0,0.f),15.585},
+	{DirectX::XMVectorSet(12.5123,6.45,-9.378294,0.f),DirectX::XMVectorSet(-0.9995736,0,0.02919978,0.f),DirectX::XMVectorSet(0,1,0,0.f),16.223},
+	{DirectX::XMVectorSet(12.38155,6.45,-17.62456,0.f),DirectX::XMVectorSet(-0.9995736,0,0.02919978,0.f),DirectX::XMVectorSet(0,1,0,0.f),17.5},
+	{DirectX::XMVectorSet(11.8318,6.45,-17.60851,0.f),DirectX::XMVectorSet(-0.9995736,0,0.02919978,0.f),DirectX::XMVectorSet(0,1,0,0.f),18.298},
+	{DirectX::XMVectorSet(11.8318,6.45,-17.60851,0.f),DirectX::XMVectorSet(-0.9995736,0,0.02919978,0.f),DirectX::XMVectorSet(0,1,0,0.f),29.287},
+	{DirectX::XMVectorSet(12.52443,6.45,-17.62033,0.f),DirectX::XMVectorSet(-0.9995736,0,0.02919978,0.f),DirectX::XMVectorSet(0,1,0,0.f),29.926},
+	{DirectX::XMVectorSet(12.85342,6.45,-1.461677,0.f),DirectX::XMVectorSet(-0.9995736,0,0.02919978,0.f),DirectX::XMVectorSet(0,1,0,0.f),31.564},
+	{DirectX::XMVectorSet(11.97382,6.45,-1.435981,0.f),DirectX::XMVectorSet(-0.9995736,0,0.02919978,0.f),DirectX::XMVectorSet(0,1,0,0.f),32.362},
+	{DirectX::XMVectorSet(11.97382,6.45,-1.435981,0.f),DirectX::XMVectorSet(-0.9995736,0,0.02919978,0.f),DirectX::XMVectorSet(0,1,0,0.f),43.191},
+	{DirectX::XMVectorSet(12.74347,6.45,-1.458465,0.f),DirectX::XMVectorSet(-0.9995736,0,0.02919978,0.f),DirectX::XMVectorSet(0,1,0,0.f),44.149},
+	{DirectX::XMVectorSet(15.6447,7.226502,1.777392,0.f),DirectX::XMVectorSet(-0.9658064,-0.1986693,-0.1665789,0.f),DirectX::XMVectorSet(-0.1957787,0.9800666,-0.03376722,0.f),45.106},
+	{DirectX::XMVectorSet(15.42824,8.374515,13.35548,0.f),DirectX::XMVectorSet(-0.5533872,-0.1986693,-0.8088838,0.f),DirectX::XMVectorSet(-0.1121771,0.9800666,-0.1639689,0.f),49.574},
+	{DirectX::XMVectorSet(10.83363,6.45,12.35838,0.f),DirectX::XMVectorSet(-0.6442177,0,-0.7648422,0.f),DirectX::XMVectorSet(0,1,0,0.f),52.33},
+	{DirectX::XMVectorSet(4.176864,8.31041,15.79644,0.f),DirectX::XMVectorSet(-0.2896295,-0.1986693,-0.9362934,0.f),DirectX::XMVectorSet(-0.0587108,0.9800666,-0.1897961,0.f),54.128},
+	{DirectX::XMVectorSet(4.476273,8.744653,15.06162,0.f),DirectX::XMVectorSet(-0.2721922,-0.3894183,-0.8799232,0.f),DirectX::XMVectorSet(-0.115081,0.921061,-0.3720255,0.f),60.319},
+	{DirectX::XMVectorSet(4.476273,8.744653,15.06162,0.f),DirectX::XMVectorSet(-0.2721922,-0.3894183,-0.8799232,0.f),DirectX::XMVectorSet(-0.115081,0.921061,-0.3720255,0.f),105},
+};
+DrawObject drawObj[] = {
+	{
+		.shapeID = 8,
+		.plotCount = 5,
+		.plots = {
+			{54+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{54+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{54+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{54+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{54+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 54+5
+	},
+	{
+		.shapeID = 25,
+		.plotCount = 5,
+		.plots = {
+			{54.2+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{54.2+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{54.2+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{54.2+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{54.2+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 54.2+5
+	},
+	{
+		.shapeID = 23,
+		.plotCount = 5,
+		.plots = {
+			{54.4+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{54.4+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{54.4+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{54.4+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{54.4+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 54.4+5
+	},
+	{
+		.shapeID = 17,
+		.plotCount = 5,
+		.plots = {
+			{54.6+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{54.6+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{54.6+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{54.6+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{54.6+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 54.6+5
+	},//ctrl
+	{
+		.shapeID = 6,
+		.plotCount = 5,
+		.plots = {
+			{55+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{55+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{55+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{55+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{55+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 55+5
+	},
+	{
+		.shapeID = 17,
+		.plotCount = 5,
+		.plots = {
+			{55.2+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{55.2+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{55.2+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{55.2+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{55.2+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 55.2+5
+	},
+	{
+		.shapeID = 25,
+		.plotCount = 5,
+		.plots = {
+			{55.4+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{55.4+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{55.4+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{55.4+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{55.4+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 55.4+5
+	},//alt
+	{
+		.shapeID = 25,
+		.plotCount = 5,
+		.plots = {
+			{55.8+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{55.8+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{55.8+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{55.8+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{55.8+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 55.8+5
+	},
+	{
+		.shapeID = 10,
+		.plotCount = 5,
+		.plots = {
+			{56+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{56+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{56+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{56+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{56+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 56+5
+	},
+	{
+		.shapeID = 24,
+		.plotCount = 5,
+		.plots = {
+			{56.2+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{56.2+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{56.2+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{56.2+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{56.2+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 56.2+5
+	},
+	{
+		.shapeID = 25,
+		.plotCount = 5,
+		.plots = {
+			{56.4+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{56.4+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{56.4+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{56.4+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{56.4+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 56.4+5
+	},//ctrl alt test
+
+	{
+		.shapeID = 50,
+		.plotCount = 5,
+		.plots = {
+			{58.4+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{58.4+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{58.4+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{58.4+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{58.4+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 58.4+5
+	},
+	{
+		.shapeID = 30,
+		.plotCount = 5,
+		.plots = {
+			{58.6+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{58.6+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{58.6+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{58.6+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{58.6+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 58.6+5
+	},
+	{
+		.shapeID = 24,
+		.plotCount = 5,
+		.plots = {
+			{58.8+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{58.8+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{58.8+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{58.8+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{58.8+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 58.8+5
+	},
+	{
+		.shapeID = 25,
+		.plotCount = 5,
+		.plots = {
+			{59+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{59+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{59+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{59+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{59+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 59+5
+	},
+	{
+		.shapeID = 10,
+		.plotCount = 5,
+		.plots = {
+			{59.2+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{59.2+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{59.2+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{59.2+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{59.2+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 59.2+5
+	},
+	{
+		.shapeID = 18,
+		.plotCount = 5,
+		.plots = {
+			{59.4+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{59.4+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{59.4+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{59.4+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{59.4+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 59.4+5
+	},
+	{
+		.shapeID = 42,
+		.plotCount = 5,
+		.plots = {
+			{59.6+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{59.6+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{59.6+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{59.6+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{59.6+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 59.6+5
+	},//SystemK
+
+	{
+		.shapeID = 58,
+		.plotCount = 5,
+		.plots = {
+			{61.6+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{61.6+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{61.6+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{61.6+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{61.6+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 61.6+5
+	},
+	{
+		.shapeID = 29,
+		.plotCount = 5,
+		.plots = {
+			{61.8+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{61.8+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{61.8+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{61.8+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{61.8+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 61.8+5
+	},
+	{
+		.shapeID =  62,
+		.plotCount = 5,
+		.plots = {
+			{62+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{62+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{62+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{62+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{62+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 62+5
+	},
+	{
+		.shapeID = 58,
+		.plotCount = 5,
+		.plots = {
+			{62.2+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{62.2+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{62.2+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{62.2+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{62.2+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 62.2+5
+	},
+	{
+		.shapeID = 59,
+		.plotCount = 5,
+		.plots = {
+			{62.4+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{62.4+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{62.4+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{62.4+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{62.4+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 62.4+5
+	},
+	{
+		.shapeID = 63,
+		.plotCount = 5,
+		.plots = {
+			{62.6+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{62.6+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{62.6+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{62.6+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{62.6+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 62.6+5
+	},//0x4015
+
+	{
+		.shapeID = 11,
+		.plotCount = 5,
+		.plots = {
+			{64.6+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{64.6+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{64.6+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{64.6+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{64.6+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 64.6+5
+	},
+	{
+		.shapeID = 24,
+		.plotCount = 5,
+		.plots = {
+			{64.8+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{64.8+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{64.8+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{64.8+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{64.8+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 64.8+5
+	},
+	{
+		.shapeID = 22,
+		.plotCount = 5,
+		.plots = {
+			{65+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{65+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{65+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{65+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{65+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 65+5
+	},
+	{
+		.shapeID = 23,
+		.plotCount = 5,
+		.plots = {
+			{65.2+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{65.2+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{65.2+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{65.2+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{65.2+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 65.2+5
+	},
+	{
+		.shapeID = 25,
+		.plotCount = 5,
+		.plots = {
+			{65.4+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{65.4+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{65.4+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{65.4+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{65.4+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 65.4+5
+	},//fsqrt
+
+
+	{
+		.shapeID = 21,
+		.plotCount = 5,
+		.plots = {
+			{67.4+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{67.4+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{67.4+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{67.4+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{67.4+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 67.4+5
+	},
+	{
+		.shapeID = 20,
+		.plotCount = 5,
+		.plots = {
+			{67.6+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{67.6+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{67.6+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{67.6+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{67.6+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 67.6+5
+	},
+	{
+		.shapeID = 20,
+		.plotCount = 5,
+		.plots = {
+			{67.8+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{67.8+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{67.8+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{67.8+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{67.8+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 67.8+5
+	},
+	{
+		.shapeID = 7,
+		.plotCount = 5,
+		.plots = {
+			{68.2+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{68.2+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{68.2+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{68.2+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{68.2+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 68.2+5
+	},
+	{
+		.shapeID = 23,
+		.plotCount = 5,
+		.plots = {
+			{68.4+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{68.4+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{68.4+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{68.4+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{68.4+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 68.4+5
+	},
+	{
+		.shapeID = 6,
+		.plotCount = 5,
+		.plots = {
+			{68.6+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{68.6+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{68.6+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{68.6+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{68.6+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 68.6+5
+	},
+	{
+		.shapeID = 14,
+		.plotCount = 5,
+		.plots = {
+			{68.8+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{68.8+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{68.8+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{68.8+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{68.8+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 68.8+5
+	},
+	{
+		.shapeID = 19,
+		.plotCount = 5,
+		.plots = {
+			{69+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{69+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{69+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{69+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{69+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 69+5
+	},// poo-brain 
+
+	{
+		.shapeID = 12,
+		.plotCount = 5,
+		.plots = {
+			{71+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{71+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{71+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{71+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{71+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 71+5
+	},
+	{
+		.shapeID = 6,
+		.plotCount = 5,
+		.plots = {
+			{71.2+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{71.2+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{71.2+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{71.2+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{71.2+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 71.2+5
+	},
+	{
+		.shapeID = 18,
+		.plotCount = 5,
+		.plots = {
+			{71.4+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{71.4+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{71.4+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{71.4+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{71.4+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 71.4+5
+	},
+	{
+		.shapeID = 58,
+		.plotCount = 5,
+		.plots = {
+			{71.6+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{71.6+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{71.6+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{71.6+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{71.6+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 71.6+5
+	},
+	{
+		.shapeID = 58,
+		.plotCount = 5,
+		.plots = {
+			{71.8+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{71.8+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{71.8+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{71.8+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{71.8+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 71.8+5
+	},
+	{
+		.shapeID = 60,
+		.plotCount = 5,
+		.plots = {
+			{72+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{72+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{72+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{72+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{72+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 72+5
+	},
+	{
+		.shapeID = 60,
+		.plotCount = 5,
+		.plots = {
+			{72.2+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{72.2+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{72.2+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{72.2+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{72.2+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 72.2+5
+	},//gam0022
+
+
+	{
+		.shapeID = 37,
+		.plotCount = 5,
+		.plots = {
+			{74.2+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{74.2+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{74.2+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{74.2+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{74.2+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 74.2+5
+	},
+	{
+		.shapeID = 44,
+		.plotCount = 5,
+		.plots = {
+			{74.4+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{74.4+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{74.4+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{74.4+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{74.4+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 74.4+5
+	},
+	{
+		.shapeID = 50,
+		.plotCount = 5,
+		.plots = {
+			{74.6+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{74.6+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{74.6+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{74.6+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{74.6+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 74.6+5
+	},
+	{
+		.shapeID = 34,
+		.plotCount = 5,
+		.plots = {
+			{75+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{75+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{75+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{75+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{75+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 75+5
+	},
+	{
+		.shapeID = 6,
+		.plotCount = 5,
+		.plots = {
+			{75.2+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{75.2+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{75.2+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{75.2+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{75.2+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 75.2+5
+	},
+	{
+		.shapeID = 25,
+		.plotCount = 5,
+		.plots = {
+			{75.4+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{75.4+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{75.4+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{75.4+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{75.4+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 75.4+5
+	},//fms_cat
+
+	{
+		.shapeID = 25,
+		.plotCount = 5,
+		.plots = {
+			{77.4+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{77.4+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{77.4+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{77.4+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{77.4+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 77.4+5
+	},
+	{
+		.shapeID = 20,
+		.plotCount = 5,
+		.plots = {
+			{77.6+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{77.6+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{77.6+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{77.6+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{77.6+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 77.6+5
+	},
+	{
+		.shapeID = 18,
+		.plotCount = 5,
+		.plots = {
+			{77.8+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{77.8+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{77.8+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{77.8+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{77.8+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 77.8+5
+	},
+	{
+		.shapeID = 20,
+		.plotCount = 5,
+		.plots = {
+			{78+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{78+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{78+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{78+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{78+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 78+5
+	},
+	{
+		.shapeID = 13,
+		.plotCount = 5,
+		.plots = {
+			{78.2+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{78.2+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{78.2+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{78.2+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{78.2+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 78.2+5
+	},
+	{
+		.shapeID = 14,
+		.plotCount = 5,
+		.plots = {
+			{78.4+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{78.4+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{78.4+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{78.4+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{78.4+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 78.4+5
+	},
+	{
+		.shapeID = 23,
+		.plotCount = 5,
+		.plots = {
+			{78.6+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{78.6+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{78.6+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{78.6+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{78.6+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 78.6+5
+	},
+	{
+		.shapeID = 20,
+		.plotCount = 5,
+		.plots = {
+			{78.8+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{78.8+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{78.8+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{78.8+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{78.8+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 78.8+5
+	},//tomohiro
+
+	{
+		.shapeID = 32,
+		.plotCount = 5,
+		.plots = {
+			{80.8+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{80.8+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{80.8+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{80.8+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{80.8+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 80.8+5
+	},
+	{
+		.shapeID = 19,
+		.plotCount = 5,
+		.plots = {
+			{81+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{81+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{81+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{81+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{81+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 81+5
+	},
+	{
+		.shapeID = 9,
+		.plotCount = 5,
+		.plots = {
+			{81.2+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{81.2+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{81.2+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{81.2+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{81.2+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 81.2+5
+	},//And
+	{
+		.shapeID = 50,
+		.plotCount = 5,
+		.plots = {
+			{82.2+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{82.2+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{82.2+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{82.2+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{82.2+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 82.2+5
+	},
+	{
+		.shapeID = 14,
+		.plotCount = 5,
+		.plots = {
+			{82.4+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{82.4+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{82.4+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{82.4+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{82.4+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 82.4+5
+	},
+	{
+		.shapeID = 12,
+		.plotCount = 5,
+		.plots = {
+			{82.6+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{82.6+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{82.6+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{82.6+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{82.6+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 82.6+5
+	},
+	{
+		.shapeID = 12,
+		.plotCount = 5,
+		.plots = {
+			{82.8+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{82.8+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{82.8+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{82.8+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{82.8+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 82.8+5
+	},
+	{
+		.shapeID = 23,
+		.plotCount = 5,
+		.plots = {
+			{83+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{83+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{83+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{83+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{83+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 83+5
+	},
+	{
+		.shapeID = 6,
+		.plotCount = 5,
+		.plots = {
+			{83.2+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{83.2+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{83.2+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{83.2+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{83.2+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 83.2+5
+	},
+	{
+		.shapeID = 21,
+		.plotCount = 5,
+		.plots = {
+			{83.4+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{83.4+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{83.4+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{83.4+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{83.4+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 83.4+5
+	},
+	{
+		.shapeID = 13,
+		.plotCount = 5,
+		.plots = {
+			{83.6+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{83.6+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{83.6+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{83.6+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{83.6+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 83.6+5
+	},
+
+	{
+		.shapeID = 32,
+		.plotCount = 5,
+		.plots = {
+			{83.8+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{83.8+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{83.8+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{83.8+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{83.8+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 83.8+5
+	},
+	{
+		.shapeID = 24,
+		.plotCount = 5,
+		.plots = {
+			{84+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{84+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{84+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{84+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{84+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 84+5
+	},
+	{
+		.shapeID = 14,
+		.plotCount = 5,
+		.plots = {
+			{84.2+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{84.2+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{84.2+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{84.2+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{84.2+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 84.2+5
+	},
+	{
+		.shapeID = 6,
+		.plotCount = 5,
+		.plots = {
+			{84.4+0,DirectX::XMVectorSet(-9,5.2,7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{84.4+1,DirectX::XMVectorSet(-8,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{84.4+3,DirectX::XMVectorSet(6.5,5.2,8.7,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{84.4+3.5,DirectX::XMVectorSet(8,5.2,7.5,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+			{84.4+5,DirectX::XMVectorSet(8,5.2,3,1.f),DirectX::XMVectorSet(0,3.141593,0,0.f),DirectX::XMVectorSet(1,1,5,1.f),DirectX::XMMatrixIdentity()},
+		},
+		.plotTimeEnd = 84.4+5
+	}//SiggraphAsia
+};

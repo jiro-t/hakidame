@@ -120,13 +120,11 @@ public:
 	inline ::Microsoft::WRL::ComPtr<ID3D12DescriptorHeap>& GetHeap() { return heap; }
 };
 
-class renderTexture {
+class renderTexture : public texture {
 	::Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> renderTargetHeap;
 	::Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> depthHeap;
-	::Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> afterHeap;
 
 	D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle;
-	::Microsoft::WRL::ComPtr<ID3D12Resource> buffer;
 	::Microsoft::WRL::ComPtr<ID3D12Resource> depthBuffer;
 
 	D3D12_RECT scissor;
@@ -135,7 +133,6 @@ public:
 	void Set(ID3D12GraphicsCommandList* cmdList, UINT reg_id);
 	void RenderTarget(ID3D12GraphicsCommandList* cmdList);
 
-	inline ::Microsoft::WRL::ComPtr<ID3D12Resource>& GetHandle() { return buffer; }
 	inline D3D12_CPU_DESCRIPTOR_HANDLE GetRtvHandle() { return rtvHandle; }
 	inline D3D12_CPU_DESCRIPTOR_HANDLE GetDsvHandle() { return depthHeap->GetCPUDescriptorHandleForHeapStart(); }
 };
