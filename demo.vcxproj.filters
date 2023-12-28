@@ -86,7 +86,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="readme.md" />
-    <None Include="resource\shop.model">
+    <None Include="resource\default.ps">
+      <Filter>リソース ファイル</Filter>
+    </None>
+    <None Include="resource\default.vs">
       <Filter>リソース ファイル</Filter>
     </None>
   </ItemGroup>
@@ -94,15 +97,5 @@
     <ResourceCompile Include="demo.rc">
       <Filter>リソース ファイル</Filter>
     </ResourceCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <Media Include="song.wav">
-      <Filter>リソース ファイル</Filter>
-    </Media>
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="resource\sushi_Albedo.bmp">
-      <Filter>リソース ファイル</Filter>
-    </Image>
   </ItemGroup>
 </Project>

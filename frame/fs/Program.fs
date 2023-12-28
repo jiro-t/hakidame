@@ -34,6 +34,14 @@ type Edit3DPosition (title : string,x : int,y : int,control : System.Windows.For
             zEdit.Text <- z.ToString()
         member this.Enable b = for v in text do v.Enabled <- b
         member this.Edit f =  for v in text do v.TextChanged.Add(f)
+        member this.SetLeft(x : int) = do
+            titleText.Left <- x
+            xEdit.Left <- x + 30
+            yEdit.Left <- x + 110
+            zEdit.Left <- x + 190
+            xText.Left <- x + 10
+            yText.Left <- x+110-20
+            zText.Left <- x+190-20
     end
 
 type PlotManager (text : string,x : int,y : int,control : System.Windows.Forms.Control.ControlCollection) =
@@ -66,6 +74,12 @@ type PlotManager (text : string,x : int,y : int,control : System.Windows.Forms.C
             cmb.SelectedIndex <- i
         member this.SetText( index,text ) = do
             cmb.Items.Item(index) <- text
+        member this.SetLeft( x : int) = do
+            cmb.Left <- x
+            addBtn.Left <- x + 60
+            setBtn.Left <- x + 100
+            delBtn.Left <- x + 140
+            label.Left <-  x - 60
     end
 
 type MFrame (title : string,timeLength : int) as this = 
@@ -251,6 +265,37 @@ type MFrame (title : string,timeLength : int) as this =
 
         //Construct
         do
+            this.Resize.Add( fun (e : System.EventArgs) -> do 
+                renderTarget.Width <- this.Width - 300
+                renderTarget.Height <- this.Height - 100
+                timeScroll.Top <- renderTarget.Bottom
+                timeScroll.Width <- renderTarget.Width
+                play.Left <- timeScroll.Width/2 + 35
+                play.Top <- timeScroll.Bottom + 10
+                play2x.Left <- timeScroll.Width/2 + 60
+                play2x.Top <- timeScroll.Bottom + 10
+                back.Left <- timeScroll.Width/2-15
+                back.Top <- timeScroll.Bottom + 10
+                back2x.Left <- timeScroll.Width/2-40
+                back2x.Top <- timeScroll.Bottom + 10
+                saveBtn.Left <- this.Width - 280
+                loadBtn.Left <- this.Width - 240
+                exportBtn.Left <- this.Width - 200
+                timeCaption.Top <- back.Top+5
+                timeCaption.Left <- timeScroll.Left
+                camPosUI.SetLeft(this.Width - 280)
+                camTarUI.SetLeft(this.Width - 280)
+                camPlot.SetLeft(this.Width - 200)
+                objPosUI.SetLeft(this.Width - 280)
+                objRotUI.SetLeft(this.Width - 280)
+                objScaleUI.SetLeft(this.Width - 280)
+                objects.SetLeft(this.Width - 200)
+                objPlot_t.SetLeft(this.Width - 200)
+                modelID.SetLeft(this.Width - 200)
+                resetPlotBtn.Left <- this.Width - 65
+                keyboardToObjChk.Left <- this.Width - 160
+            )
+
             camPosUI.setValue(0.f,0.f,0.f)
             camPosUI.Edit(fun _ -> do
                 camPos <- camPosUI.xyz
@@ -448,8 +493,8 @@ type MFrame (title : string,timeLength : int) as this =
                     objRotUI.setValue(0.f,0.f,0.f)
                     objScaleUI.setValue(1.f,1.f,1.f)
             )
-            for i = 0 to MeshCount()-1 do modelID.AddItem
-            modelID.SetValue 0
+            //for i = 0 to MeshCount() - 1 do modelID.AddItem
+            //modelID.SetValue 0
         //--end Construct
         override this.Finalize() = ()
     end

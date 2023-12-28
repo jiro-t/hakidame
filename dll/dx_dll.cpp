@@ -167,6 +167,13 @@ float4 PSMain(PSInput input) : SV_TARGET{\
 
 HRESULT create_pipeline(ino::d3d::pipeline& pipe)
 {
+	{
+		//shader_resource vs_resorce = resorce_ptr(IDR_DEFAULT_VS);
+		//shader_resource ps_resorce = resorce_ptr(IDR_DEFAULT_PS);
+		//pipe.LoadShader(ino::d3d::ShaderTypes::VERTEX_SHADER, vs_resorce.bytecode.get(), vs_resorce.size);
+		//pipe.LoadShader(ino::d3d::ShaderTypes::FRAGMENT_SHADER, ps_resorce.bytecode.get(), ps_resorce.size);
+	}
+
 	pipe.LoadShader(ino::d3d::ShaderTypes::VERTEX_SHADER, def_shader, sizeof(def_shader), "VSMain");
 	pipe.LoadShader(ino::d3d::ShaderTypes::FRAGMENT_SHADER, def_shader, sizeof(def_shader), "PSMain");
 
@@ -398,7 +405,7 @@ DLL_EXPORT BOOL DxContextFlush()
 
 DLL_EXPORT int MeshCount()
 {
-	return mesh.size();
+	return 0;// mesh.size();
 }
 
 DLL_EXPORT void SetTime(UINT t_)
@@ -598,4 +605,9 @@ DLL_EXPORT UINT GetPlotTime(UINT id,UINT index)
 	if (id < objPlots.size())
 		return ( objPlots[id].plots[index].Time) * frameTime;
 	return 0;
+}
+
+DLL_EXPORT void OpenWindow()
+{
+	MessageBox(0, L"Woww", L"", MB_OK);
 }

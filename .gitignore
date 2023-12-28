@@ -339,3 +339,9 @@ ASALocalRun/
 # BeatPulse healthcheck temp database
 healthchecksdb
 /dxc-artifacts
+/gfx/obj_loader.hpp
+/gfx/obj_loader.cpp
+/frame/bin - ショートカット.lnk
+/shader/default.hlsl
+/shader/select.hlsl
+/shader/Texturing.hlsl

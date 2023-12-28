@@ -47,5 +47,7 @@ DLL_EXPORT point GetPlotRot(UINT id, UINT index);
 DLL_EXPORT point GetPlotScale(UINT id, UINT index);
 DLL_EXPORT UINT GetPlotTime(UINT id, UINT index);
 
+DLL_EXPORT void OpenWindow();
+
 //DLL_EXPORT BOOL PushCameraPlot(point3d pos, point3d target);
 //DLL_EXPORT UINT GetLastCameraID();

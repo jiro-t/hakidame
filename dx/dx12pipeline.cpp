@@ -151,7 +151,6 @@ void pipeline::LoadShader(ShaderTypes type, void* src, size_t src_size, LPCWSTR 
 	::Microsoft::WRL::ComPtr <IDxcBlobEncoding> enc;
 	lib->CreateBlobWithEncodingOnHeapCopy(src, src_size, 932, &enc);
 
-	LPCWSTR args[] = { L"-rootsig_define rootSig" };
 	compiler->Compile(enc.Get(), L"", entryPoint, getWstrShaderType(type), nullptr, 0, nullptr, 0, nullptr, &result);
 	result->GetResult(&bc);
 	::Microsoft::WRL::ComPtr <IDxcBlobEncoding> err;
@@ -282,11 +281,80 @@ void pipeline::Create(
 		.SampleDesc = {.Count = 1,},
 	};
 
-	desc.VS = shader[static_cast<int>(d3d::ShaderTypes::VERTEX_SHADER)];// { shader[static_cast<int>(d3d::ShaderTypes::VERTEX_SHADER)]->GetBufferPointer(), shader[static_cast<int>(d3d::ShaderTypes::VERTEX_SHADER)]->GetBufferSize() };
-	desc.PS = shader[static_cast<int>(d3d::ShaderTypes::FRAGMENT_SHADER)];// { shader[static_cast<int>(d3d::ShaderTypes::FRAGMENT_SHADER)]->GetBufferPointer(), shader[static_cast<int>(d3d::ShaderTypes::FRAGMENT_SHADER)]->GetBufferSize() };
-	desc.GS = shader[static_cast<int>(d3d::ShaderTypes::GEOMETORY_SHADER)];// { shader[static_cast<int>(d3d::ShaderTypes::GEOMETORY_SHADER)]->GetBufferPointer() ,shader[static_cast<int>(d3d::ShaderTypes::GEOMETORY_SHADER)]->GetBufferSize() };
-	desc.DS = shader[static_cast<int>(d3d::ShaderTypes::DOMAIN_SHADER)];// { shader[static_cast<int>(d3d::ShaderTypes::DOMAIN_SHADER)]->GetBufferPointer() ,shader[static_cast<int>(d3d::ShaderTypes::DOMAIN_SHADER)]->GetBufferSize() };
-	desc.HS = shader[static_cast<int>(d3d::ShaderTypes::HULL_SHADER)];// { shader[static_cast<int>(d3d::ShaderTypes::HULL_SHADER)]->GetBufferPointer(), shader[static_cast<int>(d3d::ShaderTypes::HULL_SHADER)]->GetBufferSize() };
+	desc.VS = shader[static_cast<int>(d3d::ShaderTypes::VERTEX_SHADER)];
+	desc.PS = shader[static_cast<int>(d3d::ShaderTypes::FRAGMENT_SHADER)];
+	desc.GS = shader[static_cast<int>(d3d::ShaderTypes::GEOMETORY_SHADER)];
+	desc.DS = shader[static_cast<int>(d3d::ShaderTypes::DOMAIN_SHADER)];
+	desc.HS = shader[static_cast<int>(d3d::ShaderTypes::HULL_SHADER)];
+
+	device->CreateGraphicsPipelineState(&desc, IID_PPV_ARGS(&pipelineState));
+
+	auto& commandAllocator = commandAllocators[currentBackBufferIndex];
+	result = device->CreateCommandList(
+		0,
+		D3D12_COMMAND_LIST_TYPE_DIRECT,
+		commandAllocators[currentBackBufferIndex].Get(),
+		pipelineState.Get(),
+		IID_PPV_ARGS(&commandList));
+
+	commandList->Close();
+}
+
+void pipeline::CreateWithSignature(
+	D3D12_ROOT_SIGNATURE_DESC* sigDesc,
+	D3D12_INPUT_ELEMENT_DESC* elementDescs,
+	UINT elemntCount,
+	D3D12_BLEND_DESC const& blendDesc,
+	D3D12_RASTERIZER_DESC const& rasterDesc) {
+	HRESULT result = S_OK;
+
+	::Microsoft::WRL::ComPtr<ID3DBlob> signature;
+	::Microsoft::WRL::ComPtr<ID3DBlob> error;
+
+	auto hr = D3D12SerializeRootSignature(sigDesc, D3D_ROOT_SIGNATURE_VERSION_1_0, signature.GetAddressOf(),error.GetAddressOf());
+	putErrorMsg(error);
+	hr = device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&rootSignature));
+	putErrorMsg(error);
+
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC desc = {
+		.pRootSignature = rootSignature.Get(),
+		.BlendState = blendDesc,
+		.SampleMask = UINT_MAX,
+		.RasterizerState = rasterDesc,
+		.DepthStencilState = {
+			.DepthEnable = TRUE,
+			.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL,
+			.DepthFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL,
+			.StencilEnable = FALSE,
+			.StencilReadMask = D3D12_DEFAULT_STENCIL_READ_MASK,
+			.StencilWriteMask = D3D12_DEFAULT_STENCIL_WRITE_MASK,
+			.FrontFace = {
+				.StencilFailOp = D3D12_STENCIL_OP_KEEP,
+				.StencilDepthFailOp = D3D12_STENCIL_OP_KEEP,
+				.StencilPassOp = D3D12_STENCIL_OP_KEEP,
+				.StencilFunc = D3D12_COMPARISON_FUNC_ALWAYS
+			},
+			.BackFace = {
+				.StencilFailOp = D3D12_STENCIL_OP_KEEP,
+				.StencilDepthFailOp = D3D12_STENCIL_OP_KEEP,
+				.StencilPassOp = D3D12_STENCIL_OP_KEEP,
+				.StencilFunc = D3D12_COMPARISON_FUNC_ALWAYS
+			},
+		},
+		.InputLayout = { elementDescs, elemntCount },
+		.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE,
+		.NumRenderTargets = 1,
+		.RTVFormats = { rtvFormat,} ,
+		.DSVFormat = DXGI_FORMAT_D32_FLOAT,
+		.SampleDesc = {.Count = 1,},
+	};
+	desc.VS = shader[static_cast<int>(d3d::ShaderTypes::VERTEX_SHADER)];
+	desc.PS = shader[static_cast<int>(d3d::ShaderTypes::FRAGMENT_SHADER)];
+	desc.GS = shader[static_cast<int>(d3d::ShaderTypes::GEOMETORY_SHADER)];
+	desc.DS = shader[static_cast<int>(d3d::ShaderTypes::DOMAIN_SHADER)];
+	desc.HS = shader[static_cast<int>(d3d::ShaderTypes::HULL_SHADER)];
+
+	std::cout << (char*)shader[static_cast<int>(d3d::ShaderTypes::VERTEX_SHADER)].pShaderBytecode << std::endl;
 
 	device->CreateGraphicsPipelineState(&desc, IID_PPV_ARGS(&pipelineState));
 
@@ -391,6 +459,24 @@ void pipeline::End()
 	std::swap(barrier.Transition.StateBefore, barrier.Transition.StateAfter);
 	commandList->ResourceBarrier(1, &barrier);
 	commandList->Close();
+}
+
+shader_resource resource_ptr(UINT idr)
+{
+	shader_resource result = {};
+	HRSRC resInfo = FindResource(0, MAKEINTRESOURCE(idr), L"HLSL");
+	HGLOBAL resData = LoadResource(0, resInfo);
+	LPVOID pvResData = LockResource(resData);
+
+	result.size = SizeofResource(0, resInfo);
+	result.bytecode = std::shared_ptr<void>(malloc(result.size));
+	ZeroMemory(result.bytecode.get(),result.size);
+	memcpy(result.bytecode.get(), pvResData, result.size);
+
+	UnlockResource(resData);
+	FreeResource(resData);
+
+	return result;
 }
 
 }

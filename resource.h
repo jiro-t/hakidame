@@ -2,9 +2,8 @@
 // Microsoft Visual C++ で生成されたインクルード ファイル。
 // demo.rc で使用
 //
-#define IDR_WAVE1                       101
-#define IDR_MODEL1                      104
-#define IDR_TEXTURE1                     105
+#define IDR_DEFAULT_VS                       101
+#define IDR_DEFAULT_PS                       102
 
 // Next default values for new objects
 // 

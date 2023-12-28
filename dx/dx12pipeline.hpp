@@ -86,6 +86,13 @@ public:
 		UINT elemntCount,
 		D3D12_BLEND_DESC const& blendDesc = defaultBlendDesc(),
 		D3D12_RASTERIZER_DESC const& rasterDesc = defaultRasterizerDesc());
+	void CreateWithSignature(
+		D3D12_ROOT_SIGNATURE_DESC* sigDesc,
+		D3D12_INPUT_ELEMENT_DESC* elementDescs,
+		UINT elemntCount,
+		D3D12_BLEND_DESC const& blendDesc = defaultBlendDesc(),
+		D3D12_RASTERIZER_DESC const& rasterDesc = defaultRasterizerDesc());
+
 	::Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> const& Get();
 
 	ID3D12GraphicsCommandList* Begin(renderTexture renderTarget);
@@ -94,6 +101,13 @@ public:
 	void Clear(FLOAT const clearColor[]);
 	void End();
 };
+
+struct shader_resource {
+	std::shared_ptr<void> bytecode;
+	uint32_t size;
+};
+
+shader_resource resource_ptr(UINT idr);
 
 }
 

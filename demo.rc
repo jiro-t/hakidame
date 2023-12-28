@@ -47,10 +47,11 @@ END
 
 /////////////////////////////////////////////////////////////////////////////
 //
-// WAVE
+// HLSL
 //
 
-IDR_WAVE1               WAVE                    "song.wav"
+IDR_DEFAULT_VS               HLSL                    "resource\\default.vs"
+IDR_DEFAULT_PS               HLSL                    "resource\\default.ps"
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -58,7 +59,7 @@ IDR_WAVE1               WAVE                    "song.wav"
 // MODEL
 //
 
-IDR_MODEL1              MODEL                   "resource\\shop.model"
+//IDR_MODEL1              MODEL                   "resource\\shop.model"
 
 
 /////////////////////////////////////////////////////////////////////////////
@@ -66,7 +67,7 @@ IDR_MODEL1              MODEL                   "resource\\shop.model"
 // TEXTURE
 //
 
-IDR_TEXTURE1             TEXTURE                  "resource\\sushi_Albedo.tex"
+//IDR_TEXTURE1             TEXTURE                  "resource\\sushi_Albedo.tex"
 
 #endif    // “ú–{Œê (“ú–{) resources
 /////////////////////////////////////////////////////////////////////////////

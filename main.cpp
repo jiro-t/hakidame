@@ -206,14 +206,39 @@ float4 PSMain(PSInput input) : SV_TARGET{\
 
 HRESULT create_pipeline(ino::d3d::pipeline& pipe)
 {
-	pipe.LoadShader(ino::d3d::ShaderTypes::VERTEX_SHADER, def_shader, sizeof(def_shader), L"VSMain");
-	pipe.LoadShader(ino::d3d::ShaderTypes::FRAGMENT_SHADER, def_shader, sizeof(def_shader), L"PSMain");
+	D3D12_ROOT_SIGNATURE_FLAGS flag = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT; // アプリケーションの入力アセンブラを使用する
+
+	D3D12_ROOT_PARAMETER rootParam[1] = {};
+	rootParam[0].ParameterType = D3D12_ROOT_PARAMETER_TYPE::D3D12_ROOT_PARAMETER_TYPE_CBV;
+	rootParam[0].Descriptor.ShaderRegister = 0;
+	rootParam[0].Descriptor.RegisterSpace = 0;
+	rootParam[0].ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+
+	//auto sampler = CD3DX12_STATIC_SAMPLER_DESC(0, D3D12_FILTER_MIN_MAG_MIP_LINEAR);
+
+	D3D12_ROOT_SIGNATURE_DESC desc = {};
+	desc.NumParameters = 1;
+	desc.pParameters = rootParam;
+	desc.NumStaticSamplers = 0;
+	desc.pStaticSamplers = 0;
+	desc.Flags = flag;
+
+	ino::d3d::shader_resource def_vs = ino::d3d::resource_ptr(IDR_DEFAULT_VS);
+	ino::d3d::shader_resource def_ps = ino::d3d::resource_ptr(IDR_DEFAULT_PS);
+
+	pipe.LoadShader(ino::d3d::ShaderTypes::VERTEX_SHADER, def_vs.bytecode.get(), def_vs.size);
+	pipe.LoadShader(ino::d3d::ShaderTypes::FRAGMENT_SHADER, def_ps.bytecode.get(), def_ps.size);
+
+	//pipe.LoadShader(ino::d3d::ShaderTypes::VERTEX_SHADER, def_shader, sizeof(def_shader), L"VSMain");
+	//pipe.LoadShader(ino::d3d::ShaderTypes::FRAGMENT_SHADER, def_shader, sizeof(def_shader), L"PSMain");
 
 	D3D12_INPUT_ELEMENT_DESC elementDescs[] = {
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
-		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, sizeof(float) * 4, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{ "NORMAL", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, sizeof(float) * 4, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+		{ "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, sizeof(float) * 4+ sizeof(float) * 4, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 	};
-	pipe.Create(elementDescs, 2);
+	//pipe.Create( elementDescs, 2);
+	pipe.CreateWithSignature(&desc,elementDescs, 3);
 	pipe.view = {
 		.Width = static_cast<FLOAT>(ino::d3d::screen_width),
 		.Height = static_cast<FLOAT>(ino::d3d::screen_height),
@@ -385,7 +410,7 @@ std::istream resStream = std::istream(&sbuf)\
 
 HGLOBAL Music()
 {
-	HRSRC resInfo = FindResource(0, MAKEINTRESOURCE(IDR_WAVE1), L"WAVE");
+	HRSRC resInfo = FindResource(0, MAKEINTRESOURCE(0/*IDR_WAVE1*/), L"WAVE");
 	HGLOBAL resData = LoadResource(0, resInfo);
 	LPVOID pvResData = LockResource(resData);
 
@@ -409,20 +434,18 @@ int main() {
 
 	HWND hwnd = CreateWindow(L"edit", 0, wnd_flg, 0, 0, ino::d3d::screen_width, ino::d3d::screen_height, 0, 0, 0, 0);
 	printf("init=%d\n", ino::d3d::init(hwnd, false, ino::d3d::screen_width, ino::d3d::screen_height));
-	//std::cout << ino::d3d::CheckDXRSupport(ino::d3d::device);
-	//[[maybe_unused]] int a;
 
 	//setup pipeline
 	ino::d3d::cbo<float> timeCbo;
 	ino::d3d::pipeline loadingPipe;
 	create_pipeline_loading(loadingPipe);
 
-	BOOL useDXR = FALSE;
-	if (!ino::d3d::CheckDXRSupport(ino::d3d::device))
-	{
-		MessageBox(0, L"this demo is using DXR!", L"", MB_OK);
-		return 0;
-	}
+	//BOOL useDXR = FALSE;
+	//if (!ino::d3d::CheckDXRSupport(ino::d3d::device))
+	//{
+	//	MessageBox(0, L"this demo is using DXR!", L"", MB_OK);
+	//	return 0;
+	//}
 
 	//resource
 	timeCbo.Create();
@@ -472,8 +495,8 @@ int main() {
 	cornel_box.vbo = *vboCornelBox;
 	cornel_box.ibo = *iboCornelBox;
 	{
-		resToStream(IDR_MODEL1, L"MODEL");
-		meshes.push_back(ino::gfx::obj::load_obj(resStream));
+		//resToStream(IDR_MODEL1, L"MODEL");
+		//meshes.push_back(ino::gfx::obj::load_obj(resStream));
 	}
 	draw_Loading(0.2);
 	ino::d3d::StaticMesh tri;
@@ -489,11 +512,12 @@ int main() {
 	//texture load
 	ino::d3d::texture meshTexture;
 	{
-		resToStream(IDR_TEXTURE1, L"TEXTURE");
-		meshTexture = loadTexture(resStream);
+		//resToStream(IDR_TEXTURE1, L"TEXTURE");
+		//meshTexture = loadTexture(resStream);
 	}
 
 	draw_Loading(0.7);//DxrResources
+/*
 	//Init DXR
 	ino::d3d::begin();
 	ino::d3d::dxr::InitDXRDevice();
@@ -512,7 +536,7 @@ int main() {
 	ino::d3d::dxr::DxrPipeline dxrPipe;
 	dxrPipe.Create();
 	ino::d3d::end();
-
+*/
 	draw_Loading(0.9);//RasterPipeline
 	ino::d3d::pipeline pipe[2];
 	create_pipeline(pipe[0]);
@@ -541,7 +565,7 @@ int main() {
 
 	draw_Loading(1);
 	//playSound
-	auto musicHandle = Music();
+	//auto musicHandle = Music();
 	ShowCursor(false);
 	srand(0);
 	cmds.reserve(256);
@@ -571,10 +595,10 @@ int main() {
 		time_o = c.now();
 		ino::d3d::begin();
 
-		ino::d3d::dxr::SceneConstant constants;
-		constants.cameraPos = camerapos;// DX::XMVectorSet(0, 0, -1, 1);
-		constants.invViewProj = invViewProj;
-		dxrPipe.SetConstantBuffer(&constants, sizeof(ino::d3d::dxr::SceneConstant));
+		//ino::d3d::dxr::SceneConstant constants;
+		//constants.cameraPos = camerapos;// DX::XMVectorSet(0, 0, -1, 1);
+		//constants.invViewProj = invViewProj;
+		//dxrPipe.SetConstantBuffer(&constants, sizeof(ino::d3d::dxr::SceneConstant));
 
 		static const FLOAT clearColor2[] = { 1.f, 1.f, 0.f, 1.0f };
 		//offscreen
@@ -607,7 +631,7 @@ int main() {
 		renderOffscreen[1].Set(cmds.back(), 2);
 		vbo->Draw(cmds.back());
 		pipe[1].End();
-
+/*
 		//Raytrace!
 		{
 			tlas.ClearInstance();
@@ -650,7 +674,7 @@ int main() {
 			vbo->Draw(cmds.back());
 			denoisePipe[i].End();
 		}
-
+*/
 		cmds.push_back(postPipe.Begin());
 		timeCbo.Set(cmds.back(), local_time, 0);
 		renderOffscreen[1].Set(cmds.back(), 1);
@@ -669,8 +693,8 @@ int main() {
 	delete vboCornelBox;
 	delete iboCornelBox;
 
-	UnlockResource(musicHandle);
-	FreeResource(musicHandle);
+	//UnlockResource(musicHandle);
+	//FreeResource(musicHandle);
 
 	ino::d3d::release();
 	ShowCursor(true);
